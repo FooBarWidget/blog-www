@@ -1,0 +1,1023 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Hongli Lai</title>
+  <subtitle>On Coding, Startups &amp; Life</subtitle>
+  <id>https://www.joyfulbikeshedding.com/blog</id>
+  <link href="https://www.joyfulbikeshedding.com/blog"/>
+  <link href="https://www.joyfulbikeshedding.com/feed.xml" rel="self"/>
+  <updated>2021-02-06T00:00:00+00:00</updated>
+  <author>
+    <name>Hongli Lai</name>
+  </author>
+  <entry>
+    <title>Traveling Ruby 20210206: maintenance update featuring Ruby 2.4</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2021-02-06-traveling-ruby-20210206-released.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2021-02-06-traveling-ruby-20210206-released.html</id>
+    <published>2021-02-06T00:00:00+00:00</published>
+    <updated>2021-02-08T15:46:36+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;&lt;a href="http://phusion.github.io/traveling-ruby"&gt;Traveling Ruby&lt;/a&gt; allows you to easily ship Ruby apps to end users. It lets you create self-contained Ruby app packages that run on multiple versions of Windows, Linux and macOS.&lt;/p&gt;
+
+&lt;p&gt;Today I’ve released version 20210206. This release supports Ruby 2.4, bumps all the gem versions, bumps the minimum supported macOS and Linux versions, and fixes some bugs.&lt;/p&gt;
+
+&lt;p&gt;It has been a &lt;em&gt;long&lt;/em&gt; time since the last release. So this post also adresses an elephant in the room: is Traveling Ruby back?&lt;/p&gt;
+</summary>
+    <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href="http://phusion.github.io/traveling-ruby"&gt;Traveling Ruby&lt;/a&gt; allows you to easily ship Ruby apps to end users. It lets you create self-contained Ruby app packages that run on multiple versions of Windows, Linux and macOS.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Today I've released &lt;a href="http://phusion.github.io/traveling-ruby"&gt;Traveling Ruby&lt;/a&gt; version 20210206. This release supports Ruby 2.4, bumps all the gem versions, bumps the minimum supported macOS and Linux versions, and fixes some bugs. You can find the exact changelog below.&lt;/p&gt;
+
+&lt;h2 id="the-elephant-in-the-room"&gt;The elephant in the room&lt;/h2&gt;
+
+&lt;p&gt;A more interesting question that the community will probably ask, is: is Traveling Ruby back? After all, it has been a &lt;em&gt;long&lt;/em&gt; time since the last release.&lt;/p&gt;
+
+&lt;p&gt;The answer is no. I &lt;a href="/blog/2021-01-06-the-future-of-traveling-ruby.html"&gt;blogged earlier about why Traveling Ruby stopped being maintained&lt;/a&gt;, and how a potential way forward would look like. Reviving Traveling Ruby is an effort that takes much more energy than just this release, and right now I do not have the resources to push such an effort.&lt;/p&gt;
+
+&lt;p&gt;So this release is meant to be a quick, conservative maintenance release. It was supposed to contain the least amount of changes to make Traveling Ruby releasable again on modern Linux and macOS systems, though these changes ended up to be &lt;a href="https://github.com/phusion/traveling-ruby/commits/rel-20210206"&gt;pretty extensive&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The previous release was based on Ruby 2.2. Because of the conservative nature of this latest release, I upgraded to the oldest Ruby (past 2.2) that is compileable on modern Linux and macOS systems. And that's Ruby 2.4.&lt;/p&gt;
+
+&lt;p&gt;This has a bunch of downsides. Besides not having the latest Ruby features, not all gems are compatible with Ruby 2.4, so I didn't upgrade the gems to their very latest versions. This has security implications. For example, we ship nokogiri 1.10, but this version &lt;a href="https://github.com/phusion/traveling-ruby/pull/108"&gt;has a vulnerability&lt;/a&gt; that's fixed in 1.11. Unfortunately 1.11 requires Ruby 2.5.&lt;/p&gt;
+
+&lt;p&gt;This release is mainly meant for &lt;a href="https://github.com/phusion/traveling-ruby/pull/94#issuecomment-754371791"&gt;existing Traveling Ruby users&lt;/a&gt;, to address their most urgent needs. But more effort is needed to &lt;em&gt;really&lt;/em&gt; bring Traveling Ruby to a good state.&lt;/p&gt;
+
+&lt;h2 id="changelog"&gt;Changelog&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;On Linux, dropped support for x86. Only x86_64 is now supported.&lt;/li&gt;
+  &lt;li&gt;On Windows, dropped support for x86. Only x64 is now supported.&lt;/li&gt;
+  &lt;li&gt;The minimum supported macOS version is now 10.14 Mojave.&lt;/li&gt;
+  &lt;li&gt;The minimum supported Linux version is now RHEL 7 / CentOS 7 / Debian 8 / Ubuntu 14.06 / glibc 2.17.&lt;/li&gt;
+  &lt;li&gt;Fixed support for paths containing spaces. Contributed by Ville Immonen (@fson) in &lt;a href="https://github.com/phusion/traveling-ruby/pull/94"&gt;PR #94&lt;/a&gt;. Closes &lt;a href="https://github.com/phusion/traveling-ruby/issues/38"&gt;issue #38&lt;/a&gt;.&lt;/li&gt;
+  &lt;li&gt;Upgraded CA certificates from that of CentOS 5 to that of CentOS 8.&lt;/li&gt;
+  &lt;li&gt;Upgraded OpenSSL to 1.1.1i.&lt;/li&gt;
+  &lt;li&gt;Upgraded GMP to 6.2.1.&lt;/li&gt;
+  &lt;li&gt;Upgraded libssh2 to 1.9.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded bundler gem to version 1.17.3.&lt;/li&gt;
+  &lt;li&gt;Upgraded bcrypt gem to 3.1.16.&lt;/li&gt;
+  &lt;li&gt;Upgraded charlock_holmes gem to 0.7.7.&lt;/li&gt;
+  &lt;li&gt;Upgraded curses gem to 1.4.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded escape_utils gem to 1.2.1.&lt;/li&gt;
+  &lt;li&gt;Upgraded fast-stemmer gem to 1.0.2.&lt;/li&gt;
+  &lt;li&gt;Upgraded ffi gem to 1.14.2.&lt;/li&gt;
+  &lt;li&gt;Upgraded hitimes gem to 2.0.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded json gem to 2.5.1.&lt;/li&gt;
+  &lt;li&gt;Upgraded kgio gem to 2.11.3.&lt;/li&gt;
+  &lt;li&gt;Upgraded mysql2 gem to 0.5.3.&lt;/li&gt;
+  &lt;li&gt;Upgraded nokogiri gem to 1.10.10.
+    &lt;ul&gt;
+      &lt;li&gt;On macOS: upgraded libxml2 to 2.9.10.&lt;/li&gt;
+      &lt;li&gt;On macOS: upgraded libxslt to 1.1.34.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Upgraded nokogumbo gem to 1.5.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded pg gem to 1.2.3.
+    &lt;ul&gt;
+      &lt;li&gt;Upgraded libpq to 13.1.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Upgraded posix-spawn gem 0.3.15.&lt;/li&gt;
+  &lt;li&gt;Upgraded puma gem to 5.1.1&lt;/li&gt;
+  &lt;li&gt;Upgraded raindrops gem to 0.19.1.&lt;/li&gt;
+  &lt;li&gt;Upgraded redcarpet gem to 3.5.1.&lt;/li&gt;
+  &lt;li&gt;Upgraded RedCloth gem to 4.3.2.&lt;/li&gt;
+  &lt;li&gt;Upgraded rugged gem to 1.1.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded sqlite3 gem to 1.4.2.
+    &lt;ul&gt;
+      &lt;li&gt;Upgraded libsqlite3 to 2020-3340000.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Upgraded thin gem to 1.8.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded unf_ext gem to 0.0.7.7.&lt;/li&gt;
+  &lt;li&gt;Upgraded unicorn gem to 5.8.0.&lt;/li&gt;
+  &lt;li&gt;Upgraded yajl-ruby gem to 1.4.1.&lt;/li&gt;
+  &lt;li&gt;Dropped github-markdown gem.&lt;/li&gt;
+&lt;/ul&gt;
+</content>
+  </entry>
+  <entry>
+    <title>An alternative to macOS's DYLD_LIBRARY_PATH</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2021-01-13-alternative-to-macos-dyld-library-path.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2021-01-13-alternative-to-macos-dyld-library-path.html</id>
+    <published>2021-01-13T00:00:00+00:00</published>
+    <updated>2021-02-08T15:46:36+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;In my &lt;a href="/blog/2021-01-06-the-future-of-traveling-ruby.html"&gt;last blog post about Traveling Ruby's future&lt;/a&gt;, I said that it's hard to democratize the development of Traveling Ruby because of System Integrity Protection (SIP). Traveling Ruby's build process relies on &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt;, which is blocked by SIP. This means that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Contributors that build Traveling Ruby on their own laptops, must disable SIP.&lt;/li&gt;
+  &lt;li&gt;Traveling Ruby cannot be built on many CI hosting services, such as Azure DevOps and Github Actions, because it's not possible to disable SIP there.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;After some research and experimentation, I've found an alternative to &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt;, meaning that it's no longer necessary to disable SIP. This significantly changes the ability to democratize Traveling Ruby's development.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;In my &lt;a href="/blog/2021-01-06-the-future-of-traveling-ruby.html"&gt;last blog post about Traveling Ruby's future&lt;/a&gt;, I said that it's hard to democratize the development of Traveling Ruby because of System Integrity Protection (SIP). Traveling Ruby's build process relies on &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt;, which is blocked by SIP. This means that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Contributors that build Traveling Ruby on their own laptops, must disable SIP.&lt;/li&gt;
+  &lt;li&gt;Traveling Ruby cannot be built on many CI hosting services, such as Azure DevOps and Github Actions, because it's not possible to disable SIP there.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;After some research and experimentation, I've found an alternative to &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt;, meaning that it's no longer necessary to disable SIP. This significantly changes the ability to democratize Traveling Ruby's development.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id="what-did-we-use-dyldlibrarypath-for"&gt;What did we use DYLD_LIBRARY_PATH for?&lt;/h2&gt;
+
+&lt;p&gt;Before we get to the new solution, let's revisit how the old solution worked.&lt;/p&gt;
+
+&lt;h3 id="how-macos-library-lookup-works"&gt;How macOS library lookup works&lt;/h3&gt;
+
+&lt;p&gt;How does macOS locate library dependencies for a given executable?&lt;/p&gt;
+
+&lt;p&gt;Answer: an executable contains a specification of library dependencies. Each entry is a path to that library, e.g. "/Users/hongli/example/libyaml.dylib".&lt;/p&gt;
+
+&lt;p&gt;Here's an example which compiles a C program that does nothing, but is linked to libyaml:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;'int main() { return 0; }'&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; foo.c
+cc foo.c &lt;span class="nt"&gt;-o&lt;/span&gt; foo &lt;span class="nt"&gt;-L&lt;/span&gt;/Users/hongli/example &lt;span class="nt"&gt;-lyaml&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We can use &lt;code&gt;otool -L foo&lt;/code&gt; to inspect the list of libraries that this executable requires:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;foo:
+    /Users/hongli/example/libyaml.dylib &lt;span class="o"&gt;(&lt;/span&gt;compatibility version 3.0.0, current version 3.3.0&lt;span class="o"&gt;)&lt;/span&gt;
+    /usr/lib/libSystem.B.dylib &lt;span class="o"&gt;(&lt;/span&gt;compatibility version 1.0.0, current version 1281.100.1&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;So here you go, &lt;code&gt;foo&lt;/code&gt; contains information that says "I depend on /Users/hongli/example/libyaml.dylib". Note that his is a full path. That's different from Linux, where executables say "I depend on libyaml.so" (not a full path).&lt;/p&gt;
+
+&lt;h3 id="relative-dependency-paths"&gt;Relative dependency paths&lt;/h3&gt;
+
+&lt;p&gt;In many cases, it's useful to have the OS locate dependencies &lt;em&gt;relative to&lt;/em&gt; the executable. For example, suppose we want to distribute the above program &lt;code&gt;foo&lt;/code&gt; to another user. We'll need to package all its dependencies. Hypothetically we'll want to package it like this:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;foo.tar.gz
+ |
+ +- bin/
+ |   |
+ |   +- foo
+ |
+ +- lib/
+     |
+     +- libyaml.dylib
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Suppose our friend extracts foo.tar.gz into "/Users/xiangling/foo", then runs "/Users/xiangling/foo/bin/foo". We'll want the OS to locate libyaml.dylib in "/Users/xiangling/lib", not in "/Users/hongli/example".&lt;/p&gt;
+
+&lt;p&gt;One way to achieve this is by ensuring that the executable's dependency list specifies &lt;code&gt;@executable_path/../lib/libyaml.dylib&lt;/code&gt;, instead of an absolute path to libyaml.dylib. macOS recognizes &lt;code&gt;@executable_path&lt;/code&gt; as a &lt;a href="https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/DynamicLibraryDesignGuidelines.html#//apple_ref/doc/uid/TP40002013-SW21"&gt;special directive&lt;/a&gt; that means "the directory in which the executable is located".&lt;/p&gt;
+
+&lt;p&gt;An executable's dependency list can be modified even after it's built, using &lt;a href="https://www.manpagez.com/man/1/install_name_tool/osx-10.11.6.php"&gt;install_name_tool&lt;/a&gt;. This tool is so called because each "path" in the dependency list is technically called an "install name".&lt;/p&gt;
+
+&lt;p&gt;So let's go ahead and modify our &lt;code&gt;foo&lt;/code&gt; executable's dependency list:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;install_name_tool &lt;span class="nt"&gt;-change&lt;/span&gt; @executable_path/../lib/libyaml.dylib foo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now, when we inspect the dependency list using &lt;code&gt;otool -L foo&lt;/code&gt;, we see that it's indeed modified:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;foo:
+    @executable_path/../lib/libyaml.dylib (compatibility version 3.0.0, current version 3.3.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="looking-up-dependencies-when-building-traveling-ruby"&gt;Looking up dependencies when building Traveling Ruby&lt;/h3&gt;
+
+&lt;p&gt;The Traveling Ruby build process goes like this:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Before building Ruby, we build dependencies such as libyaml. Dependencies are installed to a temporary location that we call the "runtime directory". This is something like &lt;code&gt;/Users/hongli/traveling-ruby/osx/runtime&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Then we build Ruby. This is done in a temporary directory such as &lt;code&gt;/tmp/ruby-XXX/ruby-XXX&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Finally, we copy the Ruby executable, as well as all dependencies, into a single directory tree, which we can then package into a tarball.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src="/images/2021/traveling-ruby-build-process-988711c0.png" alt="The Traveling Ruby build process" /&gt;&lt;/p&gt;
+
+&lt;p&gt;The final package directory looks like this:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;+- bin/
+|   |
+|   +- ruby
+|
++- lib/
+    |
+    +- libyaml.dylib
+    |
+    +- ...and other dependency libraries...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We ensure that all executables use &lt;code&gt;@executable_path/../lib&lt;/code&gt; to reference dependencies. So once packaged, the Ruby executable can locate all its dependencies.&lt;/p&gt;
+
+&lt;p&gt;But there's a problem during step 2. As part of building Ruby, we need to run the built Ruby executable, before it's copied over to the package directory. During this step, the Ruby executable is located in &lt;code&gt;/tmp/ruby-XXX/ruby-XXX/ruby&lt;/code&gt;. How will that Ruby executable locate its dependencies, which at that point are in the runtime directory &lt;code&gt;/Users/hongli/traveling-ruby/osx/runtime/lib&lt;/code&gt;?&lt;/p&gt;
+
+&lt;p&gt;We used to solve this problem by setting the environment variable &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt; to &lt;code&gt;/Users/hongli/traveling-ruby/osx/runtime/lib&lt;/code&gt;. This tells macOS to look for libraries in the given directories.&lt;/p&gt;
+
+&lt;p&gt;Now that &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt; stopped working on macOS systems with SIP enabled, it's time to look for a new solution.&lt;/p&gt;
+
+&lt;h2 id="new-solution-based-on-rpath"&gt;New solution based on @rpath&lt;/h2&gt;
+
+&lt;p&gt;Every macOS executable can embed a list of &lt;em&gt;library search paths&lt;/em&gt;, or &lt;a href="https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/RunpathDependentLibraries.html"&gt;"rpaths"&lt;/a&gt;. Whenever macOS encounters a dependency path that references "@rpath", macOS will search for that dependency in the embedded list of paths.&lt;/p&gt;
+
+&lt;p&gt;So unlike &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt;, which is set during runtime, the library search paths are embedded in the executable, which Apple seems secure enough to not block via SIP.&lt;/p&gt;
+
+&lt;p&gt;Some useful facts about rpaths:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;They do not have to be absolute paths: they too can reference "@executable_path"!&lt;/li&gt;
+  &lt;li&gt;They can be added or removed from an executable after it's built, not just during compile time.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Here's an example. Let's build a C program which does nothing but is linked to "/Users/hongli/example/libyaml.dylib". We also ensure that we add an rpath to this executable.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;'int main() { return 0; }'&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; foo.c
+cc foo.c &lt;span class="nt"&gt;-o&lt;/span&gt; foo &lt;span class="nt"&gt;-L&lt;/span&gt;/Users/hongli/example &lt;span class="nt"&gt;-lyaml&lt;/span&gt;
+install_name_tool &lt;span class="nt"&gt;-add_rpath&lt;/span&gt; @executable_path/../lib foo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;When we inspect the executable's list of rpaths with &lt;code&gt;otool -l foo | grep LC_RPATH -A2&lt;/code&gt;, we see:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;         cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/../lib (offset 12)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;However, just having this rpath entry is not enough. When we examine the dependency list with &lt;code&gt;otool -L foo&lt;/code&gt;, we see that the reference to libyaml.dylib is an absolute path.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;foo:
+    /Users/hongli/example/libyaml.dylib (compatibility version 3.0.0, current version 3.3.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;So when we start &lt;code&gt;foo&lt;/code&gt;, macOS will ignore the rpath, and will still locate libyaml in /Users/hongli/example. We can verify this by moving libyaml.dylib, and observing that &lt;code&gt;foo&lt;/code&gt; fails to start:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ mkdir ../lib
+$ mv /Users/hongli/example/libyaml.dylib ../lib/
+$ ./foo
+dyld: Library not loaded: /Users/hongli/example/libyaml.dylib
+  Referenced from: ./foo
+  Reason: image not found
+Abort trap: 6
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;So we change foo's dependency list to reference "@rpath":&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;install_name_tool &lt;span class="nt"&gt;-change&lt;/span&gt; /Users/hongli/example/libyaml.dylib @rpath/libyaml.dylib foo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This yields the following dependency list:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;foo:
+    @rpath/libyaml.dylib (compatibility version 3.0.0, current version 3.3.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now it works as expected. Suppose you package up &lt;code&gt;foo&lt;/code&gt; and &lt;code&gt;libyaml.dylib&lt;/code&gt; according to the package structure described earlier. If your friend extracts the tarball to "/Users/xiangling/foo" and runs &lt;code&gt;/Users/xiangling/foo/bin/foo&lt;/code&gt;, then here's what happens:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;macOS encounters a dependency named "@rpath/libyaml.dylib" and concludes that it needs to look for libyaml.dylib in the list of rpaths.&lt;/li&gt;
+  &lt;li&gt;macOS sees that the list of rpaths is &lt;code&gt;["@executable_path/../lib"]&lt;/code&gt;, and looks in there for libyaml.dylib.&lt;/li&gt;
+  &lt;li&gt;macOS interprets "@executable_path" as the actual executable's path, so it finds libyaml.dylib in "/Users/xiangling/foo/bin/../lib".&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;So the final solution is as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;We ensure that all executables are compiled with two rpaths:&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code&gt;@executable_path/../lib&lt;/code&gt;, and,&lt;/li&gt;
+      &lt;li&gt;the absolute path to the runtime directory.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;This way, if macOS can't find a dependency in &lt;code&gt;../lib&lt;/code&gt;, it will find it in the runtime directory.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;At the end of step 2 of the Traveling Ruby build process, we remove the absolute rpath to the runtime directory.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Now that it's no longer necessary to disable SIP, developing Traveling Ruby is a lot less of a hassle, and it paves the way to building on hosted CI services.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>The future of Traveling Ruby</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2021-01-06-the-future-of-traveling-ruby.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2021-01-06-the-future-of-traveling-ruby.html</id>
+    <published>2021-01-06T00:00:00+00:00</published>
+    <updated>2021-02-08T15:46:36+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;A couple of years ago, I had a dream: to make it dead-easy to distribute Ruby CLI apps to end users, without requiring those users to install Ruby or muck about with gems and Bundler. And thus &lt;a href="http://phusion.github.io/traveling-ruby"&gt;Traveling Ruby&lt;/a&gt; was born.&lt;/p&gt;
+
+&lt;p&gt;Traveling Ruby hasn't seen updates for quite a while now. Recently I tried making a new bugfix release, but I found it to be more challenging than I had hoped. In this article I reflect on those challenges, as well as on the future of Traveling Ruby.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;A couple of years ago, I had a dream: to make it dead-easy to distribute Ruby CLI apps to end users, without requiring those users to install Ruby or muck about with gems and Bundler. And thus &lt;a href="http://phusion.github.io/traveling-ruby"&gt;Traveling Ruby&lt;/a&gt; was born.&lt;/p&gt;
+
+&lt;p&gt;Traveling Ruby hasn't seen updates for quite a while now. Recently I tried making a new bugfix release, but I found it to be more challenging than I had hoped. In this article I reflect on those challenges, as well as on the future of Traveling Ruby.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id="the-dream-of-a-single-self-contained-package"&gt;The dream of a single, self-contained package&lt;/h2&gt;
+
+&lt;p&gt;Back in the 90s, I wrote Windows desktop apps with Delphi. Unlike its contemporary competitors such as Visual Basic and Java, which generated apps that required users to install a runtime, Delphi produced a single .exe that just works. Fast forward to the mid 2010s, and we saw that Go – which could also produce a single executable that required no runtime – was gaining popularity. Sometimes at the expense of Ruby.&lt;/p&gt;
+
+&lt;p&gt;While Traveling Ruby doesn't produce a single executable, it allows you to package your Ruby app as a single self-contained directory, which is good enough.&lt;/p&gt;
+
+&lt;h2 id="whats-needed-sustainability-and-democratization"&gt;What's needed: sustainability and democratization&lt;/h2&gt;
+
+&lt;p&gt;Traveling Ruby hasn't seen updates for quite a while now, but it's still being used. Yesterday, the author of the &lt;a href="https://docs.pact.io/"&gt;Pact contract testing framework&lt;/a&gt; asked me to do a new release, because he &lt;a href="https://github.com/phusion/traveling-ruby/pull/94#issuecomment-754371791"&gt;needed a bug fix for supporting paths that contain spaces&lt;/a&gt;. So I gave it a try. Predictably, the build system is broken due to all the changes in Linux and macOS the past few years, and fixing it all takes a lot of effort.&lt;/p&gt;
+
+&lt;p&gt;However, this is not a sustainable. The reason why Traveling Ruby stopped getting updates after a while is because it's too dependent on a single maintainer: myself. The main contributing factor to why there's only a single maintainer, is that maintaining Traveling Ruby requires &lt;a href="https://github.com/phusion/traveling-ruby/issues/88#issuecomment-336400119"&gt;expert knowledge on C-based build systems and binary compatibility&lt;/a&gt; for both Linux and macOS. This is a low-level skill that's not commonly found in the Ruby community.&lt;/p&gt;
+
+&lt;p&gt;The same issue potentially threatens &lt;a href="https://fullstaqruby.org"&gt;Fullstaq Ruby&lt;/a&gt;, which is my current main focus. Fullstaq Ruby also requires skills in the areas of C-based build systems, and OS packaging. This time I've learned my lesson, so I &lt;a href="/blog/2020-05-15-why-fullstaq-ruby.html"&gt;seek to make Fullstaq Ruby sustainable&lt;/a&gt; through these strategies:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Automation&lt;/strong&gt; of as many maintenance tasks as possible.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Knowledge sharing&lt;/strong&gt; through documentation. Allow anyone to learn the required skills, and clearly describe all the maintenance procedures.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Actively recruiting&lt;/strong&gt; more maintainers.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These strategies are not easily implemented, and take time. With Traveling Ruby, we didn't get much further than &lt;a href="https://github.com/phusion/traveling-ruby/issues/88#issuecomment-336400119"&gt;a short brain dump&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I hope to revive Traveling Ruby's vision one day. A successor project should employ the same strategies to ensure the sustainability of the project. A successor project should aim for &lt;strong&gt;democratization&lt;/strong&gt;: making it easy for &lt;em&gt;anyone&lt;/em&gt; to contribute.&lt;/p&gt;
+
+&lt;h2 id="challenges"&gt;Challenges&lt;/h2&gt;
+
+&lt;p&gt;In Traveling Ruby's case, macOS seems to be doing everything it can to prevent democratization from being realized.&lt;/p&gt;
+
+&lt;p&gt;Building Traveling Ruby requires setting up an isolated, carefully-controlled build environment. In Linux this is easy: spin up a Docker container. MacOS has no native containers: Docker for Mac is merely a Linux VM; containers don't run macOS inside. So we try to set up such an environment by using environment variables. However, some things cannot be isolated, such as random libraries in /usr/local. So this gives maintainers two options:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;While maintaining Traveling Ruby, temporarily clear elements that may pollute the build environment. When done with the maintenance work, restore those elements.&lt;/li&gt;
+  &lt;li&gt;Set up an entirely new, clean macOS instance, specifically for the purpose of maintaining Traveling Ruby. Preferably, make this a CI server so that we can automate things.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Option 1 is easier than 2, but it's a &lt;em&gt;hassle&lt;/em&gt;, and not automated.&lt;/p&gt;
+
+&lt;p&gt;Option 2 is very bad too:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Setting up a macOS CI server is very expensive, money-wise. This is because its license only allows running on Apple hardware. This means buying or renting dedicated Apple hardware, as opposed to spinning up virtualized cloud instances that run on commodity hardware.&lt;/li&gt;
+  &lt;li&gt;Setting up a macOS CI server is very expensive, time- and effort-wise. Virtualization is a great way to backup, restore and reset the CI server. But macOS is neither a good server OS, nor a good virtualization host. Installing Linux on Apple hardware is not an easy task. Installing macOS in a production-grade virtualizion platform, such as KVM, is also not an easy task.&lt;/li&gt;
+  &lt;li&gt;Thanks to the restrictive licensing, there are very few hosting providers that offer macOS. MacStadium and Amazon Web Services are all that I can think of. All of them are very expensive.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;What about CI providers, such as Azure DevOps and Github Actions? I hoped that they would bring about more democratization. Unfortunately, there are more roadblocks, making those options entirely unfeasible.&lt;/p&gt;
+
+&lt;p&gt;macOS's increasingly restrictive security features, conflict with Traveling Ruby's build environment. In particular, we rely on &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt;, but this doesn't work when System Integrity Protection (SIP) is enabled. Disabling SIP on managed CI instances such as Azure DevOps or Github Actions is not possible. I don't know whether disabling SIP on MacStadium and AWS is possible.&lt;/p&gt;
+
+&lt;p&gt;This means that we'll need a dedicated Mac machine for maintainers to use. Someone has to buy it, build it and maintain it. This makes that someone a potential bottleneck.&lt;/p&gt;
+
+&lt;p&gt;macOS also evolves in much more impactful ways than Linux. This makes knowledge sharing hard, because the knowledge must be ever-evolving. Maintainers must be experts that both understand the underlying issues, as well as keep up with the latest changes, so that they can debug new problems. Finding out that &lt;code&gt;DYLD_LIBRARY_PATH&lt;/code&gt; stopped working due to System Integrity Protection, is an example of an obscure problem that's not easily diagnosed by those with insufficient knowledge of macOS's internals.&lt;/p&gt;
+
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Making a successor to Traveling Ruby, that's sustainable and democratized, is no easy task, in large thanks to macOS. I have no easy answers to these challenges: it seems that there's no option but to bite the bullet. I hope that its dream will be fulfilled some day, because I love Ruby.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>How Debian packaging works</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2020-08-03-how-debian-packaging-works.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2020-08-03-how-debian-packaging-works.html</id>
+    <published>2020-08-03T00:00:00+00:00</published>
+    <updated>2021-02-08T15:46:36+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;Debian packaging can be quite mysterious and hard to figure out. In this guide I'll provide a simple introduction into the Debian packaging process and its most important concepts.&lt;/p&gt;
+
+&lt;p&gt;This is not a full guide into all aspects of packaging. Instead, I'll cover just enough of the basics to help you develop a mental model of what Debian packaging is about, and to be able to produce useful results.&lt;/p&gt;
+
+&lt;p&gt;I'll cover:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;What a Debian package is.&lt;/li&gt;
+  &lt;li&gt;The anatomy of a package.&lt;/li&gt;
+  &lt;li&gt;How to inspect a package.&lt;/li&gt;
+  &lt;li&gt;How to create a package.&lt;/li&gt;
+  &lt;li&gt;What APT repositories are.&lt;/li&gt;
+  &lt;li&gt;How to create an APT repository.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;Debian packaging can be quite mysterious and hard to figure out. In this guide I'll provide a simple introduction into the Debian packaging process and its most important concepts.&lt;/p&gt;
+
+&lt;p&gt;This is not a full guide into all aspects of packaging. Instead, I'll cover just enough of the basics to help you develop a mental model of what Debian packaging is about, and to be able to produce useful results.&lt;/p&gt;
+
+&lt;p&gt;I'll cover:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;What a Debian package is.&lt;/li&gt;
+  &lt;li&gt;The anatomy of a package.&lt;/li&gt;
+  &lt;li&gt;How to inspect a package.&lt;/li&gt;
+  &lt;li&gt;How to create a package.&lt;/li&gt;
+  &lt;li&gt;What APT repositories are.&lt;/li&gt;
+  &lt;li&gt;How to create an APT repository.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Table of contents&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href="#what-is-a-debian-package"&gt;What is a Debian package?&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#two-layers-of-package-management-tooling-dpkg-and-apt"&gt;Two layers of package management tooling: dpkg and APT&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#packaging-without-debian"&gt;Packaging without Debian&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#inspecting-a-package-with-dpkg"&gt;Inspecting a package with dpkg&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#inspecting-metadata"&gt;Inspecting metadata&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#inspecting-files"&gt;Inspecting files&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href="#inspecting-a-package-with-midnight-commander"&gt;Inspecting a package with Midnight Commander&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#creating-packages-with-fpm-aka-the-easy-way"&gt;Creating packages with FPM (a.k.a. the easy way)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#the-official-package-creation-process-aka-the-hard-way"&gt;The official package creation process (a.k.a. the hard way)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#what-is-an-apt-repository"&gt;What is an APT repository?&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#distributions-components-and-architectures"&gt;Distributions, components and architectures&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#real-life-repository-example"&gt;Real-life repository example&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#apt-repository-tooling"&gt;APT repository tooling&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href="#creating-an-apt-repository-with-aptly"&gt;Creating an APT repository with aptly&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="#conclusion"&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="what-is-a-debian-package"&gt;What is a Debian package?&lt;/h2&gt;
+
+&lt;p&gt;A Debian package contains &lt;strong&gt;metadata&lt;/strong&gt; and &lt;strong&gt;files&lt;/strong&gt;. The metadata contains the package name, description, a list of dependencies, and more. The files are extracted into the filesystem root (/), so the file paths in a package are absolute paths.&lt;/p&gt;
+
+&lt;p&gt;So a Debian package file — a .deb file — is sort of like a tar.gz or zip. It's not actually a tar.gz or zip: the format is &lt;a href="https://en.wikipedia.org/wiki/Ar_(Unix)"&gt;ar&lt;/a&gt; although that's not important.&lt;/p&gt;
+
+&lt;p&gt;Debian packaging, in its simplest form, thus involves creating a .deb file with the metadata and files that you want to put inside it.&lt;/p&gt;
+
+&lt;h2 id="two-layers-of-package-management-tooling-dpkg-and-apt"&gt;Two layers of package management tooling: dpkg and APT&lt;/h2&gt;
+
+&lt;p&gt;The Debian packaging system actually consists of two parts. The lowest part is &lt;code&gt;dpkg&lt;/code&gt; and is what manages the system's database that describes which packages are installed. Dpkg can install .deb files and remove already-installed packages.&lt;/p&gt;
+
+&lt;p&gt;APT handles downloading .deb files from the Internet, as well as dependency resolution. Dpkg does not handle that. That's why users usually only interact with APT, even though dpkg is the part that performs the core of the work.&lt;/p&gt;
+
+&lt;p&gt;The dpkg-APT relationship is like the RPM-DNF relationship on RHEL/CentOS (or RPM-YUM on older versions).&lt;/p&gt;
+
+&lt;h2 id="packaging-without-debian"&gt;Packaging without Debian&lt;/h2&gt;
+
+&lt;p&gt;You actually don't need to run Debian/Ubuntu in order to create and inspect Debian packages! The Debian package manager &lt;code&gt;dpkg&lt;/code&gt; is available on other operating systems too. Just don't expect to be able to &lt;em&gt;install&lt;/em&gt; any useful packages.&lt;/p&gt;
+
+&lt;p&gt;Go ahead and install dpkg, because the rest of this article assumes that you have it.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# RHEL/CentOS; make sure EPEL is enabled first&lt;/span&gt;
+yum install dpkg
+
+&lt;span class="c"&gt;# macOS&lt;/span&gt;
+brew install dpkg
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="inspecting-a-package-with-dpkg"&gt;Inspecting a package with dpkg&lt;/h2&gt;
+
+&lt;p&gt;Download &lt;a href="https://oss-binaries.phusionpassenger.com/apt/passenger/pool/main/p/passenger/passenger-dev_6.0.6-1~xenial1_amd64.deb"&gt;a random .deb file&lt;/a&gt; to work with.&lt;/p&gt;
+
+&lt;h3 id="inspecting-metadata"&gt;Inspecting metadata&lt;/h3&gt;
+
+&lt;p&gt;You can inspect a Debian package's most important metadata — the "control" section — as follows:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;dpkg-deb &lt;span class="nt"&gt;--info&lt;/span&gt; passenger-dev_6.0.6-1~xenial1_amd64.deb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Which outputs:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt; new Debian package, version 2.0.
+ size 4237584 bytes: control archive=3124 bytes.
+     841 bytes,    20 lines      control
+    8644 bytes,    79 lines      md5sums
+ Package: passenger-dev
+ Source: passenger
+ Version: 1:6.0.6-1~xenial1
+ Architecture: amd64
+ Maintainer: Phusion &amp;lt;info@phusion.nl&amp;gt;
+ Installed-Size: 41972
+ Depends: ruby2.7 | ruby2.6 | ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter, passenger (= 1:6.0.6-1~xenial1)
+ Conflicts: ruby-passenger-dev
+ Replaces: ruby-passenger-dev
+ Provides: ruby-passenger-dev
+ Section: ruby
+ Priority: optional
+ Homepage: https://www.phusionpassenger.com/
+ Description: Dependencies for compiling an Nginx module
+  Convenience package that helps users to easily create
+  a custom compilation of Nginx and the Passenger
+  application server. Passenger is a Phusion product that
+  makes deployment of web apps very easy and robust.
+  .
+  This convenience package provides the development dependencies for compiling an Nginx module.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Most of the fields are pretty self-explanatory. For an overview of all fields, and a deeper explanation of what they mean, have a look at the &lt;a href="https://www.debian.org/doc/debian-policy/ch-controlfields.html"&gt;Debian Policy Manual&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;There's more metadata than just the control section. You can view the other metadata by extracting all metadata to files:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;dpkg-deb &lt;span class="nt"&gt;--control&lt;/span&gt; passenger-dev_6.0.6-1~xenial1_amd64.deb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The above extracts the metadata to the current working directory, in a subdirectory called DEBIAN. In case of the &lt;code&gt;passenger-dev&lt;/code&gt; package, the only other metadata present is an &lt;code&gt;md5sums&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;5613a201b8ff4e15a1c55c46678e8d48  usr/lib/passenger/common/libboost_oxt.a
+9240bd822145a709fc24ed6e5d80e115  usr/lib/passenger/common/libpassenger_common/Algorithms/Hasher.o
+eaecffb28791bddda583f4869867083f  usr/lib/passenger/common/libpassenger_common/AppTypeDetector/CBindings.o
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="inspecting-files"&gt;Inspecting files&lt;/h3&gt;
+
+&lt;p&gt;You can inspect a package's files as follows:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;dpkg-deb &lt;span class="nt"&gt;--contents&lt;/span&gt; passenger-dev_6.0.6-1~xenial1_amd64.deb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This prints:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;drwxr-xr-x root/root         0 2020-07-14 04:40 ./
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/lib/
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/lib/passenger/
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/lib/passenger/common/
+drwxr-xr-x root/root         0 2020-07-14 04:39 ./usr/lib/passenger/common/libpassenger_common/
+drwxr-xr-x root/root         0 2020-07-14 04:39 ./usr/lib/passenger/common/libpassenger_common/JsonTools/
+-rw-r--r-- root/root    785616 2020-07-14 04:39 ./usr/lib/passenger/common/libpassenger_common/JsonTools/CBindings.o
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="inspecting-a-package-with-midnight-commander"&gt;Inspecting a package with Midnight Commander&lt;/h2&gt;
+
+&lt;p&gt;For those who prefer to a more visual way to inspect the contents of a package, there's &lt;a href="https://midnight-commander.org/"&gt;Midnight Commander&lt;/a&gt;. It's a terminal-based visual file manager, which can peek inside many types of archives, including Debian packages.&lt;/p&gt;
+
+&lt;p&gt;Install it with:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# Debian/Ubuntu&lt;/span&gt;
+apt install mc
+
+&lt;span class="c"&gt;# RHEL/CentOS&lt;/span&gt;
+yum install mc
+
+&lt;span class="c"&gt;# macOS&lt;/span&gt;
+brew install midnight-commander
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Midnight Commander's Debian package support requires dpkg to be installed, so &lt;a href="#packaging-without-debian"&gt;be sure to have it installed&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Open Midnight Commander…&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;mc
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;…then open a .deb file. You should see a file listing. Here's what they mean:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CONTENTS/ — package files (equivalent to &lt;code&gt;dpkg-deb --contents&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;DEBIAN/ — all metadata files (equivalent to &lt;code&gt;dpkg-deb --control&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;INFO — just the control file (equivalent to &lt;code&gt;dpkg-deb --info&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;View the INFO file by selecting it and pressing F3, and you should see the control metadata in all its glory:&lt;/p&gt;
+
+&lt;figure&gt;
+    &lt;img src="/images/2020/mc-deb-cab579b9.png" alt="" /&gt;
+&lt;/figure&gt;
+
+&lt;h2 id="creating-packages-with-fpm-aka-the-easy-way"&gt;Creating packages with FPM (a.k.a. the easy way)&lt;/h2&gt;
+
+&lt;p&gt;The easiest way to create a Debian package is with &lt;a href="http://fpm.readthedocs.io/en/latest/"&gt;FPM&lt;/a&gt;. FPM is a CLI tool. You tell FPM what metadata and files you want to put in the package, and it does just that.&lt;/p&gt;
+
+&lt;p&gt;Note that using FPM is not the "right" way to create a Debian package if you want to submit a package for inclusion in a Linux distribution. If that's not your goal, then FPM is fine. We'll get back later to what "the right way" means.&lt;/p&gt;
+
+&lt;p&gt;FPM requires &lt;code&gt;dpkg&lt;/code&gt;, so &lt;a href="#packaging-without-debian"&gt;make sure you have that installed already&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;FPM is written in Ruby, so you can install it with the RubyGems package manager:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;gem install fpm &lt;span class="nt"&gt;--no-document&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To see it in action, let's use FPM to make a simple package that contains a file called /usr/share/doc/mypackage/README.txt, and which depends on 'curl':&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s1"&gt;'hello FPM'&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; README.txt
+fpm &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--input-type&lt;/span&gt; dir &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--output-type&lt;/span&gt; deb &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--name&lt;/span&gt; mypackage &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--version&lt;/span&gt; 1.0.0 &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--architecture&lt;/span&gt; all &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--package&lt;/span&gt; mypackage_1.0.0_all.deb &lt;span class="se"&gt;\&lt;/span&gt;
+  &lt;span class="nt"&gt;--depends&lt;/span&gt; curl &lt;span class="se"&gt;\&lt;/span&gt;
+  README.txt&lt;span class="o"&gt;=&lt;/span&gt;/usr/share/doc/mypackage/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Many more customization options are available. See &lt;code&gt;fpm --help&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Congratulations! You've created your first Debian package. But having a .deb file just gets you half way: you also need an APT repository, because users seldomly interact with individual .deb files. We'll get back to that later.&lt;/p&gt;
+
+&lt;h2 id="the-official-package-creation-process-aka-the-hard-way"&gt;The official package creation process (a.k.a. the hard way)&lt;/h2&gt;
+
+&lt;p&gt;How come FPM is not the "right" way to package if you want to submit your package for inclusion in Linux distributions? It's because distributions want you to fully describe the entire package building process, and because using FPM does not adhere to their process standards.&lt;/p&gt;
+
+&lt;p&gt;Think about how the full package building process looks like:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Get the source code.&lt;/li&gt;
+  &lt;li&gt;Compile the source code.&lt;/li&gt;
+  &lt;li&gt;Create the package file. Here you map files in the source tree, and compilation artifacts, into files inside a package.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;FPM only covers step 3. It creates a so-called &lt;strong&gt;binary package&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Distributions expect you to create a so-called &lt;strong&gt;source package&lt;/strong&gt;, which contains files that describe steps 1 and 2. You then submit the source code package — not the binary package — to distributions, and &lt;em&gt;they&lt;/em&gt; build the binary package for you.&lt;/p&gt;
+
+&lt;p&gt;How to create a source package, and how the official Debian packaging process works, is outside the scope of this article. In any case, that process, and the surrounding tooling, are quite arcane, badly documented, and frankly a usability nightmare. If they weren't, you wouldn't be reading this article in the first place. I do not recommend using the official process or the official tools, unless your explicit goal is to contribute to distributions. Stick with the easy way for as long as you can.&lt;/p&gt;
+
+&lt;h2 id="what-is-an-apt-repository"&gt;What is an APT repository?&lt;/h2&gt;
+
+&lt;p&gt;A repository is a directory which contains one or more packages (.deb files), as well as metadata files that contain:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Files that list which packages exist in the repository.&lt;/li&gt;
+  &lt;li&gt;A copy of all packages' control metadata.&lt;/li&gt;
+  &lt;li&gt;Checksums and signatures.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A repository is usually served over HTTP, but can also be a local directory.&lt;/p&gt;
+
+&lt;h3 id="distributions-components-and-architectures"&gt;Distributions, components and architectures&lt;/h3&gt;
+
+&lt;p&gt;A single repository can contain packages for &lt;em&gt;multiple distributions&lt;/em&gt;. But note that the concept of "distribution" should be taken with a grain of salt. For example, the official Ubuntu repository defines "bionic", "bionic-updates" and "bionic-backports". As far as APT is concerned, a "distribution" is just a name, for APT to figure out which subdirectory to choose.&lt;/p&gt;
+
+&lt;p&gt;A repository can also be organized in multiple &lt;em&gt;components&lt;/em&gt;. Users can opt-in for specific components. For example, the official Ubuntu repository has the components &lt;a href="https://www.howtogeek.com/194247/whats-the-difference-between-main-restricted-universe-and-multiverse-on-ubuntu/"&gt;"main", "multiverse", "universe" and more&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Finally, a repository is also organized in &lt;em&gt;architectures&lt;/em&gt;. APT only downloads packages intended for the current system's architecture.&lt;/p&gt;
+
+&lt;h3 id="real-life-repository-example"&gt;Real-life repository example&lt;/h3&gt;
+
+&lt;p&gt;Let's take a look at a real-life example of a repository. If we look in /etc/apt/sources.list on an Ubuntu system, then we see lines like this:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;deb http://archive.ubuntu.com/ubuntu   bionic   main restricted
+#   |-------------- 1 --------------|  |- 2 -|  |----- 3 -----|
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Here's what the line means:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;The URL of the repository.&lt;/li&gt;
+  &lt;li&gt;Which distribution within the repository to pick.&lt;/li&gt;
+  &lt;li&gt;Which components within (2) to pick.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If we head to &lt;a href="http://archive.ubuntu.com/ubuntu"&gt;archive.ubuntu.com/ubuntu&lt;/a&gt;, then we see many files. Here are some interesting parts:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;pool/&lt;/code&gt; contains the actual .deb files, for all Ubuntu distributions.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;dists/&amp;lt;DISTRO&amp;gt;/&amp;lt;COMPONENT&amp;gt;/binary-&amp;lt;ARCH&amp;gt;&lt;/code&gt; contains the repository metadata files for a particular distribution, component and architecture.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id="apt-repository-tooling"&gt;APT repository tooling&lt;/h3&gt;
+
+&lt;p&gt;There are many tools available to create a APT repositories. But most of them are not… ahem… &lt;em&gt;sane&lt;/em&gt;: bad documentation, bad usability.&lt;/p&gt;
+
+&lt;p&gt;An often used hosted solution for "third-party" packages (packages that are not part of a distribution) is &lt;a href="https://help.launchpad.net/Packaging/PPA"&gt;Ubuntu PPAs&lt;/a&gt; (Personal Package Archives). However, I do not recommend it because Ubuntu PPA expects you to upload source packages only — &lt;em&gt;they&lt;/em&gt; will handle building binaries for you. This means you have to use the official Debian packaging tooling, which makes everything exponentially harder. Furthermore, the Ubuntu PPA user interface is very confusing, and its package uploading process is very primitive, cumbersome and unforgiving. It literally involves uploading raw files to an FTP server, and waiting for an email with the build results.&lt;/p&gt;
+
+&lt;p&gt;The most friendly open source, self-hosted solution I've seen is &lt;a href="https://www.aptly.info/"&gt;Aptly&lt;/a&gt;. Just be sure to use version 1.4 or later. Earlier versions have pretty bad bugs.&lt;/p&gt;
+
+&lt;p&gt;Another option is &lt;a href="https://bintray.com/"&gt;Bintray&lt;/a&gt;. Bintray is a commercial, hosted solution. They provide a free plan for open source projects. Unlike Ubuntu PPAs, they don't.&lt;/p&gt;
+
+&lt;h2 id="creating-an-apt-repository-with-aptly"&gt;Creating an APT repository with aptly&lt;/h2&gt;
+
+&lt;p&gt;Aptly does not directly operate on the APT repo files of the sort that you see in &lt;a href="http://archive.ubuntu.com/ubuntu"&gt;archive.ubuntu.com/ubuntu&lt;/a&gt;. Instead, it operates primarily on an &lt;em&gt;internal&lt;/em&gt; database. You then tell Aptly to &lt;em&gt;publish&lt;/em&gt; (export) its internal database to a "real" APT repository, in the format that APT expects.&lt;/p&gt;
+
+&lt;p&gt;The Aptly internal database is stored in &lt;code&gt;~/.aptly&lt;/code&gt; by default. When you tell Aptly to publish its internal database, it publishes to &lt;code&gt;~/.aptly/public&lt;/code&gt; by default. Both of these paths are customizable through the Aptly &lt;a href="https://www.aptly.info/doc/configuration/"&gt;configuration file&lt;/a&gt;, but for the purposes of this demo let's stick to the default paths.&lt;/p&gt;
+
+&lt;p&gt;So let's see it in action. First, tell Aptly to create a repository named "myrepo":&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;aptly repo create myrepo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, import the .deb file we created, into the "myrepo" repository.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;aptly repo add myrepo /path/to/mypackage_1.0.0_all.deb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We now have an internal repository with one package in it. To publish it to a "real" APT repository, we have to create a &lt;em&gt;publication&lt;/em&gt; that's linked to a particular repository.&lt;/p&gt;
+
+&lt;p&gt;The package we built is distribution-agnostic and architecture-agnostic. So let's say that it belongs to the "agnostic" distribution, the "main" component, and the "amd64" (Debian's name for x86_64) architecture.&lt;/p&gt;
+
+&lt;p&gt;APT repositories are normally GPG signed, but in this demo we'll skip signing in order to avoid going through the trouble.&lt;/p&gt;
+
+&lt;p&gt;Create the publication as follows:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;aptly publish repo &lt;span class="nt"&gt;-skip-signing&lt;/span&gt; &lt;span class="nt"&gt;-distribution&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;agnostic &lt;span class="nt"&gt;-component&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;main &lt;span class="nt"&gt;-architectures&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;amd64 myrepo
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now we have an APT repository in &lt;code&gt;~/.aptly/public&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ find ~/.aptly/public/dists/agnostic -type f
+~/.aptly/public/dists/agnostic/Contents-amd64.gz
+~/.aptly/public/dists/agnostic/Release
+~/.aptly/public/dists/agnostic/main/Contents-amd64.gz
+~/.aptly/public/dists/agnostic/main/binary-amd64/Packages.gz
+~/.aptly/public/dists/agnostic/main/binary-amd64/Release
+~/.aptly/public/dists/agnostic/main/binary-amd64/Packages.bz2
+~/.aptly/public/dists/agnostic/main/binary-amd64/Packages
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Let's try to use this APT repository on a Debian or Ubuntu server. We tar up this repo and copy it to a Debian/Ubuntu server:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;tar&lt;/span&gt; &lt;span class="nt"&gt;-C&lt;/span&gt; ~/.aptly/public &lt;span class="nt"&gt;-czf&lt;/span&gt; myaptrepo.tar.gz &lt;span class="nb"&gt;.&lt;/span&gt;
+scp myaptrepo.tar.gz mydebianserver.com:
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Then we login to the Debian/Ubuntu server, extract the tarball somewhere, and add it as an APT source:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# On the Debian/Ubuntu server:&lt;/span&gt;
+mkdir myaptrepo
+&lt;span class="nb"&gt;tar&lt;/span&gt; &lt;span class="nt"&gt;-C&lt;/span&gt; myaptrepo &lt;span class="nt"&gt;-xzf&lt;/span&gt; myaptrepo.tar.gz
+&lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;"deb [allow-insecure=yes] file:&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;pwd&lt;/span&gt;&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;/myaptrepo agnostic main"&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+  | &lt;span class="nb"&gt;sudo &lt;/span&gt;tee /etc/apt/sources.list.d/myaptrepo.list
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Then install the package and verify that it works:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# On the Debian/Ubuntu server:&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;apt update
+&lt;span class="nb"&gt;sudo &lt;/span&gt;apt install mypackage
+&lt;span class="nb"&gt;cat&lt;/span&gt; /usr/share/doc/mypackage/README.txt
+&lt;span class="c"&gt;# =&amp;gt; hello FPM&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Most Debian packaging documentation out there are about the official packaging process for Linux distributions. For some reason, the use case of independent software vendors, or the use case of people who just want to package their internal apps for their internal infrastructure, is widely neglected. They shouldn't be. I hope that with this guide, you've been able to make sense of Debian packaging, and that I've helped you on your way to create your own packages. Good luck!&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Why piping to 'cat' can stuck a CI job 🙀</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2020-07-21-why-piping-to-cat-can-stuck-a-ci-job.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2020-07-21-why-piping-to-cat-can-stuck-a-ci-job.html</id>
+    <published>2020-07-21T00:00:00+00:00</published>
+    <updated>2021-02-08T15:46:36+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;What's the difference between &lt;code&gt;command&lt;/code&gt; and &lt;code&gt;command | cat&lt;/code&gt;? There shouldn't be any, right? The first prints the output directly, and the latter prints output via cat, but they should have the same effect. Not so: the latter can cause the command to get stuck indefinitely. This has given a particular CI pipeline of mine quite some headache.&lt;/p&gt;
+
+&lt;p&gt;To learn why this happens, and how we can mitigate this problem, we need to dive into the arcane magic that is Unix process management. Join me on this journey.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;What's the difference between &lt;code&gt;command&lt;/code&gt; and &lt;code&gt;command | cat&lt;/code&gt;? There shouldn't be any, right? The first prints the output directly, and the latter prints output via cat, but they should have the same effect. Not so: the latter can cause the command to get stuck indefinitely. This has given a particular CI pipeline of mine quite some headache.&lt;/p&gt;
+
+&lt;p&gt;To learn why this happens, and how we can mitigate this problem, we need to dive into the arcane magic that is Unix process management. Join me on this journey.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id="it-started-with-an-innocent-pipe-"&gt;It started with an innocent pipe 👼&lt;/h2&gt;
+
+&lt;p&gt;I have a CI job that uses &lt;a href="https://www.cypress.io/"&gt;Cypress&lt;/a&gt; — an end-to-end Javascript testing framework that works by controlling a headless browser — to perform integration tests.&lt;/p&gt;
+
+&lt;p&gt;At some point, I wanted to parse the Cypress output in order to extract information about the Cypress run, such as how many times failed tests were retried. I also wanted the Cypress output to show up in my CI pipeline in real time, rather than only after the Cypress run was completed.&lt;/p&gt;
+
+&lt;p&gt;So I chose to pipe Cypress's output to &lt;code&gt;tee&lt;/code&gt;. Tee is a tool similar to cat: it prints everything consumed from standard input, but &lt;em&gt;also&lt;/em&gt; writes a copy to a file, which we can inspect later. My code looked like this:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;cypress run | tee cypress.log
+parse cypress.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;After this change, my CI job started to get stuck &lt;em&gt;occasionally&lt;/em&gt;. 🤷‍♂️ Thinking I went insane, I double checked a couple of things:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Was the OS upgraded recently? Nope.&lt;/li&gt;
+  &lt;li&gt;Was a dependency upgraded recently? Nope.&lt;/li&gt;
+  &lt;li&gt;Does upgrading Cypress and Headless Chrome make the problem go away? Nope.&lt;/li&gt;
+  &lt;li&gt;Does removing the &lt;code&gt;tee&lt;/code&gt; pipe make the problem go away? &lt;strong&gt;Yes.&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I noticed a pattern: when the CI job gets stuck, then Cypress was always in a complete state: all tests have finished, and Cypress has written its final output. In other words, it was as if Cypress was stuck during some shutdown routine.&lt;/p&gt;
+
+&lt;p&gt;I started poking around in the CI server and observed a few peculiar things:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The main Cypress process is gone, but &lt;code&gt;tee&lt;/code&gt; is still alive.&lt;/li&gt;
+  &lt;li&gt;A few Cypress subprocesses, such as Headless Chrome and a bunch of Cypress helper processes, are still alive.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When I put all of this together, and thought about how Unix process management works, a lightbulb started to shine. 💡 How could I not have seen it coming?&lt;/p&gt;
+
+&lt;h2 id="whats-going-on"&gt;What's going on&lt;/h2&gt;
+
+&lt;p&gt;When we run &lt;code&gt;cypress run | tee cypress.log&lt;/code&gt;, Bash waits for &lt;code&gt;cypress&lt;/code&gt; and for &lt;code&gt;tee&lt;/code&gt; to finish. The caveat lies in the latter.&lt;/p&gt;
+
+&lt;p&gt;Tee finishes when it is done reading all its standard input.&lt;/p&gt;
+
+&lt;p&gt;Question: where does tee's standard input come from?&lt;/p&gt;
+
+&lt;p&gt;Answer: from &lt;code&gt;cypress run&lt;/code&gt;'s standard output. But not &lt;em&gt;only&lt;/em&gt; &lt;code&gt;cypress run&lt;/code&gt;. When a Unix process creates subprocesses, all subprocesses inherit the standard output channel. In other words, all &lt;code&gt;cypress run&lt;/code&gt; subprocesses' standard output are connected to &lt;code&gt;tee&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here's how the situation looks like right after we ran &lt;code&gt;cypress run | tee cypress.log&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure&gt;
+    &lt;img src="/images/2020/bash-wait-process-with-children-455d2f05.png" alt="" /&gt;
+    &lt;figcaption&gt;Bash waits for 'cypress run' and 'tee'. Cypress and all its subprocesses' stdout are connected to tee's stdin.&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;When Cypress has finished running all its tests, &lt;code&gt;cypress run&lt;/code&gt; exits. But sometimes, for reasons that are still not clear to me, Cypress' subprocesses don't exit. But because the subprocesses' standard outputs are still connected to tee's standard input, tee does not exit either, and so bash ends up waiting for tee indefinitely:&lt;/p&gt;
+
+&lt;figure&gt;
+    &lt;img src="/images/2020/bash-wait-process-with-children-cypress-run-gone-ae8f7b36.png" alt="" /&gt;
+    &lt;figcaption&gt;Tee keeps waiting for all Cypress subprocesses to go away.&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Of course, it's not good that Cypress subprocesses don't exit. And the cause for that should be investigated. But this case shows how insidious Unix can be, and how small, seemingly-innocent changes can end up behaving very differently from expectations.&lt;/p&gt;
+
+&lt;h2 id="reproducing-with-cat-"&gt;Reproducing with 'cat' 🐱&lt;/h2&gt;
+
+&lt;p&gt;In order to confirm that I was right, I ran the following experiment, which recreates the above situation without using Cypress. This experiment only uses bash and &lt;code&gt;sleep&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="o"&gt;(&lt;/span&gt;sleep 999 &amp;amp; &lt;span class="nb"&gt;echo &lt;/span&gt;hi&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The above command spawns a subshell, which spawns &lt;code&gt;sleep 999&lt;/code&gt; in the background, then prints 'hi' and exits. When I ran the above, I observed that the bash prompt returns immediately:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ date
+Tue Jul 21 18:19:04 CEST 2020
+$ (sleep 999 &amp;amp; echo hi)
+hi
+$ date
+Tue Jul 21 18:19:07 CEST 2020
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;I then reran the same experiment, piped to cat:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ (sleep 999 &amp;amp; echo hi) | cat
+hi
+&amp;lt;...never exits...&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;When we run &lt;code&gt;ps aux&lt;/code&gt; in another terminal, we see that both 'sleep' and 'cat' are still alive:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;hongli     19145    0.0   sleep 999
+hongli     19144    0.0   cat
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="if-not-tee-then-what-"&gt;If not 'tee', then what? 🤔&lt;/h2&gt;
+
+&lt;p&gt;So far, I haven't been able to find out why Cypress subprocesses get stuck. But the CI job runs inside an ephemeral Docker container anyway, and all processes will be cleaned up after the CI job finishes anyway, so figuring out why the subprocesses get stuck wasn't terribly important. A more important question was: if I could not pipe to &lt;code&gt;tee&lt;/code&gt;, then what's the alternative?&lt;/p&gt;
+
+&lt;p&gt;The solution that I came up with was this:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# Run Cypress in the background, redirecting its output to a file.&lt;/span&gt;
+cypress run &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; cypress.log &amp;amp;
+
+&lt;span class="c"&gt;# Capture the PID of 'cypress run'.&lt;/span&gt;
+&lt;span class="nb"&gt;local &lt;/span&gt;&lt;span class="nv"&gt;CYPRESS_PID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$!&lt;/span&gt;
+
+&lt;span class="c"&gt;# Watch the Cypress log file, print (in near-real-time) any new&lt;/span&gt;
+&lt;span class="c"&gt;# data written to the file.&lt;/span&gt;
+&lt;span class="c"&gt;# --pid means: exit tail when 'cypress run' exits.&lt;/span&gt;
+tail &lt;span class="nt"&gt;-f&lt;/span&gt; &lt;span class="nt"&gt;--pid&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$CYPRESS_PID&lt;/span&gt; cypress.log
+
+&lt;span class="c"&gt;# `cypress run` has how exited, but we still need to explicitly&lt;/span&gt;
+&lt;span class="c"&gt;# wait for it from Bash, otherwise its dead process entry will stay&lt;/span&gt;
+&lt;span class="c"&gt;# behind in the kernel process list.&lt;/span&gt;
+&lt;span class="nb"&gt;wait&lt;/span&gt; &lt;span class="nv"&gt;$CYPRESS_PID&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h2 id="congratulations-you-are-now-master-of-the-arcane-"&gt;Congratulations, you are now master of the arcane 🧙‍♂️&lt;/h2&gt;
+
+&lt;p&gt;Lots of people praise Unix for its "simplicity", and Unix pipes for their "elegance". I disagree. If you know how things actually work behind the scenes, then you will see that there are a lot of weird corner cases. Unix can be very insidious: small, seemingly-innocent changes can end up behaving very differently from expectations.&lt;/p&gt;
+
+&lt;p&gt;But don't let that stop you from doing your job. At least now, you know how to avoid this particular caveat.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Why Fullstaq Ruby?</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2020-05-15-why-fullstaq-ruby.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2020-05-15-why-fullstaq-ruby.html</id>
+    <published>2020-05-15T00:00:00+00:00</published>
+    <updated>2021-02-08T15:46:36+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;A while ago, the people from &lt;a href="https://fullstaq.com"&gt;Fullstaq&lt;/a&gt; and I started the &lt;a href="https://fullstaqruby.org"&gt;Fullstaq Ruby&lt;/a&gt; project: a Ruby distribution that's optimized for server use cases. Compared to normal MRI Ruby, Fullstaq Ruby &lt;a href="https://dev.to/evilmartians/fullstaq-ruby-first-impressions-and-how-to-migrate-your-docker-kubernetes-ruby-apps-today-4fm7"&gt;uses 50% less memory&lt;/a&gt;, is faster, and is easier to install and security-patch because of RPM and DEB packages.&lt;/p&gt;
+
+&lt;p&gt;Since I &lt;a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html"&gt;announced Fullstaq Ruby on EuRuKo 2019&lt;/a&gt;, I have received many questions about Fullstaq Ruby's vision, purpose and nature:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Is Fullstaq Ruby a commercial product, or are there such plans?&lt;/li&gt;
+  &lt;li&gt;How will Fullstaq Ruby stay maintained?&lt;/li&gt;
+  &lt;li&gt;Who is in control of Fullstaq Ruby?&lt;/li&gt;
+  &lt;li&gt;Why are the changes in Fullstaq Ruby not in upstream Ruby? What is the current, and envisioned, relationship between the Ruby core developers and Fullstaq Ruby?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In other words, people are wondering: "how do I know this is, and stays, a real thing that I can count on?"&lt;/p&gt;
+
+&lt;p&gt;These are legit questions! As the author of &lt;a href="https://www.phusionpassenger.com"&gt;Passenger&lt;/a&gt; and &lt;a href="http://www.rubyenterpriseedition.com/"&gt;Ruby Enterprise Edition&lt;/a&gt;, I've experienced first-hand what the challanges are of building a healthy open source project. In this post, I will describe my vision on this matter.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;A while ago, the people from &lt;a href="https://fullstaq.com"&gt;Fullstaq&lt;/a&gt; and I started the &lt;a href="https://fullstaqruby.org"&gt;Fullstaq Ruby&lt;/a&gt; project: a Ruby distribution that's optimized for server use cases. Compared to normal MRI Ruby, Fullstaq Ruby &lt;a href="https://dev.to/evilmartians/fullstaq-ruby-first-impressions-and-how-to-migrate-your-docker-kubernetes-ruby-apps-today-4fm7"&gt;uses 50% less memory&lt;/a&gt;, is faster, and is easier to install and security-patch because of RPM and DEB packages.&lt;/p&gt;
+
+&lt;p&gt;Since I &lt;a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html"&gt;announced Fullstaq Ruby on EuRuKo 2019&lt;/a&gt;, I have received many questions about Fullstaq Ruby's vision, purpose and nature:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Is Fullstaq Ruby a commercial product, or are there such plans?&lt;/li&gt;
+  &lt;li&gt;How will Fullstaq Ruby stay maintained?&lt;/li&gt;
+  &lt;li&gt;Who is in control of Fullstaq Ruby?&lt;/li&gt;
+  &lt;li&gt;Why are the changes in Fullstaq Ruby not in upstream Ruby? What is the current, and envisioned, relationship between the Ruby core developers and Fullstaq Ruby?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In other words, people are wondering: "how do I know this is, and stays, a real thing that I can count on?"&lt;/p&gt;
+
+&lt;p&gt;These are legit questions! As the author of &lt;a href="https://www.phusionpassenger.com"&gt;Passenger&lt;/a&gt; and &lt;a href="http://www.rubyenterpriseedition.com/"&gt;Ruby Enterprise Edition&lt;/a&gt;, I've experienced first-hand what the challanges are of building a healthy open source project. In this post, I will describe my vision on this matter.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id="fullstaq-ruby-is-open-source"&gt;Fullstaq Ruby is open source&lt;/h2&gt;
+
+&lt;p&gt;Fullstaq is entirely open source in the fullest sense. It's not just open source in the sense of "here's a code dump". No, we're really committed to go the last mile. We envision these that anybody should be able to:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;understand how Fullstaq Ruby works.&lt;/li&gt;
+  &lt;li&gt;contribute to Fullstaq Ruby.&lt;/li&gt;
+  &lt;li&gt;fork Fullstaq Ruby.&lt;/li&gt;
+  &lt;li&gt;benefit from Fullstaq Ruby's work, without being locked-in to it.&lt;/li&gt;
+  &lt;li&gt;have a say in its future direction.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We want to achieve this through several pillars.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;The first pillar is &lt;strong&gt;automating&lt;/strong&gt; everything, and open sourcing that automation. All organizational processes are to be stored as code, and the code is the canonical sense of truth. There should be as few manual processes as possible.&lt;/p&gt;
+
+    &lt;p&gt;One should be able to understand everything about how the project works, by reading the code. One should be able to contribute to any part of the project, by modifying code.&lt;/p&gt;
+
+    &lt;p&gt;With &lt;a href="https://fullstaq.com/blog/2020-05-05-fullstaq-ruby-epic-3/"&gt;the introduction of a CI/CD system not long ago&lt;/a&gt;, this pillar has mostly been reached.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The second pillar is &lt;strong&gt;documenting&lt;/strong&gt; everything. Having code is nice, but code alone does not always allow &lt;em&gt;understanding&lt;/em&gt;. Code is not always easy to read and may not convey enough high-level information. The code should be accompanied with documentation that explains concepts, architecture and processes. There should be no undocumented processes, i.e. processes that live in a few individuals' heads.&lt;/p&gt;
+
+    &lt;p&gt;With the proper documentation, we want to promote understanding, and to make it easy to contribute. If one runs into an issue, we want to make it easy to debug and resolve that issue by having the proper documentation. If it's easy for anyone to resolve an issue, then that eliminates vendor lock-in.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The third pillar is &lt;strong&gt;reproducibility&lt;/strong&gt;. Setting up a software system can be very complex, with lots of dependencies to install and lots of configuration to manage. Furthermore, and increasing amount of software nowadays rely on supporting cloud infrastructure: SaaSes, build servers and CI/CD pipelines. To fork a project, more than just code and documentation is necessary.&lt;/p&gt;
+
+    &lt;p&gt;We tackle these issues by automating as much as possible through the use of &lt;a href="https://www.docker.com"&gt;Docker&lt;/a&gt;. This should allow anyone to work on Fullstaq Ruby with a minimal amount of setup.&lt;/p&gt;
+
+    &lt;p&gt;We also tackle these issues by making the infrastructure reproducible. We encode as much infrastructure as possible using &lt;a href="https://terraform.io/"&gt;Terraform&lt;/a&gt; and &lt;a href="https://kubernetes.io"&gt;Kubernetes&lt;/a&gt;. This should allow anyone to understand how our infrastructure works, as well as to fork our infrastructure and run it on their favorite cloud provider with minimal hassle.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;The fourth pillar is &lt;strong&gt;working in public&lt;/strong&gt;. Development and discussions happen in public places such as Github.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You can see these pillars in action through the fact that the &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition"&gt;build system&lt;/a&gt;, &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-website"&gt;website&lt;/a&gt;, &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-umbrella/projects"&gt;roadmap&lt;/a&gt;, and &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-infra"&gt;infrastructure&lt;/a&gt; are all open source and available on Github. We welcome discussions and pull requests.&lt;/p&gt;
+
+&lt;p&gt;But note that we're not there yet. For example there isn't a lot of contributor documentation yet. Check out our &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-umbrella/projects"&gt;roadmap&lt;/a&gt; to track our progress.&lt;/p&gt;
+
+&lt;h2 id="fullstaq-is-all-about-community"&gt;Fullstaq is all about community&lt;/h2&gt;
+
+&lt;p&gt;While the people from Fullstaq and I are the founders of this project, we do not intend on being the only developers of Fullstaq Ruby. From the beginning, we intend for Fullstaq Ruby to be a community project.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;We will soon be recruiting core maintainers from the community.&lt;/strong&gt; Right now we are working on establishing a good organizational structure, by ensuring that the proper automation, documentation and processes are in place.&lt;/p&gt;
+
+&lt;p&gt;With a proper environment that allows anyone to contribute and to join as a core maintainer, we increase the likelihood that the Fullstaq Ruby project stays healthy.&lt;/p&gt;
+
+&lt;h2 id="fullstaq-ruby-is-not-commercial"&gt;Fullstaq Ruby is not commercial&lt;/h2&gt;
+
+&lt;p&gt;There are no monetization plans. There will be no paid version.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href="https://fullstaq.com"&gt;Fullstaq's main business model&lt;/a&gt; is consultancy, training and managed services in the area of cloud native technologies and DevOps. Their mission is to help startups and SMBs to succeed in the cloud native way of working, which is why they're sponsoring this project.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;a href="https://fullstaq.com"&gt;&lt;img src="/images/2020/fullstaq-logo-13a7922b.svg" alt="Fullstaq Logo" class="img-smallwidth" /&gt;&lt;/a&gt;
+  &lt;figcaption&gt;&lt;a href="https://fullstaq.com"&gt;Fullstaq B.V.&lt;/a&gt; is a founder of the Fullstaq Ruby project. They have no monetization plans for Fullstaq Ruby.&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h2 id="how-fullstaq-ruby-stays-viable"&gt;How Fullstaq Ruby stays viable&lt;/h2&gt;
+
+&lt;p&gt;We've all seen it: some gem you use becomes unmaintained, and now you have to wonder what to do with that. Nobody's waiting for such a scenario, no matter how easy it is to fork the project and to take over maintenance.&lt;/p&gt;
+
+&lt;p&gt;So while some people see the lack of monetization of Fullstaq Ruby as a good thing, others are worried: without monetization plans, how will Fullstaq Ruby stay viable?&lt;/p&gt;
+
+&lt;p&gt;The answer is two-fold:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Automation&lt;/strong&gt;. With sufficient automation (and sufficiently &lt;em&gt;robust&lt;/em&gt; automation and infrastructure), a project will keep working for quite a while even if its maintainers become less active.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Community&lt;/strong&gt;, as explained above. With sufficient maintainers from the community (and sufficient continuous recruitment), the project stays viable even if the founders become less active.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id="fullstaq-ruby-and-the-ruby-core-developers"&gt;Fullstaq Ruby and the Ruby core developers&lt;/h2&gt;
+
+&lt;p&gt;Some people wonder why the improvements in Fullstaq Ruby are not in upstream Ruby. The answer is because Fullstaq Ruby's improvements are &lt;strong&gt;opinionated and specialized&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Fullstaq Ruby's memory allocation changes are optimized for &lt;strong&gt;server use cases&lt;/strong&gt;, but these optimizations are probably not suitable for non-server use cases, such as embedded systems and &lt;a href="https://www.chef.io"&gt;automation frameworks&lt;/a&gt;. Some of these optimizations require invasive platform-specific changes in the Ruby codebase.&lt;/p&gt;
+
+&lt;p&gt;Some optimizations are not even fully understood: for example Jemalloc 3 yields memory savings but Jemalloc 5 does not. The cause is still unknown; I hope to research this further in the future.&lt;/p&gt;
+
+&lt;p&gt;At EuRuKo 2019, I spoke with Ruby's creator as well as a Ruby core developer, namely &lt;a href="https://twitter.com/yukihiro_matz"&gt;Yukihiro Matsumoto&lt;/a&gt; and &lt;a href="https://twitter.com/mametter"&gt;Yuske Endoh&lt;/a&gt;. Matsumoto told me that, as the author of a language, he should take care of &lt;em&gt;all&lt;/em&gt; of his users. This is one the reasons why the Ruby core team is hesitant to integrate Jemalloc. The other reason is because (as mentioned above) Jemalloc's operation is not fully understood.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;img src="/images/2019/euruko-matz-endoh-791a68b1.jpg" alt="Yukihiro Matsumoto, Yuske Endoh, and myself" /&gt;
+  &lt;figcaption&gt;Yukihiro Matsumoto, Yuske Endoh, and myself discussing future collaboration opportunities at EuRuKo 2019&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;I have a lot of respect for Matsumoto's position. Having said that, the server use case is an important one. Plus, one does not have to fully understand a phenomenon in order to benefit from it. For example scientists still don't know why a bike does not fall over when moving. The benefits are so clear, I want as many server users to be able to benefit as possible.&lt;/p&gt;
+
+&lt;p&gt;There is also the aspect of &lt;strong&gt;security patching&lt;/strong&gt;. Currently the Ruby core team does not provide any binaries, only sources. In this day and age, fewer and fewer people are comfortable with compiling software. Linux distributions always lag behind the source releases. I think there is a need for Ruby binary packages that are always up-to-date with the source releases.&lt;/p&gt;
+
+&lt;p&gt;But packaging is a whole different discipline, very distinct from developing a programming language. It is a very different kind of work from the work that the Ruby core developers currently do.&lt;/p&gt;
+
+&lt;h2 id="towards-a-brighter-future"&gt;Towards a brighter future&lt;/h2&gt;
+
+&lt;p&gt;How might we solve all of the issues described in the previous section? I think that that opinionated and specialized concerns do not &lt;em&gt;have&lt;/em&gt; to be taken care of by the Ruby core team. There's nothing wrong with such concerns being taken care of by a separate project. The only dangers are:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;The separate project lacking mindshare because of lack of official blessings.&lt;/li&gt;
+  &lt;li&gt;The separate project running out of steam (e.g. falling behind with official Ruby releases), due to insufficient number of contributors.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;So clearly, for a separate project to succeed, it should work closely with the Ruby core team. There should also be a degree of official blessing.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href="https://ubuntu.com/download/flavours"&gt;Ubuntu Flavors&lt;/a&gt; might be a good example of such a concept in action. Ubuntu is based in the GNOME desktop environment, but there are separate projects (flavors) that use KDE (&lt;a href="https://www.kubuntu.org/"&gt;Kubuntu&lt;/a&gt;) and XFCE (&lt;a href="https://xubuntu.org/"&gt;Xubuntu&lt;/a&gt;) as the desktop environment.&lt;/p&gt;
+
+&lt;p&gt;So my vision is that Fullstaq Ruby becomes an &lt;strong&gt;officially blessed external project&lt;/strong&gt;, whose mission is to take care of optimizations for server use cases. Matsumoto has shown interest in this idea. When Fullstaq Ruby becomes a bit more mature (organization-wise) I will talk to Matsumoto again about implementing this concept.&lt;/p&gt;
+
+&lt;p&gt;Please send me a &lt;a href="https://twitter.com/honglilai"&gt;tweet&lt;/a&gt; or an &lt;a href="&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#116;&amp;#111;:&amp;#104;&amp;#111;&amp;#110;&amp;#103;&amp;#108;&amp;#105;&amp;#108;&amp;#097;&amp;#105;&amp;#064;&amp;#103;&amp;#109;&amp;#097;&amp;#105;&amp;#108;&amp;#046;&amp;#099;&amp;#111;&amp;#109;"&gt;email&lt;/a&gt; and let me know what you think.&lt;/p&gt;
+</content>
+  </entry>
+</feed>
