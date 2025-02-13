@@ -1,0 +1,406 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Traveling Ruby 20210206: maintenance update featuring Ruby 2.4 &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Bumps gems &amp; minimum OS versions, fixes bugs. But it&#x27;s been a *long* time since the last release. Is Traveling Ruby back?
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Traveling Ruby 20210206: maintenance update featuring Ruby 2.4">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2021-02-06-traveling-ruby-20210206-released.html">
+    <meta property="og:description" content="Bumps gems &amp; minimum OS versions, fixes bugs. But it&#x27;s been a *long* time since the last release. Is Traveling Ruby back?
+">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2021/travel-be13ccdf.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2021-02-06-traveling-ruby-20210206-released.html">Traveling Ruby 20210206: maintenance update featuring Ruby 2.4</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2021-02-06" itemprop="datePublished">Feb  6, 2021</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2021-02-06-traveling-ruby-20210206-released.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;travel-be13ccdf.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;travel-be13ccdf.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-02-06-traveling-ruby-20210206-released.html&amp;t=Traveling%20Ruby%2020210206%3A%20maintenance%20update%20featuring%20Ruby%202.4"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-02-06-traveling-ruby-20210206-released.html&amp;text=Traveling%20Ruby%2020210206%3A%20maintenance%20update%20featuring%20Ruby%202.4%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <blockquote>
+  <p><a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> allows you to easily ship Ruby apps to end users. It lets you create self-contained Ruby app packages that run on multiple versions of Windows, Linux and macOS.</p>
+</blockquote>
+
+<p>Today I've released <a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> version 20210206. This release supports Ruby 2.4, bumps all the gem versions, bumps the minimum supported macOS and Linux versions, and fixes some bugs. You can find the exact changelog below.</p>
+
+<h2 id="the-elephant-in-the-room">The elephant in the room</h2>
+
+<p>A more interesting question that the community will probably ask, is: is Traveling Ruby back? After all, it has been a <em>long</em> time since the last release.</p>
+
+<p>The answer is no. I <a href="/blog/2021-01-06-the-future-of-traveling-ruby.html">blogged earlier about why Traveling Ruby stopped being maintained</a>, and how a potential way forward would look like. Reviving Traveling Ruby is an effort that takes much more energy than just this release, and right now I do not have the resources to push such an effort.</p>
+
+<p>So this release is meant to be a quick, conservative maintenance release. It was supposed to contain the least amount of changes to make Traveling Ruby releasable again on modern Linux and macOS systems, though these changes ended up to be <a href="https://github.com/phusion/traveling-ruby/commits/rel-20210206">pretty extensive</a>.</p>
+
+<p>The previous release was based on Ruby 2.2. Because of the conservative nature of this latest release, I upgraded to the oldest Ruby (past 2.2) that is compileable on modern Linux and macOS systems. And that's Ruby 2.4.</p>
+
+<p>This has a bunch of downsides. Besides not having the latest Ruby features, not all gems are compatible with Ruby 2.4, so I didn't upgrade the gems to their very latest versions. This has security implications. For example, we ship nokogiri 1.10, but this version <a href="https://github.com/phusion/traveling-ruby/pull/108">has a vulnerability</a> that's fixed in 1.11. Unfortunately 1.11 requires Ruby 2.5.</p>
+
+<p>This release is mainly meant for <a href="https://github.com/phusion/traveling-ruby/pull/94#issuecomment-754371791">existing Traveling Ruby users</a>, to address their most urgent needs. But more effort is needed to <em>really</em> bring Traveling Ruby to a good state.</p>
+
+<h2 id="changelog">Changelog</h2>
+
+<ul>
+  <li>On Linux, dropped support for x86. Only x86_64 is now supported.</li>
+  <li>On Windows, dropped support for x86. Only x64 is now supported.</li>
+  <li>The minimum supported macOS version is now 10.14 Mojave.</li>
+  <li>The minimum supported Linux version is now RHEL 7 / CentOS 7 / Debian 8 / Ubuntu 14.06 / glibc 2.17.</li>
+  <li>Fixed support for paths containing spaces. Contributed by Ville Immonen (@fson) in <a href="https://github.com/phusion/traveling-ruby/pull/94">PR #94</a>. Closes <a href="https://github.com/phusion/traveling-ruby/issues/38">issue #38</a>.</li>
+  <li>Upgraded CA certificates from that of CentOS 5 to that of CentOS 8.</li>
+  <li>Upgraded OpenSSL to 1.1.1i.</li>
+  <li>Upgraded GMP to 6.2.1.</li>
+  <li>Upgraded libssh2 to 1.9.0.</li>
+  <li>Upgraded bundler gem to version 1.17.3.</li>
+  <li>Upgraded bcrypt gem to 3.1.16.</li>
+  <li>Upgraded charlock_holmes gem to 0.7.7.</li>
+  <li>Upgraded curses gem to 1.4.0.</li>
+  <li>Upgraded escape_utils gem to 1.2.1.</li>
+  <li>Upgraded fast-stemmer gem to 1.0.2.</li>
+  <li>Upgraded ffi gem to 1.14.2.</li>
+  <li>Upgraded hitimes gem to 2.0.0.</li>
+  <li>Upgraded json gem to 2.5.1.</li>
+  <li>Upgraded kgio gem to 2.11.3.</li>
+  <li>Upgraded mysql2 gem to 0.5.3.</li>
+  <li>Upgraded nokogiri gem to 1.10.10.
+    <ul>
+      <li>On macOS: upgraded libxml2 to 2.9.10.</li>
+      <li>On macOS: upgraded libxslt to 1.1.34.</li>
+    </ul>
+  </li>
+  <li>Upgraded nokogumbo gem to 1.5.0.</li>
+  <li>Upgraded pg gem to 1.2.3.
+    <ul>
+      <li>Upgraded libpq to 13.1.</li>
+    </ul>
+  </li>
+  <li>Upgraded posix-spawn gem 0.3.15.</li>
+  <li>Upgraded puma gem to 5.1.1</li>
+  <li>Upgraded raindrops gem to 0.19.1.</li>
+  <li>Upgraded redcarpet gem to 3.5.1.</li>
+  <li>Upgraded RedCloth gem to 4.3.2.</li>
+  <li>Upgraded rugged gem to 1.1.0.</li>
+  <li>Upgraded sqlite3 gem to 1.4.2.
+    <ul>
+      <li>Upgraded libsqlite3 to 2020-3340000.</li>
+    </ul>
+  </li>
+  <li>Upgraded thin gem to 1.8.0.</li>
+  <li>Upgraded unf_ext gem to 0.0.7.7.</li>
+  <li>Upgraded unicorn gem to 5.8.0.</li>
+  <li>Upgraded yajl-ruby gem to 1.4.1.</li>
+  <li>Dropped github-markdown gem.</li>
+</ul>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-02-06-traveling-ruby-20210206-released.html&amp;t=Traveling%20Ruby%2020210206%3A%20maintenance%20update%20featuring%20Ruby%202.4"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-02-06-traveling-ruby-20210206-released.html&amp;text=Traveling%20Ruby%2020210206%3A%20maintenance%20update%20featuring%20Ruby%202.4%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

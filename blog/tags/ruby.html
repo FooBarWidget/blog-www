@@ -1,0 +1,618 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Ruby &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+    
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+      <main class="main-container main-container-with-post-previews">
+    <header class="page-display-header">
+      <h1>Ruby</h1>
+      <hr>
+    </header>
+
+    <section class="post-previews">
+          <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html">Ubuntu 22.04 support for Fullstaq Ruby is here</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2022-04-30">Apr 30, 2022</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/fullstaq-ruby.html">Fullstaq Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Ubuntu 22.04 was released a couple of days ago. Fullstaq Ruby now provides packages for this distribution!</p>
+
+            <div class="post-read-more"><a href="/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg"
+          style=""
+          title="Photo by Dmitri Popov on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html">Ruby gem: distributed locking on Google Cloud</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-09-14">Sep 14, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/rubygems.html">Ruby gems</a>, <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/google-cloud.html">Google cloud</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I previously designed a robust <a href="2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html.md">distributed locking algorithm based on Google Cloud</a>. Now I'm releasing a Ruby implementation of this algorithm: <a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby">distributed-lock-google-cloud-storage-ruby</a>.</p>
+
+<p>To use this, add to your Gemfile:</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'distributed-lock-google-cloud-storage'</span>
+</code></pre></div>
+<p><strong><em></em></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-02-06-traveling-ruby-20210206-released.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;travel-be13ccdf.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;travel-be13ccdf.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-02-06-traveling-ruby-20210206-released.html">Traveling Ruby 20210206: maintenance update featuring Ruby 2.4</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-02-06">Feb  6, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p><a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> allows you to easily ship Ruby apps to end users. It lets you create self-contained Ruby app packages that run on multiple versions of Windows, Linux and macOS.</p>
+
+<p>Today I’ve released version 20210206. This release supports Ruby 2.4, bumps all the gem versions, bumps the minimum supported macOS and Linux versions, and fixes some bugs.</p>
+
+<p>It has been a <em>long</em> time since the last release. So this post also adresses an elephant in the room: is Traveling Ruby back?</p>
+
+            <div class="post-read-more"><a href="/blog/2021-02-06-traveling-ruby-20210206-released.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-01-06-the-future-of-traveling-ruby.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg"
+          style=""
+          title="Background vector created by @StarLine - Freepik.com"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-01-06-the-future-of-traveling-ruby.html">The future of Traveling Ruby</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-01-06">Jan  6, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>A couple of years ago, I had a dream: to make it dead-easy to distribute Ruby CLI apps to end users, without requiring those users to install Ruby or muck about with gems and Bundler. And thus <a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> was born.</p>
+
+<p>Traveling Ruby hasn't seen updates for quite a while now. Recently I tried making a new bugfix release, but I found it to be more challenging than I had hoped. In this article I reflect on those challenges, as well as on the future of Traveling Ruby.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-01-06-the-future-of-traveling-ruby.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2020-05-15-why-fullstaq-ruby.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2020-05-15-why-fullstaq-ruby.html">Why Fullstaq Ruby?</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2020-05-15">May 15, 2020</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/fullstaq-ruby.html">Fullstaq Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>A while ago, the people from <a href="https://fullstaq.com">Fullstaq</a> and I started the <a href="https://fullstaqruby.org">Fullstaq Ruby</a> project: a Ruby distribution that's optimized for server use cases. Compared to normal MRI Ruby, Fullstaq Ruby <a href="https://dev.to/evilmartians/fullstaq-ruby-first-impressions-and-how-to-migrate-your-docker-kubernetes-ruby-apps-today-4fm7">uses 50% less memory</a>, is faster, and is easier to install and security-patch because of RPM and DEB packages.</p>
+
+<p>Since I <a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html">announced Fullstaq Ruby on EuRuKo 2019</a>, I have received many questions about Fullstaq Ruby's vision, purpose and nature:</p>
+
+<ul>
+  <li>Is Fullstaq Ruby a commercial product, or are there such plans?</li>
+  <li>How will Fullstaq Ruby stay maintained?</li>
+  <li>Who is in control of Fullstaq Ruby?</li>
+  <li>Why are the changes in Fullstaq Ruby not in upstream Ruby? What is the current, and envisioned, relationship between the Ruby core developers and Fullstaq Ruby?</li>
+</ul>
+
+<p>In other words, people are wondering: "how do I know this is, and stays, a real thing that I can count on?"</p>
+
+<p>These are legit questions! As the author of <a href="https://www.phusionpassenger.com">Passenger</a> and <a href="http://www.rubyenterpriseedition.com/">Ruby Enterprise Edition</a>, I've experienced first-hand what the challanges are of building a healthy open source project. In this post, I will describe my vision on this matter.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2020-05-15-why-fullstaq-ruby.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2020-05-05-fullstaq-ruby-epic-3.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2020-05-05-fullstaq-ruby-epic-3.html">Fullstaq Ruby epic 3: CI&#x2F;CD (= faster updates), Ruby updates, Debian 10 support</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2020-05-05">May  5, 2020</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/fullstaq-ruby.html">Fullstaq Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p><i><a href="https://fullstaqruby.org">Fullstaq Ruby</a> is a server-optimized Ruby distribution: <a href="https://dev.to/evilmartians/fullstaq-ruby-first-impressions-and-how-to-migrate-your-docker-kubernetes-ruby-apps-today-4fm7">50% less memory</a>, faster, easy to install and security-patch via APT/YUM.</i></p>
+
+<p>We've reached an important milestone in the <a href="https://github.com/fullstaq-labs/fullstaq-ruby-umbrella/projects">Fullstaq Ruby roadmap</a>. Epic 3 introduces a <strong>continuous integration and deployment</strong> system! This means that from now on, we can release updates much faster, and with fewer defects.</p>
+
+<p>We put the CI/CD system to the test right away, and used it to release Ruby version updates. We now package Ruby <strong>2.7.1</strong>, <strong>2.6.6</strong> and <strong>2.5.8</strong>.</p>
+
+<p>Additionally, we now support <strong>Debian 10</strong> (contributed by Nathan Broadbent).</p>
+
+<p>Want to install or upgrade? Check <a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition/blob/master/README.md#installation">the installation instructions</a>, or run <code>apt upgrade</code>/<code>yum update</code>.</p>
+
+<p>In this article I'll explain why having a CI/CD system is so important. I'll also give you a sneak peek into what to expect in the near future.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2020-05-05-fullstaq-ruby-epic-3.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-09-13-fullstaq-ruby-epic-2-released-apt-yum-repo-ruby-2-6-4.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-09-13-fullstaq-ruby-epic-2-released-apt-yum-repo-ruby-2-6-4.html">Fullstaq Ruby epic 2 released: APT&#x2F;YUM repo, Ruby 2.6.4</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-09-13">Sep 13, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/fullstaq-ruby.html">Fullstaq Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I am happy to announce that epic 2 is now released. There is an <strong>APT and YUM repository</strong> to make installation and security-patching very easy. Epic 2 also includes the newly-released <strong>Ruby 2.6.4</strong>.</p>
+
+<p>Learn more about the new APT/YUM repo, people’s experience so far, how to use it, and what’s in store for the future.</p>
+
+            <div class="post-read-more"><a href="/blog/2019-09-13-fullstaq-ruby-epic-2-released-apt-yum-repo-ruby-2-6-4.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;euruko-boat-deck-e579fbec.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;euruko-boat-deck-e579fbec.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html">EuRuKo 2019 was lots of fun</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-07-01">Jul  1, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/euruko.html">Euruko</a>, <a href="/blog/tags/conferences.html">Conferences</a>, <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/talks.html">Talks</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p><a href="https://euruko2019.org/">EuRuKo 2019</a> – the largest Ruby conference in Europe, took place on the 21st and 22nd of June. I gave a talk on the 21st about what causes Ruby memory bloat (where I also reported new findings since I <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">first blogged about the issue</a>), as well as about <a href="https://fullstaqruby.org">Fullstaq Ruby</a>. Fullstaq Ruby is a server-optimized Ruby distribution that's faster, uses less memory, and is easier to security-patch thanks to being distributed via RPMs and DEBs.</p>
+
+<p class="embed-responsive embed-responsive-16by9"><iframe src="https://www.youtube.com/embed/JBIN-Hh8wTA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg"
+          style=""
+          title="Photo by Mike Newbry on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html">The status of Ruby memory trimming &amp; how you can help with testing</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-03-29">Mar 29, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>My blog post earlier this month about <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">what causes Ruby memory bloat</a>, and about a way to potentially reduce memory usage by 70%, triggered quite a storm in the community! It's clear that I stumbled upon a significant pain point.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;ruby_memory_bloat_banner-f0bdf762.png" type="image&#x2F;png">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;ruby_memory_bloat_banner-f0bdf762.png"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">What causes Ruby memory bloat?</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-03-14">Mar 14, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Ruby apps can use <em>a lot</em> of memory. But why? Various people in the community attribute it to memory fragmentation, and provide two “hacky” solutions. Dissatisfied by the current explanations and provided solutions, I set out on a journey to discover the deeper truth and to find better solutions.</p>
+
+            <div class="post-read-more"><a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+
+    </section>
+
+          <div class="post-paginator">
+        <div class="older">
+                <a href="/blog/tags/ruby/page/2.html" class="button orange">&laquo; Older posts</a>
+        </div>
+        <div class="position">
+            Page 1 of 2
+        </div>
+        <div class="newer">
+                <div class="placeholder"></div>
+        </div>
+    </div>
+
+
+    <aside class="about-me-panel-container after-post-previews">
+      <div class="about-me-panel after-post-previews">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+    </aside>
+  </main>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">You are reading</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

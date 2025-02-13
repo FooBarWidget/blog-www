@@ -1,0 +1,662 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>What causes Ruby memory bloat? &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Ruby apps can use a lot of memory. But why? Various people in the community attribute it to memory fragmentation, and provide two “hacky” solutions. Dissatisfied by the current explanations and provided solutions, I set out on a journey to discover the deeper truth and to find better solutions.
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="What causes Ruby memory bloat?">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2019-03-14-what-causes-ruby-memory-bloat.html">
+    <meta property="og:description" content="Ruby apps can use a lot of memory. But why? Various people in the community attribute it to memory fragmentation, and provide two “hacky” solutions. Dissatisfied by the current explanations and provided solutions, I set out on a journey to discover the deeper truth and to find better solutions.
+">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2019/ruby_memory_bloat_banner-f0bdf762.png">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">What causes Ruby memory bloat?</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2019-03-14" itemprop="datePublished">Mar 14, 2019</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-14-what-causes-ruby-memory-bloat.html&amp;t=What%20causes%20Ruby%20memory%20bloat%3F"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-14-what-causes-ruby-memory-bloat.html&amp;text=What%20causes%20Ruby%20memory%20bloat%3F%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p class="embed-responsive embed-responsive-16by9"><iframe src="https://www.youtube.com/embed/dY-XzumewKE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></p>
+
+<p>At <a href="https://www.phusionpassenger.com">Phusion</a> we run a simple multithreaded HTTP proxy server written in Ruby (which serves our DEB and RPM packages). I've seen it consume 1.3 GB of memory. This is insane – the server is stateless and doesn't do all that much!</p>
+
+<figure>
+  <img src="/images/2019/ruby-mem-graph-doodle-e3b8235d.jpg" class="img-smallwidth" alt="" />
+  <figcaption>Q: What's this? A: a Ruby process's memory usage over time!</figcaption>
+</figure>
+
+<p>Turns out I'm not alone in experiencing this issue. Ruby apps can use <em>a lot</em> of memory. But why? According to <a href="https://devcenter.heroku.com/articles/tuning-glibc-memory-behavior">Heroku</a> and <a href="https://www.speedshop.co/2017/12/04/malloc-doubles-ruby-memory.html">Nate Berkopec</a>, a large part of excessive memory usage is caused by <strong>memory fragmentation</strong>, and by <strong>memory overallocation</strong>.</p>
+
+<p>Nate Berkopec concludes that there are two solutions:</p>
+
+<ol>
+  <li>Either use a completely different memory allocator than the one in glibc – usually <a href="http://jemalloc.net/">jemalloc</a>, or:</li>
+  <li>Set the magical environment variable <code>MALLOC_ARENA_MAX=2</code>.</li>
+</ol>
+
+<p>Both the problem description and the given solutions bug me. Something feels off: I'm not convinced that the problem description is entirely correct, or that those are the only solutions available. I'm also bugged by the fact that so many people <a href="https://medium.com/rubyinside/how-we-halved-our-memory-consumption-in-rails-with-jemalloc-86afa4e54aa3">treat jemalloc as a magical silver bulllet</a>.</p>
+
+<p><strong>Magic is simply science that we don't understand yet.</strong> So I set out on a research journey to find out the truth behind this matter. In this article I'll cover:</p>
+
+<ol>
+  <li>An introduction into memory allocation: how does it work?</li>
+  <li>What is this "memory fragmentation" and "memory overallocation" that people speak of?</li>
+  <li>What causes the high memory usage? Is the situation as people have described so far, or is there more? (hint: yes, and I'll share my research results)</li>
+  <li>Are there alternative solutions available? (hint: I found one)</li>
+</ol>
+
+<p><i>Note: the contents of this article only applies to Linux, and only to multithreaded Ruby apps.</i></p>
+
+<p><strong>Table of contents</strong></p>
+
+<!-- MarkdownTOC autolink="true" -->
+
+<ul>
+  <li><a href="#ruby-memory-allocation-101">Ruby memory allocation 101</a>
+    <ul>
+      <li><a href="#ruby">Ruby</a></li>
+      <li><a href="#system-memory-allocator">System memory allocator</a></li>
+      <li><a href="#kernel">Kernel</a></li>
+      <li><a href="#defining-memory-usage">Defining memory usage</a></li>
+    </ul>
+  </li>
+  <li><a href="#what-is-fragmentation">What is fragmentation?</a>
+    <ul>
+      <li><a href="#fragmentation-at-the-ruby-level">Fragmentation at the Ruby level</a></li>
+      <li><a href="#fragmentation-at-the-memory-allocator-level">Fragmentation at the memory allocator level</a></li>
+    </ul>
+  </li>
+  <li><a href="#is-fragmentation-at-the-ruby-heap-pages-level-the-cause-of-memory-bloating">Is fragmentation at the Ruby heap pages level the cause of memory bloating?</a></li>
+  <li><a href="#investigating-fragmentation-at-the-memory-allocator-level">Investigating fragmentation at the memory allocator level</a>
+    <ul>
+      <li><a href="#overallocation--glibc-memory-arenas">Overallocation &amp; glibc memory arenas</a></li>
+      <li><a href="#visualizing-os-heaps">Visualizing OS heaps</a></li>
+    </ul>
+  </li>
+  <li><a href="#a-magic-trick-trimming">A magic trick: trimming</a></li>
+  <li><a href="#conclusion">Conclusion</a>
+    <ul>
+      <li><a href="#visualizer-source-code">Visualizer source code</a></li>
+      <li><a href="#what-about-performance">What about performance?</a></li>
+      <li><a href="#more-testing-needed">More testing needed</a></li>
+    </ul>
+  </li>
+</ul>
+
+<!-- /MarkdownTOC -->
+
+<hr />
+
+<h2 id="ruby-memory-allocation-101">Ruby memory allocation 101</h2>
+
+<p>Memory allocation in Ruby involves three layers, ordered from high to low level:</p>
+
+<ol>
+  <li>The Ruby interpreter, which manages Ruby objects.</li>
+  <li>The operating system's memory allocator library.</li>
+  <li>The kernel.</li>
+</ol>
+
+<p>Let's go over each layer.</p>
+
+<h3 id="ruby">Ruby</h3>
+
+<p>On the Ruby side, Ruby organizes objects in memory areas called <em>Ruby heap pages</em>. Such a Ruby heap page is split into equal-sized slots, where one object occupies one slot. Whether it's a string, hash table, array, class, or whatever, it occupies one slot.</p>
+
+<figure>
+  <img src="/images/2019/ruby_heap_page-66e16668.png" class="img-smallwidth" alt="" />
+</figure>
+
+<p>Slots in a Ruby heap page may either be occupied or free. When Ruby allocates a new object, it first tries to occupy a free slot. If there are no free slots, then it will allocate a new Ruby heap page.</p>
+
+<p>A slot is small, about 40 bytes. Clearly not all Ruby objects fit in here – for example 1 MB strings. Ruby deals with this by storing any extraneous information – that doesn't fit in the slot – in a different location outside the Ruby heap page. Ruby then places a pointer in the slot that allows it to find that external information.</p>
+
+<figure>
+  <img src="/images/2019/ruby_extra_data-c20efc87.png" class="img-smallwidth" alt="" />
+  <figcaption>Data that doesn't fit in a slot is stored outside the Ruby heap page. Ruby then places a pointer in the slot to point to that external data.</figcaption>
+</figure>
+
+<p>Both Ruby heap pages, and any external data, are allocated using the system's memory allocator.</p>
+
+<h3 id="system-memory-allocator">System memory allocator</h3>
+
+<p>The operating system's memory allocator is a library that is part of <i>glibc</i> (the C runtime). It is used by nearly all apps, not just Ruby. It has a simple API:</p>
+
+<ul>
+  <li>Memory is allocated by calling <code>malloc(size)</code>. You pass it the number of bytes you want to allocate, and it returns either the address of the allocation, or an error.</li>
+  <li>Allocated memory is freed by calling <code>free(address)</code>.</li>
+</ul>
+
+<p>Unlike Ruby, which deals with equally-sized slots most of the time, the memory allocator has to deal with memory allocation requests of any size. As you will learn later, this fact introduces some complications.</p>
+
+<p>The memory allocator, in turn, allocates memory through a kernel API. The memory allocator allocates much larger chunks of memory from the kernel than is requested by its own callers, because calling the kernel is expensive and because the kernel API has a limitation: it can only allocate memory in units of 4 KB.</p>
+
+<figure>
+  <img src="/images/2019/memory_allocator_alloc-d13ff63c.png" class="img-smallwidth" alt="" />
+  <figcaption>The memory allocator allocates large pieces -- called OS heaps -- from the kernel, and divides its contents to satisfy allocation requests from apps.</figcaption>
+</figure>
+
+<p>A memory area that the memory allocator allocates from the kernel, is called a <em>heap</em>. Note that this has got nothing to do with Ruby heap pages, so for clarity I will use the term <em>OS heap</em>.</p>
+
+<p>The memory allocator then assigns pieces of an OS heap to its own callers, until there is no more free space, in which case the memory allocator allocates a new OS heap from the kernel. This is similar to how Ruby allocates objects from Ruby heap pages.</p>
+
+<figure>
+  <img src="/images/2019/memory_alloc_interactions-5593e211.png" alt="" />
+  <figcaption>Ruby allocates memory from the memory allocator, which in turn allocates from the kernel</figcaption>
+</figure>
+
+<h3 id="kernel">Kernel</h3>
+
+<p>The kernel can only allocate memory in units of 4 KB. One such 4 KB unit is called a <em>page</em>. Not to be confused with Ruby heap pages, which again have got nothing to do with this. So for clarity I will use the term <em>OS page</em>.</p>
+
+<p>The reason for this is complicated, but suffice to say that all modern kernels have this property.</p>
+
+<p>Allocating memory via the kernel also has a significant performance impact, so memory allocators try to minimize the number of kernel calls.</p>
+
+<h3 id="defining-memory-usage">Defining memory usage</h3>
+
+<p>So memory is allocated at multiple levels, and each level allocates more memory than it actually needs. Ruby heap pages can have free slots, and OS heaps can have free spots. So when you ask the question "how much memory is used?" the answer depends entirely on at which level you ask the question!</p>
+
+<p>When you use tools such as <code>top</code> or <code>ps</code> to measure a process's memory usage, they tell you the memory usage from the <strong>kernel's</strong> point of view. This means that layers above the kernel have to work in coordination in order to free memory from the kernel's point of view. As you will learn next in the section about fragmentation, this could be harder than it seems.</p>
+
+<h2 id="what-is-fragmentation">What is fragmentation?</h2>
+
+<p>Memory fragmentation is the phenomenon that memory allocations are scattered all over the place, which can cause interesting problems.</p>
+
+<h3 id="fragmentation-at-the-ruby-level">Fragmentation at the Ruby level</h3>
+
+<p>Consider Ruby garbage collection. Garbage collecting an object means marking a Ruby heap page slot as free, allowing that slot to be reused. If an <em>entire</em> Ruby heap page ends up consisting <em>only</em> of free slots, then that entire Ruby heap page can be freed back to the memory allocator (and potentially back to the kernel).</p>
+
+<figure>
+  <img src="/images/2019/ruby_heap_fragmentation-9ed5017f.png" class="img-smallwidth" alt="" />
+</figure>
+
+<p>But what happens if not all slots are free? What if you have lots of Ruby heap pages, and a garbage collection frees up objects in different locations such that you end up with lots of free slots, but not many Ruby heap pages consist entirely of free slots? Even though there are free slots for Ruby to allocate objects into, as far as the memory allocator and the kernel are concerned, they're still allocated memory!</p>
+
+<h3 id="fragmentation-at-the-memory-allocator-level">Fragmentation at the memory allocator level</h3>
+
+<p>The memory allocator has a similar yet very different problem. The memory allocator doesn't have to release entire OS heaps at once. In theory, it can release any individual OS page. But because the memory allocator has to deal with allocations of any size, an OS page can contain multiple allocations. It cannot release an OS page until <em>all</em> allocations within a released.</p>
+
+<figure>
+  <img src="/images/2019/os_page_partial_free-d6438d27.png" class="img-smallwidth" alt="" />
+</figure>
+
+<p>Consider what happens if there's a 3 KB allocation and a 2 KB allocation, spread over 2 OS pages. If you free the 3 KB allocation then the first OS page is still partially occupied, and so it cannot be released.</p>
+
+<figure>
+  <img src="/images/2019/os_page_fragmentation-66c68046.png" alt="" />
+</figure>
+
+<p>So if we're unlucky, then we can end up in a situation where there's lots of free space inside OS heaps, but not many OS pages that are entirely free.</p>
+
+<p>Worse. What if there are many holes, but none of them big enough to satisfy a new allocation request? The memory allocator will have to allocate an entirely new OS heap.</p>
+
+<h2 id="is-fragmentation-at-the-ruby-heap-pages-level-the-cause-of-memory-bloating">Is fragmentation at the Ruby heap pages level the cause of memory bloating?</h2>
+
+<p>It is plausible that fragmentation is what causes Ruby high memory usage. Assuming that fragmentation really is <strong>the</strong> cause, which of the two sources of fragmentation is the biggest contributor to memory usage? Is it…</p>
+
+<ol>
+  <li>Ruby heap pages fragmentation? Or:</li>
+  <li>Memory allocator fragmentation?</li>
+</ol>
+
+<p>There is a simple way to verify whether it is #1. Ruby provides two APIs, <code>ObjectSpace.memsize_of_all</code> and <code>GC.stat</code>. With the information returned by both, we can count all the memory that Ruby knows it has allocated from the memory allocator.</p>
+
+<figure>
+  <img src="/images/2019/ruby_memsize_of_all-009163d5.png" alt="" />
+</figure>
+
+<p><code>ObjectSpace.memsize_of_all</code> returns the memory occupied by all live Ruby objects. That is, the space taken up by its slot as well as any external data. In the above graphic, that's the size of all blue and orange objects together.</p>
+
+<p><code>GC.stat</code> allows us to find out the size of all free slots, i.e. all the gray area in the above graph. Here's the algorithm:</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="no">GC</span><span class="p">.</span><span class="nf">stat</span><span class="p">[</span><span class="ss">:heap_free_slots</span><span class="p">]</span> <span class="o">*</span> <span class="no">GC</span><span class="o">::</span><span class="no">INTERNAL_CONSTANTS</span><span class="p">[</span><span class="ss">:RVALUE_SIZE</span><span class="p">]</span>
+</code></pre></div>
+<p>If we sum them together, then that's all the memory that Ruby knows it has allocated, and includes Ruby heap page fragmentation overhead. This means that if the process's memory usage is higher than that, then the remaining memory usage comes from something that Ruby does not control, e.g. third-party libraries or fragmentation.</p>
+
+<p>I wrote a simple test program that spawns a bunch of threads, each of which allocates strings in a loop. Here's the memory usage that I measured after a while:</p>
+
+<figure>
+  <img src="/images/2019/ruby_mem_usage_test-31b5bb23.png" class="img-smallwidth img-thumbnail" alt="App memory usage = 230 MB, memory Ruby knows about = 7 MB" />
+</figure>
+
+<p>…this … is… insane!</p>
+
+<p>This result shows us that Ruby's own memory usage is such a small contributor to overall memory usage, that it doesn't matter whether Ruby's heap pages are fragmented or not.</p>
+
+<p>We'll have to look for the culprit elsewhere. At least now we know that it's not Ruby's fault.</p>
+
+<h2 id="investigating-fragmentation-at-the-memory-allocator-level">Investigating fragmentation at the memory allocator level</h2>
+
+<p>Another likely suspect is the memory allocator. After all, Nate Berkopec and Heroku remarked that fiddling with the memory allocator (either replacing it altogether with jemalloc, or setting the magical environment variable <code>MALLOC_ARENA_MAX=2</code>) drastically lowers memory usage.</p>
+
+<p>Let's first take a look at what <code>MALLOC_ARENA_MAX=2</code> does and why it helps. Next, we'll investigate whether – and how much – there is fragmentation at the memory allocator level.</p>
+
+<h3 id="overallocation--glibc-memory-arenas">Overallocation &amp; glibc memory arenas</h3>
+
+<p>The reason why <code>MALLOC_ARENA_MAX=2</code> works has got to do with multithreading. When multiple threads try to allocate memory from the same OS heap at the same time, they contend for access. Only one thread can perform an allocation at a time, reducing multithreaded memory allocation performance.</p>
+
+<figure>
+  <img src="/images/2019/os_heap_contention-a309fc9d.png" class="img-smallwidth" alt="" />
+  <figcaption>Only 1 thread can operate on an OS heap at a time, so in multithreaded scenarios this causes contention and thus bad performance.</figcaption>
+</figure>
+
+<p>The memory allocator has an optimization for this scenario. It tries to create multiple OS heaps and tries to assign different threads to its own OS heap. Most of the time a thread only needs to work with that one, thereby avoiding contention with other threads.</p>
+
+<p>In fact, the max number of OS heaps allocated in such a fashion is, by default, equal to 8 times the number of virtual CPUs. So on a 2-core system with 2 hyperthreads each, that's <code>2 * 2 * 8 = 32</code> OS heaps! This is what I call <strong>overallocation</strong>.</p>
+
+<p>Why is the default multiplier so big? It's because the primary developer of the memory allocator is Red Hat. Their customers are enterprises who have machines with a ton of RAM. The above optimization allows improving average multithreading performance by 10% at the cost of huge memory usage. For Red Hat's customers, this is the right tradeoff. For most non-enterprise users out there, not so much.</p>
+
+<p>Nate's blog post and the Heroku article state that more OS heaps equal more fragmentation, and cite the official documentation. The <code>MALLOC_ARENA_MAX</code> variable reduces the maximum number of OS heaps allocated for the purpose of reducing multithreading contention, and thus – so goes the logic – it reduces fragmentation.</p>
+
+<h3 id="visualizing-os-heaps">Visualizing OS heaps</h3>
+
+<p>Are Nate's and Heroku's assertion that more OS heaps equals more fragmentation, correct? Actually, is fragmentation at the memory allocator level the problem at all? I wasn't willing to take either assumptions for granted, so I started researching.</p>
+
+<p>If only there is a way visualize the OS heaps so that I can see what's going. Unfortunately there are <em>no tools that allow me to do that</em>.</p>
+
+<p class="callout">So I wrote an OS heap visualizer myself.</p>
+
+<p>First, I had to dump the layout of the OS heaps somehow. So I dived into <a href="https://github.com/bminor/glibc/tree/master/malloc">the memory allocator source code</a> to find out how the memory allocator internally lays out memory. Next, I wrote a library that traverses those data structures and writes the layout to a file. Finally, I wrote a tool that takes such a file as an input and compiles a visualization in the form of HTML and PNG images. <a href="https://github.com/FooBarWidget/heap_dumper_visualizer">Here is the source code.</a></p>
+
+<figure>
+  <a href="/images/2019/os_heap_visualization-e40e6bc2.png" target="_blank"><img src="/images/2019/os_heap_visualization-e40e6bc2.png" class="img-thumbnail" alt="" /></a>
+</figure>
+
+<p>Here's an example visualization of one particular OS heap (there are many more). The small blocks in this visualization represent OS pages.</p>
+
+<ul>
+  <li>Red areas are memory locations in use.</li>
+  <li>Gray areas are free locations, but not released back to the kernel.</li>
+  <li>White areas are freed to the kernel.</li>
+</ul>
+
+<p>I can deduce the following from the visualization:</p>
+
+<ol>
+  <li>There is <em>some</em> fragmentation. Because the red spots are scattered, and some OS pages are only half red.</li>
+  <li>To my surprise, <em>most</em> OS heaps look like this: there's a significant number of entirely-gray OS pages without any red inside!</li>
+</ol>
+
+<p>Then, it struck me:</p>
+
+<p class="callout size-sm">Even though fragmentation <em>could</em> be an issue, it doesn't seem to be as bad as people thought!</p>
+
+<p>Rather, the large amount of gray seems to be more problematic: that's the memory allocator <em>not releasing memory back to the kernel</em>!</p>
+
+<p>After researching the memory allocator's source code more, it turns out that by default it only releases OS pages at the <em>end</em> of an OS heap, and even that is only done <em>occassionally</em>. This is probably done for performance reasons.</p>
+
+<h2 id="a-magic-trick-trimming">A magic trick: trimming</h2>
+
+<p>Luckily I found a magic trick. There is an API to force the memory allocator to free <em>all</em> eligible OS pages to the kernel, not just those at the end. It's called <a href="http://man7.org/linux/man-pages/man3/malloc_trim.3.html">malloc_trim</a>.</p>
+
+<p>I knew about this function but did not think it was useful, because of this sentence in its manual page:</p>
+
+<blockquote>
+  <p>The malloc_trim() function attempts to release free memory at the <strong>top</strong> of the heap.</p>
+</blockquote>
+
+<p><strong>The manual is wrong!</strong> Analysis of the source code tells me that it frees <em>all</em> eligible OS pages, not just those at the top.</p>
+
+<p>So I thought, what happens if we modify Ruby to call this function during garbage collection? I patched Ruby 2.6 to call <code>malloc_trim()</code> in gc.c, function <code>gc_start</code>, like this:</p>
+
+<div class="highlight"><pre class="highlight cpp"><code><span class="n">gc_prof_timer_start</span><span class="p">(</span><span class="n">objspace</span><span class="p">);</span>
+<span class="p">{</span>
+    <span class="n">gc_marks</span><span class="p">(</span><span class="n">objspace</span><span class="p">,</span> <span class="n">do_full_mark</span><span class="p">);</span>
+    <span class="c1">// BEGIN MODIFICATION</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">do_full_mark</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="n">malloc_trim</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="c1">// END MODIFICATION</span>
+<span class="p">}</span>
+<span class="n">gc_prof_timer_stop</span><span class="p">(</span><span class="n">objspace</span><span class="p">);</span>
+</code></pre></div>
+<p>And here are the test results:</p>
+
+<figure>
+  <img src="/images/2019/after_malloc_trim-d1c61bda.png" class="img-thumbnail" alt="Average app memory usage. Before integrating malloc_trim: 230 MB. After integrating malloc_trim: 60 MB. Comparison with MALLOC_ARENA_MAX=2: 53 MB." />
+</figure>
+
+<p><strong>What a big difference!</strong> This simple patch causes memory usage to become almost as low as setting <code>MALLOC_ARENA_MAX=2</code>.</p>
+
+<p>Here's how things look like in the visualization:</p>
+
+<figure>
+  <a href="/images/2019/os_heap_visualization_after_trim-b3e36496.png" target="_blank"><img src="/images/2019/os_heap_visualization_after_trim-b3e36496.png" class="img-thumbnail" alt="" /></a>
+</figure>
+
+<p>We see a lot of "white holes", which are OS pages freed back to the kernel.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Fragmentation turns out to be mostly a red herring. There's still gains to be had by reducing fragmentation, but main problem is the fact that the memory allocator doesn't like to free memory back to the kernel.</p>
+
+<p>The solution turns out to be, fortunately, super simple. But finding the solution and the root cause… not so much.</p>
+
+<h3 id="visualizer-source-code">Visualizer source code</h3>
+
+<p><a href="https://github.com/FooBarWidget/heap_dumper_visualizer">Here is the OS heap visualizer source code.</a></p>
+
+<h3 id="what-about-performance">What about performance?</h3>
+
+<p>One big concern was performance. Calling <code>malloc_trim()</code> can't be free, and looking at the code the algorithm appears to run in linear time. So I reached out to <a href="https://twitter.com/codefolio">Noah Gibbs</a>, who ran the Rails Ruby Bench. To my surprise he found out that my patch yielded a slight performance <strong>increase</strong>.</p>
+
+<figure>
+  <img src="/images/2019/noah_gibbs_performance_quote-6398f101.jpg" class="img-smallwidth" alt="" /><br />
+  <img src="/images/2019/wait_what-17b7b126.jpg" class="img-smallwidth" alt="" />
+</figure>
+
+<p>That blew my mind. I can't explain it, but I'm not saying no to good news.</p>
+
+<h3 id="more-testing-needed">More testing needed</h3>
+
+<p>This research has only been tested against a limited number of cases, so I don't know the impact on other workloads. If you would like to help with testing, please <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#104;&#111;&#110;&#103;&#108;&#105;&#064;&#104;&#111;&#110;&#103;&#108;&#105;&#046;&#110;&#108;">contact me</a>.</p>
+
+<p><b><i>Update 2019-03-29:</i></b> I've written a follow-up in <a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html">The status of Ruby memory trimming &amp; how you can help with testing</a>.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-14-what-causes-ruby-memory-bloat.html&amp;t=What%20causes%20Ruby%20memory%20bloat%3F"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-14-what-causes-ruby-memory-bloat.html&amp;text=What%20causes%20Ruby%20memory%20bloat%3F%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

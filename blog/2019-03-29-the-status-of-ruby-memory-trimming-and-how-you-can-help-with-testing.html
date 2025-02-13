@@ -1,0 +1,541 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>The status of Ruby memory trimming &amp; how you can help with testing &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="My blog post earlier this month about what causes Ruby memory bloat, and about a way to potentially reduce memory usage by 70%, triggered quite a storm in the community! It&#x27;s clear that I stumbled upon a significant pain point.
+
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="The status of Ruby memory trimming &amp; how you can help with testing">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html">
+    <meta property="og:description" content="My blog post earlier this month about what causes Ruby memory bloat, and about a way to potentially reduce memory usage by 70%, triggered quite a storm in the community! It&#x27;s clear that I stumbled upon a significant pain point.
+
+">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html">The status of Ruby memory trimming &amp; how you can help with testing</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2019-03-29" itemprop="datePublished">Mar 29, 2019</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/ruby.html">Ruby</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg"
+          style=""
+          title="Photo by Mike Newbry on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html&amp;t=The%20status%20of%20Ruby%20memory%20trimming%20%26%20how%20you%20can%20help%20with%20testing"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html&amp;text=The%20status%20of%20Ruby%20memory%20trimming%20%26%20how%20you%20can%20help%20with%20testing%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>My blog post earlier this month about <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">what causes Ruby memory bloat</a>, and about a way to potentially reduce memory usage by 70%, triggered quite a storm in the community! It's clear that I stumbled upon a significant pain point.</p>
+
+<p><strong></strong></p>
+
+<h2 id="whats-on-the-grapevine">What's on the grapevine?</h2>
+
+<p>Here are the community highlights I've observed so far.</p>
+
+<h3 id="returning-to-ruby">Returning to Ruby?</h3>
+
+<p>Some people on Twitter were talking about returning to Ruby if the memory usage issue is resolved, because that's what drove them away in the first place.</p>
+
+<h3 id="under-discussion-by-ruby-core-team">Under discussion by Ruby core team</h3>
+
+<p>Sam Saffron <a href="https://bugs.ruby-lang.org/issues/15667">opened an issue in the Ruby bug tracker</a> to discuss my research, and whether the Ruby core team is willing to merge this work upstream. The Ruby core team has no objections so far, but errs on the side of caution.</p>
+
+<h3 id="caught-the-attention-of-the-malloctrim-developer">Caught the attention of the <code>malloc_trim</code> developer</h3>
+
+<p>Carlos O'Donell from Red Hat – the person who wrote <code>malloc_trim()</code> – <a href="https://bugs.ruby-lang.org/issues/15667#note-3">joined the discussion</a> and said that he's very interested in the results. Maybe we'll see more improvements in the glibc memory allocator in the future?</p>
+
+<h3 id="first-test-results-are-coming-in">First test results are coming in</h3>
+
+<p><strong>Noah Gibbs</strong> <a href="http://engineering.appfolio.com/appfolio-engineering/2019/2/25/benchmarking-hongli-lais-new-patch-for-ruby-memory-savings">posted more details about his performance benchmark</a> of my patch. He observed a small (1%) performance improvement.</p>
+
+<p><strong>Vladimir Dementyev</strong> <a href="https://dev.to/evilmartians/cables-vs-malloctrim-or-yet-another-ruby-memory-usage-benchmark-3emo">tested my patch using Action Cable and blogged about the results</a>. He observed a memory usage reduction similar to setting <code>MALLOC_ARENA_MAX=2</code>, but also observed a performance hit of 12%-21%.</p>
+
+<p><strong>Sam Saffron</strong> <a href="https://bugs.ruby-lang.org/issues/15667#note-6">benchmarked my patch using Discourse</a>. His <a href="https://bugs.ruby-lang.org/attachments/7730">results</a> show the following, when comparing default Ruby with my patch:</p>
+
+<ul>
+  <li>Memory usage is clearly reduced: from 4.7 GB to 3.9 GB.</li>
+  <li>About 7% performance reduction in the 99th percentile performance benchmark.</li>
+  <li>Average CPU usage is slightly higher: about 0.5% increase.</li>
+  <li>Jemalloc fares better than the <code>malloc_trim</code> patch, both w.r.t. memory usage and performance.</li>
+</ul>
+
+<p><strong>My take</strong> on these results:</p>
+
+<ul>
+  <li>So there is a performance impact after all. Noah Gibb's performance benchmark turns out to be unrepresentative.</li>
+  <li>The performance problem is probably solvable. The most obvious solution is to call <code>malloc_trim()</code> fewer times, e.g. once every 3 GCs.</li>
+</ul>
+
+<h3 id="still-room-for-improvement">Still room for improvement</h3>
+
+<p>I've had a heated discussion with <strong>Nate Berkopec</strong> about the implications of my research. We concluded that, although <code>malloc_trim()</code> helps a lot, we can probably reduce memory usage <em>even futher</em> if we use alternative memory allocation strategies to reduce fragmentation.</p>
+
+<p>Indeed: Sam Saffron's tests seem to indicate that jemalloc still outperforms <code>malloc_trim()</code>, both in performance and memory usage.</p>
+
+<p>Using jemalloc as Ruby's default is a bit problematic. There was a <a href="https://bugs.ruby-lang.org/issues/14718">heated discussion</a> in the Ruby bug tracker about this, but in the end no decision was made. The main issue raised is the fact that memory usage only reduces when using jemalloc 3; memory usage is still high when using jemalloc 5. Nobody knows why, so that makes the choice of defaulting to jemalloc very dodgy.</p>
+
+<p>It is potentially possible to write a custom memory allocator especially for Ruby. But that is a significant amount of work, so no plans have been made so far to start such an effort.</p>
+
+<h2 id="how-you-can-help-with-testing">How you can help with testing</h2>
+
+<p><strong>I'm calling for the community to help me with testing</strong> in their own production environments. We need more answers to the following questions:</p>
+
+<ol>
+  <li>Does <code>malloc_trim()</code> really reduce memory usage? If so, by how much?</li>
+  <li>Does <code>malloc_trim()</code> have a performance impact? If so, by how much?</li>
+  <li>Bonus question: how does <code>malloc_trim()</code> compare to jemalloc?</li>
+</ol>
+
+<p>The answers to the above questions are probably application-specific, which is why the more people post their test results, the better.</p>
+
+<p>(Note that dev/staging is not enough; we need production data.)</p>
+
+<h3 id="two-methodologies">Two methodologies</h3>
+
+<p>In this blog post I've detailed two methodologies for collecting data to answer questions 1 and 2. (If you can also answer bonus question 3, then great! But how to do that is left as exercise for you)</p>
+
+<p><strong>Methodology 1 overview (preferred):</strong></p>
+
+<ol>
+  <li>Install a patched Ruby on half of your production servers.</li>
+  <li>Compare memory usage and performance between the two halves.</li>
+</ol>
+
+<p><strong>Methodology 2 overview:</strong></p>
+
+<ol>
+  <li>Install a patched Ruby on all your production servers.</li>
+  <li>Compare memory usage and performance data from before and after having patched Ruby.</li>
+</ol>
+
+<p>Methodology 1 is preferred your data won't be polluted by natural traffic variances over time, but methodology 2 is more convenient to setup.</p>
+
+<h2 id="step-1-preparation">Step 1: preparation</h2>
+
+<h3 id="upgrade-to-ruby-26">1.1 Upgrade to Ruby 2.6</h3>
+
+<p>We want to compare a normal Ruby 2.6 to Ruby 2.6 with the trim patch applied. We don't want to compare with older Ruby versions. So if you aren't on Ruby 2.6 already, then please be sure to upgrade to 2.6.</p>
+
+<p>Even if you've chosen methodology 1, you should upgrade <em>all</em> your servers to 2.6. Otherwise it wouldn't be a fair comparison.</p>
+
+<p>After upgrading to Ruby 2.6, be sure to redeploy your app, because <code>bundle install</code> will need to be rerun.</p>
+
+<p>Also be sure to reconfigure your app servers (e.g. SystemD service units, or Passenger settings) to make use of Ruby 2.6.</p>
+
+<p>If you're using Passenger, then modify the app's <code>passenger_ruby</code> setting. Here's an example, assuming you're using Passenger for Nginx:</p>
+
+<div class="highlight"><pre class="highlight nginx"><code><span class="k">passenger_ruby</span> <span class="n">/path-to-your-ruby-2.6</span><span class="p">;</span>
+</code></pre></div>
+<p>Note when using RVM: be sure to point to your RVM Ruby <em>wrapper script</em>, not the raw binary. <a href="https://www.phusionpassenger.com/library/config/nginx/reference/#setting_correct_passenger_ruby_value">Read the Passenger documentation</a> to learn how to obtain that path.</p>
+
+<h3 id="disable-swap">1.2 Disable swap</h3>
+
+<p>In order to be able to measure memory usage accurately, I highly recommend disabling swap.</p>
+
+<p>To disable swap immediately, run this command. Note however that its effect only persists until you reboot the server.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>swapoff <span class="nt">-a</span>
+</code></pre></div>
+<p>To disable swap permanently, you also need to remove the swap partition from <code>/etc/fstab</code>.</p>
+
+<h3 id="setup-performance--memory-usage-monitoring">1.3 Setup performance &amp; memory usage monitoring</h3>
+
+<p>If you don't have it yet, then be sure to setup performance and memory usage monitoring.</p>
+
+<p>The goal is to see how performance and memory usage changes over time. So any solution that is capable of producing a graph is fine. The data retention time should be a couple of weeks.</p>
+
+<ul>
+  <li>Performance monitoring should collect information about response times over time (average, 99th percentile).</li>
+  <li>Memory usage monitoring should collect information about Ruby process RSS memory usage over time.</li>
+</ul>
+
+<p>If you've chosen methodology 1, then be sure to assign each half of your cluster to <em>different</em> monitoring projects, so that you can compare the data from both halves instead of having the data merged together.</p>
+
+<p>If you've chosen methodology 2, then once you have a monitoring solution set up, let it collect data for a week or so.</p>
+
+<p>Here are some monitoring services that are able to monitor performance and memory usage:</p>
+
+<ul>
+  <li>AppSignal (see <a href="https://blog.appsignal.com/2019/03/29/memory-magic-dashboard.html">this guide</a>)</li>
+  <li>New Relic</li>
+  <li>Heroku's dashboard</li>
+  <li>Skylight</li>
+  <li>Scout</li>
+</ul>
+
+<h2 id="step-2-install-ruby-26-with-trim-patch">Step 2: install Ruby 2.6 with trim patch</h2>
+
+<p>If you've chosen methodology 1, then install Ruby 2.6 with trim patch on half of your servers.</p>
+
+<p>If you've chosen methodology 2, then install it on all your servers.</p>
+
+<p>Be sure to restart your app servers after installing the patched Ruby.</p>
+
+<h3 id="if-you-installed-ruby-through-rvm">If you installed Ruby through RVM</h3>
+
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-SLO</span> https://bugs.ruby-lang.org/attachments/download/7717/ruby_gc_malloc_trim.patch
+rvm <span class="nb">install </span>2.6.2 <span class="nt">--patch</span> ruby_gc_malloc_trim.patch
+</code></pre></div>
+<h3 id="if-you-installed-ruby-through-rbenv">If you installed Ruby through rbenv</h3>
+
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-SLO</span> https://bugs.ruby-lang.org/attachments/download/7717/ruby_gc_malloc_trim.patch
+rbenv <span class="nb">install</span> <span class="nt">--patch</span> 2.6.2 &lt; ruby_gc_malloc_trim.patch
+</code></pre></div>
+<h3 id="if-you-installed-ruby-through-chruby">If you installed Ruby through chruby</h3>
+
+<p>If you used ruby-install:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>ruby-install <span class="nt">-p</span> https://bugs.ruby-lang.org/attachments/download/7717/ruby_gc_malloc_trim.patch ruby 2.6.2
+</code></pre></div>
+<p>If you used ruby-build:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-SLO</span> https://bugs.ruby-lang.org/attachments/download/7717/ruby_gc_malloc_trim.patch
+ruby-build <span class="nt">--patch</span> 2.6.2 &lt; ruby_gc_malloc_trim.patch
+</code></pre></div>
+<h3 id="if-you-installed-ruby-manually-from-source">If you installed Ruby manually from source</h3>
+
+<p>Download the Ruby source code, extract it and enter the source root:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>curl <span class="nt">-SLO</span> https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.2.tar.gz
+<span class="nb">tar </span>xzf ruby-2.6.2.tar.gz
+<span class="nb">cd </span>ruby-2.6.2
+</code></pre></div>
+<p>Download the patch and apply it:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>curl -SLO https://bugs.ruby-lang.org/attachments/download/7717/ruby_gc_malloc_trim.patch
+patch -p1 &lt; ruby_gc_malloc_trim.patch
+</code></pre></div>
+<p>Finally, configure, build and install the source according to the settings you used before:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>./configure <span class="o">[</span>your previous configure settings here]
+make <span class="nt">-j2</span>
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div>
+<h3 id="if-you-installed-ruby-through-any-other-means">If you installed Ruby through any other means</h3>
+
+<p>If you installed Ruby through any other means (e.g. through Debian/RPM packages), then you'll have to migrate away from them, and towards either RVM, rbenv, chruby or manually installing from source.</p>
+
+<p>If you're using Docker, then you'll have to install Ruby inside the container using either RVM, rbenv, chruby or manually from source.</p>
+
+<h2 id="step-3-monitor-and-interpret-the-results">Step 3: monitor and interpret the results</h2>
+
+<p>Let this new setup run for a week or so.</p>
+
+<p>If you've chosen methodology 1, then compare the performance and memory usage data between the two halves of your cluster. What's the difference?</p>
+
+<p>If you've chosen methodology 2, then have a look at the performance and memory usage before and after installing the patch. What has changed?</p>
+
+<h2 id="step-4-share-your-results">Step 4: share your results</h2>
+
+<p>I would be grateful if you can blog about your results and <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#104;&#111;&#110;&#103;&#108;&#105;&#064;&#104;&#111;&#110;&#103;&#108;&#105;&#046;&#110;&#108;">tell me about it</a>. If you're in need of some inspiration: <a href="https://dev.to/evilmartians/cables-vs-malloctrim-or-yet-another-ruby-memory-usage-benchmark-3emo">this</a> is what I consider a good blog post.</p>
+
+<p>Thanks!</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html&amp;t=The%20status%20of%20Ruby%20memory%20trimming%20%26%20how%20you%20can%20help%20with%20testing"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html&amp;text=The%20status%20of%20Ruby%20memory%20trimming%20%26%20how%20you%20can%20help%20with%20testing%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>
