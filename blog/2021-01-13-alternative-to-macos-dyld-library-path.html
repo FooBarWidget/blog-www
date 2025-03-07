@@ -1,0 +1,508 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>An alternative to macOS&#x27;s DYLD_LIBRARY_PATH &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Traveling Ruby&#x27;s build process relies on `DYLD_LIBRARY_PATH`, which is blocked by SIP. This hurts contributions, and the ability to build Traveling Ruby on CIs. After some research and experimentation, I&#x27;ve found an alternative.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="An alternative to macOS&#x27;s DYLD_LIBRARY_PATH">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2021-01-13-alternative-to-macos-dyld-library-path.html">
+    <meta property="og:description" content="Traveling Ruby&#x27;s build process relies on `DYLD_LIBRARY_PATH`, which is blocked by SIP. This hurts contributions, and the ability to build Traveling Ruby on CIs. After some research and experimentation, I&#x27;ve found an alternative.">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2021/library-a58b98d0.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2021-01-13-alternative-to-macos-dyld-library-path.html">An alternative to macOS&#x27;s DYLD_LIBRARY_PATH</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2021-01-13" itemprop="datePublished">Jan 13, 2021</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>, <a href="/blog/tags/software-development.html">Software development</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2021-01-13-alternative-to-macos-dyld-library-path.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;library-a58b98d0.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;library-a58b98d0.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-13-alternative-to-macos-dyld-library-path.html&amp;t=An%20alternative%20to%20macOS%27s%20DYLD_LIBRARY_PATH"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-13-alternative-to-macos-dyld-library-path.html&amp;text=An%20alternative%20to%20macOS%27s%20DYLD_LIBRARY_PATH%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>In my <a href="/blog/2021-01-06-the-future-of-traveling-ruby.html">last blog post about Traveling Ruby's future</a>, I said that it's hard to democratize the development of Traveling Ruby because of System Integrity Protection (SIP). Traveling Ruby's build process relies on <code>DYLD_LIBRARY_PATH</code>, which is blocked by SIP. This means that:</p>
+
+<ul>
+  <li>Contributors that build Traveling Ruby on their own laptops, must disable SIP.</li>
+  <li>Traveling Ruby cannot be built on many CI hosting services, such as Azure DevOps and Github Actions, because it's not possible to disable SIP there.</li>
+</ul>
+
+<p>After some research and experimentation, I've found an alternative to <code>DYLD_LIBRARY_PATH</code>, meaning that it's no longer necessary to disable SIP. This significantly changes the ability to democratize Traveling Ruby's development.</p>
+
+<p><strong></strong></p>
+
+<h2 id="what-did-we-use-dyldlibrarypath-for">What did we use DYLD_LIBRARY_PATH for?</h2>
+
+<p>Before we get to the new solution, let's revisit how the old solution worked.</p>
+
+<h3 id="how-macos-library-lookup-works">How macOS library lookup works</h3>
+
+<p>How does macOS locate library dependencies for a given executable?</p>
+
+<p>Answer: an executable contains a specification of library dependencies. Each entry is a path to that library, e.g. "/Users/hongli/example/libyaml.dylib".</p>
+
+<p>Here's an example which compiles a C program that does nothing, but is linked to libyaml:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">echo</span> <span class="s1">'int main() { return 0; }'</span> <span class="o">&gt;</span> foo.c
+cc foo.c <span class="nt">-o</span> foo <span class="nt">-L</span>/Users/hongli/example <span class="nt">-lyaml</span>
+</code></pre></div>
+<p>We can use <code>otool -L foo</code> to inspect the list of libraries that this executable requires:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>foo:
+    /Users/hongli/example/libyaml.dylib <span class="o">(</span>compatibility version 3.0.0, current version 3.3.0<span class="o">)</span>
+    /usr/lib/libSystem.B.dylib <span class="o">(</span>compatibility version 1.0.0, current version 1281.100.1<span class="o">)</span>
+</code></pre></div>
+<p>So here you go, <code>foo</code> contains information that says "I depend on /Users/hongli/example/libyaml.dylib". Note that his is a full path. That's different from Linux, where executables say "I depend on libyaml.so" (not a full path).</p>
+
+<h3 id="relative-dependency-paths">Relative dependency paths</h3>
+
+<p>In many cases, it's useful to have the OS locate dependencies <em>relative to</em> the executable. For example, suppose we want to distribute the above program <code>foo</code> to another user. We'll need to package all its dependencies. Hypothetically we'll want to package it like this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>foo.tar.gz
+ |
+ +- bin/
+ |   |
+ |   +- foo
+ |
+ +- lib/
+     |
+     +- libyaml.dylib
+</code></pre></div>
+<p>Suppose our friend extracts foo.tar.gz into "/Users/xiangling/foo", then runs "/Users/xiangling/foo/bin/foo". We'll want the OS to locate libyaml.dylib in "/Users/xiangling/lib", not in "/Users/hongli/example".</p>
+
+<p>One way to achieve this is by ensuring that the executable's dependency list specifies <code>@executable_path/../lib/libyaml.dylib</code>, instead of an absolute path to libyaml.dylib. macOS recognizes <code>@executable_path</code> as a <a href="https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/DynamicLibraryDesignGuidelines.html#//apple_ref/doc/uid/TP40002013-SW21">special directive</a> that means "the directory in which the executable is located".</p>
+
+<p>An executable's dependency list can be modified even after it's built, using <a href="https://www.manpagez.com/man/1/install_name_tool/osx-10.11.6.php">install_name_tool</a>. This tool is so called because each "path" in the dependency list is technically called an "install name".</p>
+
+<p>So let's go ahead and modify our <code>foo</code> executable's dependency list:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>install_name_tool <span class="nt">-change</span> @executable_path/../lib/libyaml.dylib foo
+</code></pre></div>
+<p>Now, when we inspect the dependency list using <code>otool -L foo</code>, we see that it's indeed modified:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>foo:
+    @executable_path/../lib/libyaml.dylib (compatibility version 3.0.0, current version 3.3.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+</code></pre></div>
+<h3 id="looking-up-dependencies-when-building-traveling-ruby">Looking up dependencies when building Traveling Ruby</h3>
+
+<p>The Traveling Ruby build process goes like this:</p>
+
+<ol>
+  <li>Before building Ruby, we build dependencies such as libyaml. Dependencies are installed to a temporary location that we call the "runtime directory". This is something like <code>/Users/hongli/traveling-ruby/osx/runtime</code>.</li>
+  <li>Then we build Ruby. This is done in a temporary directory such as <code>/tmp/ruby-XXX/ruby-XXX</code>.</li>
+  <li>Finally, we copy the Ruby executable, as well as all dependencies, into a single directory tree, which we can then package into a tarball.</li>
+</ol>
+
+<p><img src="/images/2021/traveling-ruby-build-process-988711c0.png" alt="The Traveling Ruby build process" /></p>
+
+<p>The final package directory looks like this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>+- bin/
+|   |
+|   +- ruby
+|
++- lib/
+    |
+    +- libyaml.dylib
+    |
+    +- ...and other dependency libraries...
+</code></pre></div>
+<p>We ensure that all executables use <code>@executable_path/../lib</code> to reference dependencies. So once packaged, the Ruby executable can locate all its dependencies.</p>
+
+<p>But there's a problem during step 2. As part of building Ruby, we need to run the built Ruby executable, before it's copied over to the package directory. During this step, the Ruby executable is located in <code>/tmp/ruby-XXX/ruby-XXX/ruby</code>. How will that Ruby executable locate its dependencies, which at that point are in the runtime directory <code>/Users/hongli/traveling-ruby/osx/runtime/lib</code>?</p>
+
+<p>We used to solve this problem by setting the environment variable <code>DYLD_LIBRARY_PATH</code> to <code>/Users/hongli/traveling-ruby/osx/runtime/lib</code>. This tells macOS to look for libraries in the given directories.</p>
+
+<p>Now that <code>DYLD_LIBRARY_PATH</code> stopped working on macOS systems with SIP enabled, it's time to look for a new solution.</p>
+
+<h2 id="new-solution-based-on-rpath">New solution based on @rpath</h2>
+
+<p>Every macOS executable can embed a list of <em>library search paths</em>, or <a href="https://developer.apple.com/library/archive/documentation/DeveloperTools/Conceptual/DynamicLibraries/100-Articles/RunpathDependentLibraries.html">"rpaths"</a>. Whenever macOS encounters a dependency path that references "@rpath", macOS will search for that dependency in the embedded list of paths.</p>
+
+<p>So unlike <code>DYLD_LIBRARY_PATH</code>, which is set during runtime, the library search paths are embedded in the executable, which Apple seems secure enough to not block via SIP.</p>
+
+<p>Some useful facts about rpaths:</p>
+
+<ul>
+  <li>They do not have to be absolute paths: they too can reference "@executable_path"!</li>
+  <li>They can be added or removed from an executable after it's built, not just during compile time.</li>
+</ul>
+
+<p>Here's an example. Let's build a C program which does nothing but is linked to "/Users/hongli/example/libyaml.dylib". We also ensure that we add an rpath to this executable.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">echo</span> <span class="s1">'int main() { return 0; }'</span> <span class="o">&gt;</span> foo.c
+cc foo.c <span class="nt">-o</span> foo <span class="nt">-L</span>/Users/hongli/example <span class="nt">-lyaml</span>
+install_name_tool <span class="nt">-add_rpath</span> @executable_path/../lib foo
+</code></pre></div>
+<p>When we inspect the executable's list of rpaths with <code>otool -l foo | grep LC_RPATH -A2</code>, we see:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>         cmd LC_RPATH
+      cmdsize 40
+         path @executable_path/../lib (offset 12)
+</code></pre></div>
+<p>However, just having this rpath entry is not enough. When we examine the dependency list with <code>otool -L foo</code>, we see that the reference to libyaml.dylib is an absolute path.</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>foo:
+    /Users/hongli/example/libyaml.dylib (compatibility version 3.0.0, current version 3.3.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+</code></pre></div>
+<p>So when we start <code>foo</code>, macOS will ignore the rpath, and will still locate libyaml in /Users/hongli/example. We can verify this by moving libyaml.dylib, and observing that <code>foo</code> fails to start:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ mkdir ../lib
+$ mv /Users/hongli/example/libyaml.dylib ../lib/
+$ ./foo
+dyld: Library not loaded: /Users/hongli/example/libyaml.dylib
+  Referenced from: ./foo
+  Reason: image not found
+Abort trap: 6
+</code></pre></div>
+<p>So we change foo's dependency list to reference "@rpath":</p>
+
+<div class="highlight"><pre class="highlight shell"><code>install_name_tool <span class="nt">-change</span> /Users/hongli/example/libyaml.dylib @rpath/libyaml.dylib foo
+</code></pre></div>
+<p>This yields the following dependency list:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>foo:
+    @rpath/libyaml.dylib (compatibility version 3.0.0, current version 3.3.0)
+    /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1281.100.1)
+</code></pre></div>
+<p>Now it works as expected. Suppose you package up <code>foo</code> and <code>libyaml.dylib</code> according to the package structure described earlier. If your friend extracts the tarball to "/Users/xiangling/foo" and runs <code>/Users/xiangling/foo/bin/foo</code>, then here's what happens:</p>
+
+<ol>
+  <li>macOS encounters a dependency named "@rpath/libyaml.dylib" and concludes that it needs to look for libyaml.dylib in the list of rpaths.</li>
+  <li>macOS sees that the list of rpaths is <code>["@executable_path/../lib"]</code>, and looks in there for libyaml.dylib.</li>
+  <li>macOS interprets "@executable_path" as the actual executable's path, so it finds libyaml.dylib in "/Users/xiangling/foo/bin/../lib".</li>
+</ol>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>So the final solution is as follows:</p>
+
+<ul>
+  <li>
+    <p>We ensure that all executables are compiled with two rpaths:</p>
+
+    <ul>
+      <li><code>@executable_path/../lib</code>, and,</li>
+      <li>the absolute path to the runtime directory.</li>
+    </ul>
+
+    <p>This way, if macOS can't find a dependency in <code>../lib</code>, it will find it in the runtime directory.</p>
+  </li>
+  <li>
+    <p>At the end of step 2 of the Traveling Ruby build process, we remove the absolute rpath to the runtime directory.</p>
+  </li>
+</ul>
+
+<p>Now that it's no longer necessary to disable SIP, developing Traveling Ruby is a lot less of a hassle, and it paves the way to building on hosted CI services.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-13-alternative-to-macos-dyld-library-path.html&amp;t=An%20alternative%20to%20macOS%27s%20DYLD_LIBRARY_PATH"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-13-alternative-to-macos-dyld-library-path.html&amp;text=An%20alternative%20to%20macOS%27s%20DYLD_LIBRARY_PATH%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

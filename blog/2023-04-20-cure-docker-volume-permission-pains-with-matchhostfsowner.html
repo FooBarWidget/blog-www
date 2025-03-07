@@ -1,0 +1,512 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Cure Docker volume permission pains with MatchHostFsOwner &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Learn why do Docker volume permission problems occur, why the open source tool MatchHostFsOwner solves this effectively.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Cure Docker volume permission pains with MatchHostFsOwner">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html">
+    <meta property="og:description" content="Learn why do Docker volume permission problems occur, why the open source tool MatchHostFsOwner solves this effectively.">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2023/cure-docker-pain-2bfec2d4.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html">Cure Docker volume permission pains with MatchHostFsOwner</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2023-04-20" itemprop="datePublished">Apr 20, 2023</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/docker.html">Docker</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2023&#x2F;cure-docker-pain-2bfec2d4.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2023&#x2F;cure-docker-pain-2bfec2d4.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html&amp;t=Cure%20Docker%20volume%20permission%20pains%20with%20MatchHostFsOwner"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html&amp;text=Cure%20Docker%20volume%20permission%20pains%20with%20MatchHostFsOwner%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>Run a container with a host directory mount, and it either leaves root-owned files behind or it runs into "permission denied" errors. Welcome to the dreadful <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html">container host filesystem owner matching problem</a>. These issues <a href="https://www.reddit.com/r/docker/comments/hjsipd/permission_denied_with_volumes/">confuse</a> <a href="https://medium.com/@nielssj/docker-volumes-and-file-system-permissions-772c1aee23ca">and</a> <a href="https://mydeveloperplanet.com/2022/10/19/docker-files-and-volumes-permission-denied/">irritate</a> <a href="https://blog.gougousis.net/file-permissions-the-painful-side-of-docker/">people</a>, and they happen because apps in the container run as a different user than the host user.</p>
+
+<p>There are <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html#solution-strategies-overiew">various strategies to solve this issue</a>, but they are all non-trivial (requiring complex logic) and/or have significant caveats (e.g., requiring privileged containers). Here's where my new tool <a href="https://github.com/FooBarWidget/matchhostfsowner">MatchHostFsOwner</a> comes in.</p>
+
+<p><strong></strong></p>
+
+<h2 id="how-does-matchhostfsowner-solve-container-file-permission-pains">How does MatchHostFsOwner solve container file permission pains?</h2>
+
+<p>MatchHostFsOwner implements <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html#strategy-1-matching-the-containers-uidgid-with-the-hosts">solution strategy number 1</a>. It ensures that the container runs as the same user (UID/GID) as the host's user. In short, it:</p>
+
+<ul>
+  <li>modifies a user account inside the container so that the account's UID/GID matches that of the host user.</li>
+  <li>executes the actual container command as the aforementioned user account (instead of, e.g., letting it execute as root).</li>
+</ul>
+
+<p>This strategy is easier said than done, and the article documents the many caveats involved with this strategy. Fortunately, MatchHostFsOwner is here to help because it addresses all these caveats, so you don't have to.</p>
+
+<h2 id="using-matchhostfsowner">Using MatchHostFsOwner</h2>
+
+<p>Here are some core concepts to understand:</p>
+
+<ul>
+  <li>
+    <p><strong>It's an entrypoint</strong> — Install MatchHostFsOwner as the container entrypoint program. It <a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#combining-other-entrypoint-programs-with-matchhostfsowner">should be the first program to run in the container</a>. When it runs, it modifies the container's environment, then executes the next command with the proper UID/GID.</p>
+  </li>
+  <li>
+    <p><strong>It requires host user input</strong> — when starting a container, the host user must tell MatchHostFsOwner what the host user's UID/GID is. How the user passes this information depends on what tool the user uses to start the container (e.g., Docker CLI, Docker Compose, Kubernetes, etc).</p>
+  </li>
+  <li>
+    <p><strong>It requires an extra user account in the container</strong> — MatchHostFsOwner tries to execute the next command under a user account in the container whose UID equals the host user's UID. If no such account exists (which is common), then MatchHostFsOwner will take a specific account and modify its UID/GID to match that of the host user.</p>
+
+    <p>The account MatchHostFsOwner will take and modify is called the <strong>"app account"</strong>. MatchHostFsOwner won't create this account for you — you have to supply it. It won't always be used, but often it will.</p>
+
+    <p>By default, MatchHostFsOwner assumes that the app account is named <code>app</code>. But this is <a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#custom-usergroup-account-name">customizable</a>.</p>
+  </li>
+  <li>
+    <p><strong>It requires root privileges</strong> — MatchHostFsOwner itself requires root privileges to modify the container's environment. It drops these privileges later before executing the next command.</p>
+
+    <p>How exactly MatchHostFsOwner is granted root privileges depends on how one is supposed to start the container. This brings us to the two <em>usage modes</em>.</p>
+  </li>
+</ul>
+
+<h2 id="usage-mode-1-start-container-without-root-privileges">Usage mode 1: start container without root privileges</h2>
+
+<p>This mode is most suitable for starting the container without root privileges. For example:</p>
+
+<ul>
+  <li>When your Dockerfile sets a default user account using <code>USER</code>.</li>
+  <li>When your container is supposed to be started with <code>docker run --user</code>.</li>
+  <li>When your Kubernetes spec makes use of securityContext's <code>runAsUser</code>/<code>runAsGroup</code>.</li>
+</ul>
+
+<p>In this mode, you must grant MatchHostFsOwner the setuid root bit. MatchHostFsOwner drops its setuid root bit as soon as possible after it has done its work.</p>
+
+<p>This mode has some limitations:</p>
+
+<ul>
+  <li>The container cannot be started a second time (e.g., using docker stop and then docker start). Upon starting the container for the second time, MatchHostFsOwner no longer has the setuid root bit, so it won't be able to do its job. Thus, mode 1 is only useful for ephemeral containers.</li>
+  <li>Incompatible with Docker Compose because it may start the container a second time.</li>
+  <li>Requires that the container filesystem in which MatchHostFsOwner is located, to be writable. Because MatchHostFsOwner must be able to drop the setuid root bit. Thus, you cannot run the container in read-only mode (e.g., <code>docker run --read-only</code>).</li>
+</ul>
+
+<h3 id="usage-mode-1-in-action">Usage mode 1 in action</h3>
+
+<p>Begin by preparing the container.</p>
+
+<ul>
+  <li>Create an account in your container for running your app. It doesn't matter what you name it (it's <a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#custom-usergroup-account-name">customizable</a>), but let's call it "app" in this demo because MatchHostFsOwner assumes by default that that's the name. Set this account up as the default account for the container.</li>
+  <li>Place the MatchHostFsOwner executable in a root-owned directory (e.g., <code>/sbin</code>) and ensure that the executable is owned by root, and has the setuid root bit.</li>
+  <li>Set up the MatchHostFsOwner executable as the container entrypoint.</li>
+</ul>
+
+<p>For example:</p>
+
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="s"> ubuntu:22.04</span>
+
+<span class="c"># Install MatchHostFsOwner. Replace X.X.X with an actual version.</span>
+<span class="c"># See https://github.com/FooBarWidget/matchhostfsowner/releases</span>
+<span class="k">ADD</span><span class="s"> https://github.com/FooBarWidget/matchhostfsowner/releases/download/vX.X.X/matchhostfsowner-X.X.X-x86_64-linux.gz /sbin/matchhostfsowner.gz</span>
+<span class="k">RUN </span><span class="nb">gunzip</span> /sbin/matchhostfsowner.gz <span class="o">&amp;&amp;</span> <span class="se">\
+</span>  <span class="nb">chown </span>root: /sbin/matchhostfsowner <span class="o">&amp;&amp;</span> <span class="se">\
+</span>  <span class="nb">chmod</span> +x,+s /sbin/matchhostfsowner
+<span class="k">RUN </span>addgroup <span class="nt">--gid</span> 9999 app <span class="o">&amp;&amp;</span> <span class="se">\
+</span>  adduser <span class="nt">--uid</span> 9999 <span class="nt">--gid</span> 9999 <span class="nt">--disabled-password</span> <span class="nt">--gecos</span> App app
+<span class="c">## Or, on RHEL-based images:</span>
+<span class="c"># RUN groupadd --gid 9999 app &amp;&amp; \</span>
+<span class="c">#   useradd --uid 9999 --gid 9999 app</span>
+<span class="c">## Or, on Alpine-based images:</span>
+<span class="c"># RUN addgroup -g 9999 app &amp;&amp; \</span>
+<span class="c">#   adduser -G app -u 9999 -D app</span>
+<span class="k">USER</span><span class="s"> app</span>
+
+<span class="k">ENTRYPOINT</span><span class="s"> ["/sbin/matchhostfsowner"]</span>
+</code></pre></div>
+<div class="highlight"><pre class="highlight shell"><code>docker build <span class="nb">.</span> <span class="nt">-t</span> my-example-image
+</code></pre></div>
+<p>Next, start the container using a user and group ID that matches the host user's. For example, using the Docker CLI. (See <a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#kubernetes">the documentation</a> for a Kubernetes-based example.)</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">--user</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-u</span><span class="si">)</span><span class="s2">:</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-g</span><span class="si">)</span><span class="s2">"</span> my-example-image <span class="nb">id</span> <span class="nt">-a</span>
+<span class="c"># Output (assuming host UID/GID is 501/20):</span>
+<span class="c"># uid=501(app) gid=20(app) groups=20(app)</span>
+</code></pre></div>
+<p>Success! Here's what happened under the hood:</p>
+
+<ul>
+  <li>MatchHostFsOwner (the entrypoint) runs before the container command (<code>id -a</code>) does.</li>
+  <li>MatchHostFsOwner sees the container is running as UID/GID 501/20. So it modifies the "app" account's UID/GID to 501/20. It can do that because it has setuid root privileges.</li>
+  <li>MatchHostFsOwner drops its setuid root privileges, then executes the command <code>id -a</code> under the container's "app" account.</li>
+</ul>
+
+<h2 id="usage-mode-2-start-container-with-root-privileges">Usage mode 2: start container with root privileges</h2>
+
+<p>In this mode, MatchHostFsOwner obtains root privileges through the fact that one starts the container with root privileges. No setuid root privileges required. MatchHostFsOwner drops its root privileges as soon as possible after it has done its work.</p>
+
+<p>This mode is most suitable if any of the following is applicable:</p>
+
+<ul>
+  <li>You're using Docker Compose.</li>
+  <li>The container could be started a second time, as happens with, e.g., Docker Compose.</li>
+  <li>The container filesystem in which MatchHostFsOwner is located is read-only.</li>
+</ul>
+
+<h3 id="usage-mode-2-in-action">Usage mode 2 in action</h3>
+
+<p>Begin by preparing the container:</p>
+
+<ul>
+  <li>Create an account in your container for running your app. It doesn't matter what you name it (it's <a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#custom-usergroup-account-name">customizable</a>), but let's call it "app" in this demo because MatchHostFsOwner assumes by default that that's the name. Set this account up as the default account for the container.</li>
+  <li>Place the MatchHostFsOwner executable in a root-owned directory (e.g., <code>/sbin</code>) and ensure that the executable is owned by root.</li>
+  <li>Set up the MatchHostFsOwner executable as the container entrypoint.</li>
+  <li>Don't set a default user account with <code>USER</code>.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="s"> ubuntu:22.04</span>
+
+<span class="c"># Install MatchHostFsOwner. Replace X.X.X with an actual version.</span>
+<span class="c"># See https://github.com/FooBarWidget/matchhostfsowner/releases</span>
+<span class="k">ADD</span><span class="s"> https://github.com/FooBarWidget/matchhostfsowner/releases/download/vX.X.X/matchhostfsowner-X.X.X-x86_64-linux.gz /sbin/matchhostfsowner.gz</span>
+<span class="k">RUN </span><span class="nb">gunzip</span> /sbin/matchhostfsowner.gz <span class="o">&amp;&amp;</span> <span class="se">\
+</span>  <span class="nb">chown </span>root: /sbin/matchhostfsowner <span class="o">&amp;&amp;</span> <span class="se">\
+</span>  <span class="nb">chmod</span> +x /sbin/matchhostfsowner
+<span class="k">RUN </span>addgroup <span class="nt">--gid</span> 9999 app <span class="o">&amp;&amp;</span> <span class="se">\
+</span>  adduser <span class="nt">--uid</span> 9999 <span class="nt">--gid</span> 9999 <span class="nt">--disabled-password</span> <span class="nt">--gecos</span> App app
+<span class="c">## Or, on RHEL-based images:</span>
+<span class="c"># RUN groupadd --gid 9999 app &amp;&amp; \</span>
+<span class="c">#   useradd --uid 9999 --gid 9999 app</span>
+<span class="c">## Or, on Alpine-based images:</span>
+<span class="c"># RUN addgroup -g 9999 app &amp;&amp; \</span>
+<span class="c">#   adduser -G app -u 9999 -D app</span>
+
+<span class="k">ENTRYPOINT</span><span class="s"> ["/sbin/matchhostfsowner"]</span>
+</code></pre></div>
+<div class="highlight"><pre class="highlight shell"><code>docker build <span class="nb">.</span> <span class="nt">-t</span> my-example-image
+</code></pre></div>
+<p>Next, start the container while setting the environment variables <code>MHF_HOST_UID</code> and <code>MHF_HOST_GID</code> to the host user's UID/GID like this:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">-e</span> <span class="s2">"MHF_HOST_UID=</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-u</span><span class="si">)</span><span class="s2">"</span> <span class="nt">-e</span> <span class="s2">"MHF_HOST_GID=</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-g</span><span class="si">)</span><span class="s2">"</span> my-example-image <span class="nb">id</span> <span class="nt">-a</span>
+<span class="c"># Output (assuming host UID/GID is 501/20):</span>
+<span class="c"># uid=501(app) gid=20(app) groups=20(app)</span>
+</code></pre></div>
+<p>Here's what happened under the hood:</p>
+
+<ul>
+  <li>MatchHostFsOwner (the entrypoint) runs before the container command (<code>id -a</code>) does.</li>
+  <li>MatchHostFsOwner sees that <code>MHF_HOST_UID</code>/<code>MHF_HOST_GID</code> is set to 501/20. So it modifies the "app" account's UID/GID to 501/20.</li>
+  <li>MatchHostFsOwner drops its root privileges, then executes the command <code>id -a</code> under the container's "app" account.</li>
+</ul>
+
+<figure>
+  <a href="https://github.com/FooBarWidget/matchhostfsowner"><img src="/images/2023/matchhostfsowner-mascot-small-8c393772.jpg" alt="MatchHostFsOwner mascot: dog with glasess" /></a>
+  <figcaption>MatchHostFsOwner project mascot</figcaption>
+</figure>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>MatchHostFsOwner is an excellent way to solve Docker volume permission problems (more precisely: the container host filesystem owner matching problem). Please have a look at its <a href="https://github.com/FooBarWidget/matchhostfsowner">source code</a> (it's written in Rust!) and check out <a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md">its documentation</a> for customization, advanced usage, and troubleshooting instructions.</p>
+
+<p>Stay cured!</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html&amp;t=Cure%20Docker%20volume%20permission%20pains%20with%20MatchHostFsOwner"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html&amp;text=Cure%20Docker%20volume%20permission%20pains%20with%20MatchHostFsOwner%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

@@ -1,0 +1,642 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Customer discovery according to the Lean Startup methodology &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="I previously blogged about and summarized the Lean Startup methodology. In this blog post I will go deeper into its first phase, which is &quot;customer discovery&quot;.
+
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Customer discovery according to the Lean Startup methodology">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html">
+    <meta property="og:description" content="I previously blogged about and summarized the Lean Startup methodology. In this blog post I will go deeper into its first phase, which is &quot;customer discovery&quot;.
+
+">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html">Customer discovery according to the Lean Startup methodology</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-06-30" itemprop="datePublished">Jun 30, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/lean-startup.html">Lean Startup</a>, <a href="/blog/tags/customer-development.html">Customer development</a>, <a href="/blog/tags/business.html">Business</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html&amp;t=Customer%20discovery%20according%20to%20the%20Lean%20Startup%20methodology"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html&amp;text=Customer%20discovery%20according%20to%20the%20Lean%20Startup%20methodology%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>I previously blogged about and summarized <a href="/blog/2018-06-25-summary-of-the-lean-startup-methodology.html">the Lean Startup methodology</a>. In this blog post I will go deeper into its first phase, which is "customer discovery".</p>
+
+<p><strong></strong></p>
+
+<figure><img src="/images/2018/customer-discovery-phase-23568965.png" class="img-thumbnail" alt="" /></figure>
+
+<p>Customer discovery, according to Steve Blank's <a href="https://eu.udacity.com/course/how-to-build-a-startup--ep245">How to Build a Startup</a> course and according to <a href="https://www.amazon.com/Startup-Owners-Manual-Step-Step-ebook/dp/B009UMTMKS">The Startup Owner's Manual</a>, has the following goals:</p>
+
+<ul>
+  <li>To understand customer problems, needs and contexts.</li>
+  <li>To look for early adopters.</li>
+  <li>To gain a strong hypothesis of how a good solution looks like.</li>
+</ul>
+
+<p>It consists of these steps:</p>
+
+<ol>
+  <li>Build business model hypotheses</li>
+  <li>Talk to customers – understand them and their problems</li>
+  <li>First evaluation</li>
+  <li>Give customers a solution presentation</li>
+  <li>Second evaluation</li>
+</ol>
+
+<p>Each subsequent step makes the business model hypotheses stronger.</p>
+
+<p>Note that at the end of customer discovery, it is not yet time to build/launch the product. Customer discovery is an exploratory phase which gives you strong hypotheses, but they're still hypotheses nonetheless. The <em>next</em> phase, "customer validation", is where we rigorously check whether the hypotheses are real.</p>
+
+<p>With that out of the way, let's look at the steps. The information below are mostly from Steve Blank's course and book, but I've added some information from other resources as well.</p>
+
+<hr />
+
+<figure><a href="https://en.wikipedia.org/wiki/Business_Model_Canvas"><img src="/images/2018/Business_Model_Canvas-dcd6d470.png" class="img-thumbnail" style="max-width: 30em" alt="" /></a></figure>
+
+<h2 id="build-business-model-hypotheses">1 Build business model hypotheses</h2>
+
+<p>Deconstruct the founder's product vision into a set of business model hypotheses. These hypotheses should be written down in a set of documents.</p>
+
+<p>One such document is the <a href="https://en.wikipedia.org/wiki/Business_Model_Canvas">Business Model Canvas</a>, which deconstructs the vision into 9 parts:</p>
+
+<ol>
+  <li><strong>Value propositions</strong> – What problems or needs are we solving, and with what solutions?</li>
+  <li><strong>Customer segments</strong> – For whom are we creating value? Who are our most important customers?</li>
+  <li><strong>Channels</strong> – How will the product be distributed and sold?</li>
+  <li><strong>Customer relationships</strong> – How will we get, keep and grow customers?</li>
+  <li><strong>Revenue streams</strong> – Where does money come from? What value do customers pay for?</li>
+  <li><strong>Key resources</strong> – What suppliers, intellectual properties, human resources, commodities etc. are required in order to execute this business model?</li>
+  <li><strong>Key activities</strong> – What activities do we need to perform in order to execute this business model?</li>
+  <li><strong>Key partners</strong> – Which other companies do we need to partner with in order to be successful?</li>
+  <li><strong>Cost structure</strong> – What are the most important costs? Which key resources and key activities are the most expensive?</li>
+</ol>
+
+<p>This canvas is supposed to be used as a weekly scorecard. Every week you make a new copy the canvas so that you can track how it has changed over time.</p>
+
+<p>For each part of the canvas, write down a 1-page brief on how one would prove or disprove the hypotheses, i.e. write down a list of experiments. Don't think too hard about what an "experiment" is – it could just be a question that you ask customers.</p>
+
+<p>Remember, everything you've written down are just guesses. In the next steps you're going to gather facts.</p>
+
+<hr />
+
+<h2 id="talk-to-customers----understand-them-and-their-problems">2 Talk to customers – understand them and their problems</h2>
+
+<p>Armed with your hypotheses and experiments, it is time to go talk to customers. The goals are:</p>
+
+<ul>
+  <li>to check whether customers care enough about your hypothesized problems.</li>
+  <li>to better understand customers and their problems.</li>
+  <li>to use gained insights to update your business model hypotheses and to build customer personas.</li>
+</ul>
+
+<p>Uses interviews instead of surveys, because interviews grant a lot more freedom to explore unknown or unexpected areas.</p>
+
+<p>How do you request customers for an interview? <a href="/blog/2018-07-01-how-to-ask-for-introductions-for-customer-interviews.html">I've written a separate article about this topic.</a></p>
+
+<p>And when you are at that interview, how do you talk to them in order to gain the most insights? What sort of things should you probe for? See <a href="/blog/2018-07-11-how-to-conduct-a-customer-interview.html">How to conduct a customer interview</a>.</p>
+
+<p>Finally, how many customers should you talk to?</p>
+
+<ul>
+  <li>The Startup Owner's Manual says you should have at least 50 potential customers.</li>
+  <li><a href="https://blog.leanstack.com/the-problem-with-problems-50dd364ccb2b">The Problem With Problems</a> says that you should have at least 10, sometimes up to 30 interviews.</li>
+</ul>
+
+<hr />
+
+<h2 id="first-evaluation">3 First evaluation</h2>
+
+<p>Once you've gathered intel from customers, it's time to hold a pivot-or-proceed evaluation. This evaluation should be held by all people with a management position and by key investors.</p>
+
+<h3 id="share-your-learnings">Share your learnings</h3>
+
+<p>Begin the meeting by showing <strong>workflow diagrams</strong> of prototypical customers. Explain how customers do their job and whom they interact with. Compare these descriptions with the initial hypotheses.</p>
+
+<p>Share everything you've learned so far, with a focus on the <strong>severity of the problem</strong> – is there evidence for product market fit or not? Topics that are especially important:</p>
+
+<ul>
+  <li>What problems did customers say they have? How painful are these problems?</li>
+  <li>How are they solving these problems today?</li>
+  <li>Show a workflow diagram of the customer's day before and after your solution. Is there a big difference? Did customers say they would pay for the difference?</li>
+  <li>What are the biggest insights you've gained? What were the biggest surprises and disappointments?</li>
+</ul>
+
+<h3 id="evaluate-the-next-step">Evaluate the next step</h3>
+
+<p>Once the learnings have been shared, evaluate whether we should:</p>
+
+<ol>
+  <li>do another round of customer discovery (go back to step 1),</li>
+  <li>update our hypotheses &amp; proceed to the next step (go to step 4), or</li>
+  <li>pivot (change the value propositions / solution, then go back to step 1).</li>
+</ol>
+
+<p>At this point, the third option is the <strong>least</strong> preferred option! As I mentioned in <a href="/blog/2018-06-25-summary-of-the-lean-startup-methodology.html">the Lean Startup summary</a>, a startup is supposed to target early adopters. And there will be another evaluation round later when we take pivoting more seriously.</p>
+
+<p>Here's how to do the evaluation. Question all your initial hypotheses. How well do your proposed solutions fit the problems? If the answer is anything but "spot on", then discuss why this is so:</p>
+
+<ul>
+  <li>Did we not interview the right people?</li>
+  <li>Did we not talk to enough customers?</li>
+  <li>Did we ask the wrong questions?</li>
+</ul>
+
+<p>If and only if not enough early adopter customers can be found, go for the pivot.</p>
+
+<h3 id="choosing-to-proceed">Choosing to proceed?</h3>
+
+<p>If you've determined that your hypotheses are good enough to proceed with the next step, then evaluate the following things too because they will become important in the next step.</p>
+
+<ul>
+  <li>Evaluate the delivery schedule or product roadmap for the next 18 months. Early adopters buy into the entire vision, not just the MVP. They will need to hear what else you plan on delivering the in future.</li>
+  <li>Which one of <a href="https://steveblank.com/2015/02/24/market-type-and-revenue-2-minutes-to-find-out-why/">the four market types</a> are we in?</li>
+  <li>What are our competitive advantages?</li>
+  <li>What has been learned about pricing and delivery channels?</li>
+  <li>Who are the customers' key influencers?</li>
+  <li>Can each feature be matched with a customer problem? If not, why not?</li>
+</ul>
+
+<h3 id="dont-let-the-feature-list-become-too-long">Don't let the feature list become too long</h3>
+
+<p>Be careful of making your feature list too long as a result of customer feedback. The goal isn't to add features, it's to find out the <em>minimum</em> feature set. You should end up with a single-paragraph feature list that can be sold to thousands of customers.</p>
+
+<p>Can each feature be matched with a customer problem? If not, why not? Figuring out which features don't matter is equally important.</p>
+
+<hr />
+
+<h2 id="give-customers-a-solution-presentation">4 Give customers a solution presentation</h2>
+
+<p>Now that you have a good understanding of things, the next step is to give customers a solution presentation. We check whether customers express interest in buying or using the product. The goals of this presentation are:</p>
+
+<ul>
+  <li>to confirm that your envisioned product (with the updated value proposition hypotheses) fits a serious customer problem or need.</li>
+  <li>to gain more insights w.r.t. market, pricing, procurement process and channels.</li>
+  <li>to use gained insights to update your business model hypotheses.</li>
+</ul>
+
+<p>Note that this presentation is <em>not about selling</em> the product (we'll do that later in the "customer validation" phase). This presentation is an effort to check whether the product is salable. So don't put effort into making "proper" sales materials. Leave out marketing and positioning fluff: you're targeting early adopters who buy into the vision.</p>
+
+<h3 id="presentation-outline">Presentation outline</h3>
+
+<ul>
+  <li>
+    <p><strong>Review the problems.</strong></p>
+
+    <p>Remind the audience what problems you're solving and why a solution is important if not urgent. Pause and probe for reactions. If the audience is surprised then your problem has been invalidated; invite discussion, update your hypotheses and go back to step 2.</p>
+  </li>
+  <li>
+    <p><strong>Describe the solutions.</strong></p>
+
+    <p>Cover no more than 5 key features. Demonstrate sketches or prototypes of key features. Sketches and prototypes should be as high-fidelity as possible because that invites more discussion. Again, pause and probe for reactions. Do customers agree that your solutions solve the problems?</p>
+  </li>
+  <li>
+    <p><strong>Describe customer life and workflow.</strong></p>
+
+    <p>Explain how things look like before and after the product. Describe who else in the organization. Pause and allow for feedback.</p>
+  </li>
+  <li>
+    <p><strong>Uncover other values that customers are looking for.</strong></p>
+
+    <p>Continue the discussion and look for other values that customers want. The more values you can uncover, the more opportunities you have in the future to upsell.</p>
+  </li>
+  <li>
+    <p><strong>Close with the product vision 18 months out.</strong></p>
+
+    <p>Again, early adopters buy into your entire vision, not just the MVP.</p>
+  </li>
+</ul>
+
+<h3 id="post-presentation-discussion">Post-presentation discussion</h3>
+
+<p>We want to know whether our solution hit the nail, so check whether the audience is enthusiastic.</p>
+
+<p>This is also a great time to ask questions to gain more insights:</p>
+
+<ul>
+  <li>Does the audience think the product is creating a new market, or is it a better version of an existing product? If the latter, better in what way?</li>
+  <li>
+    <p>Explore pricing boundaries.</p>
+
+    <ul>
+      <li>Ask whether they would pay a certain high-balled amount. If not, ask them what price they <em>would</em> pay. The first number out of their mouth is usually what they have in their immediate budget.</li>
+      <li>Find out what comparable prices are for this kind of product.</li>
+      <li>Explore up-sell and cross-sell opportunities. Ask how much they would pay for professional services, such as customization and installation.</li>
+      <li>Ask whether they would pay on a recurring bases, e.g. every year.</li>
+      <li>Ask what you would have to do to get them pay twice or thrice that amount.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Explore what channels are viable.</p>
+
+    <ul>
+      <li>"If you were interested in a product like this, how would you find out about it?"</li>
+      <li>"How do you find out about other new products like this?"</li>
+      <li>"Do you ask others for their opinions before buying? If so, whom?"</li>
+      <li>"Do you or your staff go to trade shows?"</li>
+      <li>"What industry-specific magazines or journals do you read? What business publications or websites?"</li>
+    </ul>
+  </li>
+  <li>Explore the procurement process. "How are products like this usually bought? Who controls the budget? Walk me through the approval cycle. Who is involved?"</li>
+</ul>
+
+<h3 id="final-presentationdiscussion-tips">Final presentation/discussion tips</h3>
+
+<ul>
+  <li>
+    <p>How many people to contact for a presentation?</p>
+
+    <ul>
+      <li>Present to more customers than you've found in step 2. This keeps forward momentum going.</li>
+      <li>In step 2 you should have found at least 50 potential customers, so strive to present to 60 customers or so.</li>
+    </ul>
+  </li>
+  <li>Don't try to ask every question in every post-presentation discussion. Some customers know more about one aspect than others. Your insights are gained by asking a lot of customers.</li>
+  <li>Prefer one-on-one discussion over large group meetings.</li>
+  <li>Use <a href="https://leanb2bbook.com/blog/how-to-find-core-features-product-using-kano-surveys/">Kano Surveys</a> find must-have features.</li>
+</ul>
+
+<h3 id="wrap-up">Wrap-up</h3>
+
+<p>Here are some tips for when you update your business model hypotheses at the end of this step:</p>
+
+<ul>
+  <li>You will most likely find that you need to update the value propositions part. But don't be tempted to simply add more features: also think about what you should remove, which is just as important.</li>
+  <li>Be sure to review the customer segments part, because your solution may resonate with some segments but not with others.</li>
+  <li>
+    <p>In order to help you understand customer reactions better, it is a good idea to segment customers by enthusiasm. This will make it easier to discuss things during the second evaluation.</p>
+
+    <ul>
+      <li>Category 1: customers who love the solution and want to buy it immediately with no changes.</li>
+      <li>Category 2: customers who like the solution but who say they want this and that additional feature.</li>
+      <li>Category 3: customers who can understand the solution after a long explanation, but don't seem excited.</li>
+      <li>Category 4: customers who see no need for the solution.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="second-evaluation">5 Second evaluation</h2>
+
+<p>The second evaluation is much like the first. Share your learnings and discuss. This time, the evaluation is about answering three questions:</p>
+
+<ol>
+  <li>
+    <p><strong>Have we found product market fit?</strong></p>
+
+    <ul>
+      <li>Is the problem urgent to <em>lots</em> of customers? (quantify the amount)</li>
+      <li>Does the product solve the problem at a price customers are willing to pay?</li>
+      <li>Is the market big enough?</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Who are our customers and how do we reach them?</strong></p>
+
+    <ul>
+      <li>Can we draw personas for each customer segment? Do these pictures clearly tell us how to reach them?</li>
+      <li>Do we understand enough about customers' workflows and contexts to be able to pitch the product to them?</li>
+      <li>Do some segments respond with more enthusiasm than others?</li>
+      <li>Have we learned about any new segments? Should we remove any segments?</li>
+      <li>Do customers recognize big improvements in their workflows?</li>
+      <li>Do we know where customers get new product information from, e.g. websites, magzines and influencers?</li>
+      <li>Can we draw a channel map? Is it clear enough?</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Can we make enough money and grow the company?</strong></p>
+
+    <ul>
+      <li>Make a financial analysis and sales forecast. What does it say?</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="resources--further-reading">Resources &amp; further reading</h2>
+
+<ul>
+  <li><a href="https://leanb2bbook.com/blog/how-to-find-core-features-product-using-kano-surveys/">How to Find the Core Features of Your Product Using Kano Surveys</a> – Lean B2B</li>
+</ul>
+
+<h2 id="future-research-and-blogging-directions">Future research and blogging directions</h2>
+
+<ul>
+  <li><a href="https://medium.com/we-are-builders/a-curated-list-of-customer-development-resources-40-a967c238729b">A curated list of customer development resources</a></li>
+  <li>In the future I will also blog about the "Customer Validation" phase.</li>
+</ul>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html&amp;t=Customer%20discovery%20according%20to%20the%20Lean%20Startup%20methodology"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html&amp;text=Customer%20discovery%20according%20to%20the%20Lean%20Startup%20methodology%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

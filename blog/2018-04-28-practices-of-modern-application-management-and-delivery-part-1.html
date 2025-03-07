@@ -1,0 +1,444 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Practices of modern application management and delivery, part 1 &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="The development and deployment of modern apps is very different from how it used to be. Networked applications are now very common. Development at scale is now common: hundreds of developers working on a system, which may be split into many microservices. Deployment at scale is now also common: apps serving millions of users. Various practices emerged, or became popular, to deal with these new challenges. I&#x27;ve learned many practices over the past decade, but resources that describe these practices appear to be scattered. This post is an attempt to inventorize the various practices that are used for the development, deployment and management of modern apps.
+
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Practices of modern application management and delivery, part 1">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html">
+    <meta property="og:description" content="The development and deployment of modern apps is very different from how it used to be. Networked applications are now very common. Development at scale is now common: hundreds of developers working on a system, which may be split into many microservices. Deployment at scale is now also common: apps serving millions of users. Various practices emerged, or became popular, to deal with these new challenges. I&#x27;ve learned many practices over the past decade, but resources that describe these practices appear to be scattered. This post is an attempt to inventorize the various practices that are used for the development, deployment and management of modern apps.
+
+">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html">Practices of modern application management and delivery, part 1</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-04-28" itemprop="datePublished">Apr 28, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/software-development.html">Software development</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg"
+          style=""
+          title="Background vector created by @StarLine - Freepik.com"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html&amp;t=Practices%20of%20modern%20application%20management%20and%20delivery%2C%20part%201"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html&amp;text=Practices%20of%20modern%20application%20management%20and%20delivery%2C%20part%201%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>The development and deployment of modern apps is very different from how it used to be. Networked applications are now very common. Development at scale is now common: hundreds of developers working on a system, which may be split into many microservices. Deployment at scale is now also common: apps serving millions of users. Various practices emerged, or became popular, to deal with these new challenges. I've learned many practices over the past decade, but resources that describe these practices appear to be scattered. This post is an attempt to inventorize the various practices that are used for the development, deployment and management of modern apps.</p>
+
+<p><strong></strong></p>
+
+<p>In this part 1 will discuss practices in the following categories.</p>
+
+<ul>
+  <li>Quality assurance</li>
+  <li>Delivery</li>
+  <li>Integration</li>
+</ul>
+
+<p>In future parts, I will discuss other categories such as:</p>
+
+<ul>
+  <li>Monitoring &amp; alerting</li>
+  <li>Observability &amp; troubleshooting</li>
+  <li>Reliability</li>
+  <li>Performance</li>
+  <li>Scalability</li>
+  <li>Service discovery</li>
+  <li>Security</li>
+  <li>Protocols</li>
+  <li>Business transactions</li>
+  <li>API management</li>
+</ul>
+
+<h2 id="quality-assurance">Quality assurance</h2>
+
+<ul>
+  <li>
+    <p><strong>Automated testing</strong></p>
+
+    <p>Manual testing takes a lot of time and is error-prone. By writing automated tests, you gain more confidence during coding. You do not have to worry about introducing bugs and regressions all the time and double-checking every change rigorously. This speeds up development and reduces the amount of new bugs and regressions.</p>
+
+    <p>Since automated tests can be run quickly and at scale, this practice reduces the need for QA personnel and allows you to deliver apps faster.</p>
+
+    <p>Of course, this practice is only as effective as the quality of the tests themselves, so developers must constantly strive to keep the test suite high-quality.</p>
+  </li>
+  <li>
+    <p><strong>Continuous testing</strong></p>
+
+    <p>You don't want to run tests too late. A bug is best fixed as closely as possible to the commit that caused it. In an organizational setting, different developers have different habits and different levels of discipline. Some developers may commit code while forgetting to run the automated test suite. Continuous testing is the practice of running tests on a server. The server enforces that tests are run, and gives the team feedback on when exactly a breakage occurred and by which change. Continuous testing thus introduces a level of standardization.</p>
+
+    <p>Most continuous testing practices operate on the push level, e.g. every time a developer pushes a set of commits, the test suite is run against the latest commit in that set. But there are also practices that operate on a time level. The latter is useful for tracking a quantifiable quality metric. A good example is Mozilla's <a href="https://arewefastyet.com/">Are We Fast Yet?</a> which tracks the performance of the Firefox codebase on a daily basis.</p>
+  </li>
+</ul>
+
+<h2 id="delivery">Delivery</h2>
+
+<ul>
+  <li>
+    <p><strong>Continuous delivery</strong></p>
+
+    <p>Continuous delivery is the practice of ensuring that the code is always in a deployable state, even if you choose not to deploy yet for business reasons. It goes one step further than continuous testing.</p>
+  </li>
+  <li>
+    <p><strong>Deployment server</strong></p>
+
+    <p>In the old days, deploying an app often means uploading a bunch of files from one's laptop to the production server and running a bunch of commands there. This practice is no longer encouraged in organizations at scale. Instead, it is common practice to have a server perform the deployment in an automated manner. Benefits:</p>
+
+    <ul>
+      <li>The people who are allowed to initiate a deployment, don't have access to production credentials, reducing security risks. If a person leaves the organization or their laptop gets stolen, you don't have to change production credentials.</li>
+      <li>The people who are allowed to initiate a deployment, don't have to set up anything on their laptop. Especially for complicated deployments which involves many parts, standardizing and automating the deployment via a server makes things less error-prone.</li>
+      <li>Makes deployment faster since there are no manual steps involved.</li>
+      <li>Developers don't have to care that much about production concerns and can focus on development. Indeed, they often don't want to care.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Continuous deployment</strong></p>
+
+    <p>Continuous deployment is a practice that combines (and goes further than) the practices of having a deployment server, and that of continuous delivery. If all tests pass, then the app can and will be deployed, without a human initiator. Organizations that use continuous deployment can push hundreds or even thousands of releases per day. This practice forces the organization to keep the deployment process as fast and lean as possible, as well as forces the test suite to be high-quality. It also becomes a good idea to roll out deployments slowly (using the rolling deployment or canary deployment pattern) just in case something goes wrong.</p>
+  </li>
+  <li>
+    <p><strong>Delivery format</strong></p>
+
+    <p>Apps can be delivered to the production servers in a variety of formats. There are roughly 4 categories:</p>
+
+    <ul>
+      <li>Source: you deliver the app's source to the production server and compile and install it there, possibly including dependencies that aren't expected to be already installed. Example: Ruby apps with Capistrano and Bundler (Ruby is expected to be already installed).</li>
+      <li>Binary: you compile the app (if possible) and bundle it together with any dependencies that aren't expected to be already installed. You then deliver this package to the production server. Example: Java JARs (the JRE is expected to be already installed), or apps packaged as Debian packages.</li>
+      <li>Container: you compile the app (if possible) and bundle all dependencies, including OS libraries but excluding the kernel. It is to be run on an OS that run multiple containers on the same kernel. Example: Docker.</li>
+      <li>VM: you compile the app (if possible) and bundle all dependencies, including OS libraries and the kernel, into a VM image. You then deploy a VM based on that image.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="integration">Integration</h2>
+
+<ul>
+  <li>
+    <p><strong>Continuous integration</strong></p>
+
+    <p>Continuous integration is an ambiguous term and seems to be used for many different purposes. People use it to refer to either the practice continuous testing, or the practice of having a deployment server, or both. The server that runs tests and the server that performs deployment can both be called "the continuous integration server". Thus, continuous deployment is typically also implement with a continuous integration server.</p>
+  </li>
+</ul>
+
+<h2 id="references--further-reading">References &amp; further reading</h2>
+
+<ul>
+  <li><a href="https://www.blazemeter.com/blog/continuous-testing-missing-link-continuous-delivery-process">Continuous Testing: The Missing Link in the Continuous Delivery Process</a></li>
+  <li><a href="https://stackify.com/continuous-delivery-vs-continuous-deployment-vs-continuous-integration/">Continuous delivery vs continuous deployment vs continuous integration</a></li>
+  <li><a href="http://blog.codepipes.com/testing/software-testing-antipatterns.html">Software Testing Anti-patterns</a></li>
+  <li><a href="http://blog.codepipes.com/hosted-ci-comparison/hosted-ci-comparison.html">Comparison of Hosted Continuous Integration products</a></li>
+</ul>
+
+<h2 id="whats-next">What's next?</h2>
+
+<p>What more practices do you think I should cover? Let me know via Twitter of email.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html&amp;t=Practices%20of%20modern%20application%20management%20and%20delivery%2C%20part%201"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-28-practices-of-modern-application-management-and-delivery-part-1.html&amp;text=Practices%20of%20modern%20application%20management%20and%20delivery%2C%20part%201%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

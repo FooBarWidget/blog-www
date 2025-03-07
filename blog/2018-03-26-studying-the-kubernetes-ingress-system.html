@@ -1,0 +1,582 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Studying the Kubernetes Ingress system &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="I have been researching how the Kubernetes Ingress system works. My use case is to setup an autoscaled Nginx cluster that reverse proxies to Pods in multiple Deployments. It wasn&#x27;t immediately obvious how to do this. By default, Pods in Kubernetes are not supposed to be reachable from outside the cluster. One makes them reachable either by associating those pods with a Service of the right type (i.e. either NodePort or LoadBalancer), or by defining an Ingress. But what *is* an Ingress? How do I put Nginx in between an Ingress and a set of Pods? This post describes my journey through the jargon-loaded Kubernetes documentation which does not hold any hands, as well as my journey through the Kubernetes source code, all in a quest to find answers.
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Studying the Kubernetes Ingress system">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-03-26-studying-the-kubernetes-ingress-system.html">
+    <meta property="og:description" content="I have been researching how the Kubernetes Ingress system works. My use case is to setup an autoscaled Nginx cluster that reverse proxies to Pods in multiple Deployments. It wasn&#x27;t immediately obvious how to do this. By default, Pods in Kubernetes are not supposed to be reachable from outside the cluster. One makes them reachable either by associating those pods with a Service of the right type (i.e. either NodePort or LoadBalancer), or by defining an Ingress. But what *is* an Ingress? How do I put Nginx in between an Ingress and a set of Pods? This post describes my journey through the jargon-loaded Kubernetes documentation which does not hold any hands, as well as my journey through the Kubernetes source code, all in a quest to find answers.
+">
+        <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2018/nginx-ingress-controller-summary-f7ef5dea.png">
+        <meta property="og:image:alt" content="A summary of how the Nginx ingress controller system works">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-03-26-studying-the-kubernetes-ingress-system.html">Studying the Kubernetes Ingress system</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-03-26" itemprop="datePublished">Mar 26, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/kubernetes.html">Kubernetes</a>, <a href="/blog/tags/research.html">Research</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2018-03-26-studying-the-kubernetes-ingress-system.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;kubernetes-banner-884590a9.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;kubernetes-banner-884590a9.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-26-studying-the-kubernetes-ingress-system.html&amp;t=Studying%20the%20Kubernetes%20Ingress%20system"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-26-studying-the-kubernetes-ingress-system.html&amp;text=Studying%20the%20Kubernetes%20Ingress%20system%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>I have been researching how the Kubernetes Ingress system works. My use case is to setup an autoscaled Nginx cluster that reverse proxies to Pods in multiple Deployments. It wasn't immediately obvious how to do this. By default, Pods in Kubernetes are not supposed to be reachable from outside the cluster. One makes them reachable either by associating those pods with a Service of the right type (i.e. either NodePort or LoadBalancer), or by defining an Ingress. But what <em>is</em> an Ingress? How do I put Nginx in between an Ingress and a set of Pods? This post describes my journey through the jargon-loaded Kubernetes documentation which does not hold any hands, as well as my journey through the Kubernetes source code, all in a quest to find answers.</p>
+
+<p>This post a bit long, so if you just want a summary then you can skip straight to the conclusion at the bottom.</p>
+
+<figure>
+    <img src="/images/2018/kubernetes-nginx-ingress-problem-c3c7516d.png" alt="" />
+    <figcaption>Defining a Service is straightforward enough... but how do you point Nginx to that? And how does Nginx relate to this Ingress thing?</figcaption>
+</figure>
+
+<p><strong></strong></p>
+
+<h2 id="how-my-journey-began">How my journey began</h2>
+
+<p>Suppose I create a deployment for the 'echoserver' container on port 8080:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>kubectl run hello-minikube --image=k8s.gcr.io/echoserver:1.4 --port=8080
+</code></pre></div>
+<p>I'm not worried about autoscaling just yet. How do I reverse proxy Nginx to this set of pods? My first intuition was to expose this deployment with a service, after which I set up Nginx to reverse proxy to this deployment. But how do I find out the IP address of the deployment, how do I tell Nginx about it, and how do I reconfigure Nginx when the IP address changes?</p>
+
+<p>I hypothesized that Kubernetes has some sort of API that I can query. After Googling for "Kubernetes Nginx" I found the folowing interesting resources:</p>
+
+<ul>
+  <li><a href="https://www.nginx.com/blog/nginx-plus-ingress-controller-kubernetes-load-balancing/">NGINX and NGINX Plus Ingress Controllers for Kubernetes Load Balancing</a> by Nginx Inc.</li>
+  <li><a href="https://hackernoon.com/setting-up-nginx-ingress-on-kubernetes-2b733d8d2f45">Setting up Nginx Ingress on Kubernetes</a> – Hacker Nooon</li>
+  <li><a href="https://github.com/kubernetes/ingress-nginx">Source code of the community Kubernetes Ingress controller</a> (kubernetes/ingress-nginx)</li>
+  <li><a href="https://github.com/nginxinc/kubernetes-ingress">Source code of the Nginx Inc. Kubernetes Ingress controller</a> (nginxinc/kubernetes-ingress)</li>
+</ul>
+
+<p>I had already heard about this Ingress thing, and I believed that an Ingress deploys a load balancer from the cloud provider on which Kubernetes is deployed. These search results suggest that there are multiple implementations of Ingress (which are categorized as <em>ingress controllers</em>), some of which apparently use Nginx. But how does that work? How does one activate a specific implementation? In any case, I believed that the key to finding out how to tell Nginx about my services'/pods' IP addresses (and thus how to query the Kubernetes API) lies in researching how the Nginx ingress controller works.</p>
+
+<h2 id="installing-the-nginx-ingress-controller">Installing the Nginx ingress controller</h2>
+
+<p>Before figuring out how the Nginx ingress controller works, I should first install it and see it action. According to <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">the Ingress documentation</a> and [the kubernetes/ingress-nginx documentation], I need to apply the following config:</p>
+
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">extensions/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-ingress</span>
+  <span class="na">annotations</span><span class="pi">:</span>
+    <span class="na">nginx.ingress.kubernetes.io/rewrite-target</span><span class="pi">:</span> <span class="s">/</span>
+    <span class="c1"># Avoid the Google Compute Engine controller from processing this Ingress.</span>
+    <span class="na">kubernetes.io/ingress.class</span><span class="pi">:</span> <span class="s2">"</span><span class="s">nginx"</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">rules</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">http</span><span class="pi">:</span>
+      <span class="na">paths</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/</span>
+        <span class="na">backend</span><span class="pi">:</span>
+          <span class="na">serviceName</span><span class="pi">:</span> <span class="s">hello-minikube</span>
+          <span class="na">servicePort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div>
+<p>I did this on my Minikube installation and then… nothing happened.</p>
+
+<p>After some Googling I found out that Kubernetes does not do anything by default to process Ingress resources. One needs to manually deploy an ingress controller – this is the "picking an implementation" part. Apparently Google Cloud's Kubernetes Engine deploys a "Google Cloud controller" by default which responds to Ingress resources and provisions a Google Cloud load balancers. The <code>kubernetes.io/ingress.class</code> annotation tells the Google Cloud controller to ignore that Ingress resource.</p>
+
+<p>In addition, one needs to install an Nginx ingress controller – Minikube does not supply it by default. The kubernetes/ingress-nginx documentation <a href="https://github.com/kubernetes/ingress-nginx/blob/master/deploy/README.md#minikube">describes deployment instructions for various infrastructures</a>, and apparently on Minikube one is supposed to run this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>minikube addons enable ingress
+</code></pre></div>
+<p>Success! This resulted in a port being opened which I can access from my laptop. The usable URL could be fetched with:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>minikube service nginx-ingress --url
+</code></pre></div>
+<h2 id="the-anatomy-of-an-nginx-ingress-controller-installation">The anatomy of an Nginx ingress controller installation</h2>
+
+<p>Now that I managed to install the Nginx ingress controller, it was time to find out how it looked like. What exactly did <code>minikube addons enable ingress</code> do?</p>
+
+<p>In the Kubernetes dashboard I saw that I now have an <code>nginx-ingress-controller</code> replication controller. Further inspection and research revealed that Minikube applied <a href="https://github.com/kubernetes/minikube/tree/master/deploy/addons/ingress">the config files in its deploy/addons/ingress directory</a>, with the most interesting one being <code>ingress-rc.yml</code>. That file deploys two replication controllers:</p>
+
+<ul>
+  <li>
+    <p>The aforementioned "nginx-ingress-controller". This uses the image <code>quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.9.0</code>, which corresponds to <a href="https://github.com/kubernetes/ingress-nginx/tree/nginx-0.9.0">the kubernetes/ingress-nginx Github repository, tag nginx-0.9.0</a>.</p>
+  </li>
+  <li>
+    <p>A "default-http-backend". This uses the image <code>k8s.gcr.io/defaultbackend:1.4</code>, which does nothing besides responding to <code>/healthz</code> (for implementing <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/">liveness/readiness probes</a>) and returning 404 Not Found for all other URLs. Nginx-ingress-controller routes to this default-http-backend if a request does not match any of the known routing rules.</p>
+  </li>
+</ul>
+
+<p>I <code>kubectl exec</code>'ed into the nginx-ingress-controller pod and found that it ran an Nginx installation. Looking into /etc/nginx, it appeared that the config file was somehow autogenerated. So an Nginx ingress controller <em>is</em> an Nginx instance at the same time, and the controller configures the internal Nginx installation to do the right thing.</p>
+
+<h2 id="finding-the-containers-entrypoint">Finding the container's entrypoint</h2>
+
+<p>The nginx-ingress-controller container runs the following command:</p>
+
+<div class="highlight"><pre class="highlight yaml"><code><span class="na">args</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">/nginx-ingress-controller</span>
+  <span class="pi">-</span> <span class="s">--default-backend-service=$(POD_NAMESPACE)/default-http-backend</span>
+  <span class="pi">-</span> <span class="s">--configmap=$(POD_NAMESPACE)/nginx-load-balancer-conf</span>
+  <span class="pi">-</span> <span class="s">--tcp-services-configmap=$(POD_NAMESPACE)/tcp-services</span>
+  <span class="pi">-</span> <span class="s">--udp-services-configmap=$(POD_NAMESPACE)/udp-services</span>
+  <span class="c1"># use minikube IP address in ingress status field</span>
+  <span class="pi">-</span> <span class="s">--report-node-internal-ip-address</span>
+</code></pre></div>
+<p>What is this nginx-ingress-controller thing and where can I find its source code? I knew that I had to look in <a href="https://github.com/kubernetes/ingress-nginx/tree/nginx-0.9.0">the kubernetes/ingress-nginx Github repository, tag nginx-0.9.0</a>, but it wasn't immediately obvious from analyzing its Makefiles where the program's entrypoint is. So I grepped for <code>package main</code> – a directive in Go that signifies that this is a program's entrypoint – and found <a href="https://github.com/kubernetes/ingress-nginx/blob/nginx-0.9.0/cmd/nginx/main.go">cmd/nginx/main.go</a>.</p>
+
+<p>From there, I followed the flow of the code in search for interesting things. The main function consists of fairly straightforward boilerplate things:</p>
+
+<ul>
+  <li>CLI flags parsing: <code>showVersion, conf, err := parseFlags()</code></li>
+  <li>Initializing a client object for talking to the Kubernetes API: <code>kubeClient, err := createApiserverClient(conf.APIServerHost, conf.KubeConfigFile)</code></li>
+  <li>Starting a builtin HTTP server for querying the controller's status and debugging info: <code>go registerHandlers(conf.EnableProfiling, conf.ListenPorts.Health, ngx, mux)</code></li>
+</ul>
+
+<p>But it seems the bulk of the interesting stuff happens inside the "NGINXController" class:</p>
+
+<div class="highlight"><pre class="highlight go"><code><span class="n">ngx</span> <span class="o">:=</span> <span class="n">controller</span><span class="o">.</span><span class="n">NewNGINXController</span><span class="p">(</span><span class="n">conf</span><span class="p">,</span> <span class="n">fs</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="n">ngx</span><span class="o">.</span><span class="n">Start</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="the-daunting-nginxcontroller-class">The daunting NGINXController class</h2>
+
+<p>The NGINXController class is implemented in <a href="https://github.com/kubernetes/ingress-nginx/tree/nginx-0.9.0/internal/ingress/controller">internal/ingress/controller/</a>. The <code>nginx.go</code> file implements the <code>NewNGINXController()</code> and <code>Start()</code> methods.</p>
+
+<p>The sources however quickly became daunting, and I found myself not understanding what's going on. This forced me to go on a sidequest. Fate led me to <a href="https://github.com/kubernetes/sample-controller">the Kubernetes sample controller</a>, which demonstrates how a simple Kubernetes controller is written. I proceeded to study that.</p>
+
+<h2 id="the-kubernetes-sample-controller">The Kubernetes sample controller</h2>
+
+<p><a href="https://github.com/kubernetes/sample-controller">The sample controller</a> is based on the idea that its purpose is to process certain resources in the Kubernetes database. The sample demonstrates basic operations such as:</p>
+
+<ul>
+  <li>How to register a new custom resource type.</li>
+  <li>How to create, get and list resources of that type.</li>
+  <li>How to respond to create/update/delete events.</li>
+</ul>
+
+<p>Processing happens during controller startup, but also in response to create/update/delete events.</p>
+
+<p>What does "processing" mean? According to the sample, its purpose is to compare the actual state of the resources with the desired state, and attempts to converge the two. It should also update the <code>Status</code> block of affected resources, per <a href="https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#spec-and-status">the Kubernetes API conventions</a>.</p>
+
+<p>In case of this sample controller, its goal is to ensure that for each <code>Foo</code> resource there is a corresponding <code>Deployment</code> of the <code>nginx</code> image. It also ensures that the replica count of that Deployment matches the replica count specified inside the Foo resource.</p>
+
+<p>The entrypoint of the sample controller is <code>main.go</code>. It is very similar to <code>kubernetes/ingress-nginx</code>'s main.go: it sets up a bunch of stuff and calls <code>controller.Run()</code>. Most of the interesting stuff is in controller.go.</p>
+
+<p>The Controller class's constructor sets up a few Informer objects, which are used to watch for create/update/delete events on resources of types <code>Foo</code> and <code>Deployment</code>.</p>
+
+<p>When a <code>Foo</code> create/update/delete event is detected, it eventually calls <code>controller.syncHandler()</code>. This does not happen immediately or directly: such events are put into a rate limiting workqueue for two reasons:</p>
+
+<ol>
+  <li>To prevent the controller from being overloaded by too many events.</li>
+  <li>To serialize the processing of events, because Informers run in multiple background goroutines.</li>
+</ol>
+
+<p>The code snippets below show how the Controller constructor sets up a workqueue and watches for Foo resource events. Whenever an event is detected, it calls <code>controller.enqueueFoo()</code>, which merely puts something in the workqueue.</p>
+
+<div class="highlight"><pre class="highlight go"><code><span class="c">/////// In NewController():</span>
+<span class="n">controller</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">Controller</span><span class="p">{</span>
+    <span class="o">...</span>
+    <span class="n">workqueue</span><span class="o">:</span> <span class="n">workqueue</span><span class="o">.</span><span class="n">NewNamedRateLimitingQueue</span><span class="p">(</span><span class="n">workqueue</span><span class="o">.</span><span class="n">DefaultControllerRateLimiter</span><span class="p">(),</span> <span class="s">"Foos"</span><span class="p">),</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+<span class="o">...</span>
+<span class="n">fooInformer</span> <span class="o">:=</span> <span class="n">sampleInformerFactory</span><span class="o">.</span><span class="n">Samplecontroller</span><span class="p">()</span><span class="o">.</span><span class="n">V1alpha1</span><span class="p">()</span><span class="o">.</span><span class="n">Foos</span><span class="p">()</span>
+<span class="c">// Set up an event handler for when Foo resources change</span>
+<span class="n">fooInformer</span><span class="o">.</span><span class="n">Informer</span><span class="p">()</span><span class="o">.</span><span class="n">AddEventHandler</span><span class="p">(</span><span class="n">cache</span><span class="o">.</span><span class="n">ResourceEventHandlerFuncs</span><span class="p">{</span>
+    <span class="n">AddFunc</span><span class="o">:</span> <span class="n">controller</span><span class="o">.</span><span class="n">enqueueFoo</span><span class="p">,</span>
+    <span class="n">UpdateFunc</span><span class="o">:</span> <span class="k">func</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="nb">new</span> <span class="k">interface</span><span class="p">{})</span> <span class="p">{</span>
+      <span class="n">controller</span><span class="o">.</span><span class="n">enqueueFoo</span><span class="p">(</span><span class="nb">new</span><span class="p">)</span>
+    <span class="p">},</span>
+<span class="p">})</span>
+
+<span class="c">/////// In enqueueFoo():</span>
+<span class="n">c</span><span class="o">.</span><span class="n">workqueue</span><span class="o">.</span><span class="n">AddRateLimited</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</code></pre></div>
+<p>The workqueue is processed by a background goroutine which, in an infinite loop, consumes the workqueue and calls <code>controller.syncHandler()</code> on the consumed item:</p>
+
+<div class="highlight"><pre class="highlight go"><code><span class="c">// In runWorker():</span>
+<span class="k">for</span> <span class="n">c</span><span class="o">.</span><span class="n">processNextWorkItem</span><span class="p">()</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="c">// In processNextWorkItem():</span>
+<span class="n">obj</span><span class="p">,</span> <span class="n">shutdown</span> <span class="o">:=</span> <span class="n">c</span><span class="o">.</span><span class="n">workqueue</span><span class="o">.</span><span class="n">Get</span><span class="p">()</span>
+<span class="o">...</span>
+<span class="n">key</span><span class="p">,</span> <span class="n">ok</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="n">err</span> <span class="o">:=</span> <span class="n">c</span><span class="o">.</span><span class="n">syncHandler</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+</code></pre></div>
+<p><code>controller.syncHandler()</code> is where processing happens. The work it performs is as described at the beginning of this subsection.</p>
+
+<h2 id="analyzing-the-nginxcontroller-class-take-2">Analyzing the NGINXController class, take 2</h2>
+
+<p>Armed with the newly gained knowledge on how controllers work, I went back to my main quest of figuring out how the Nginx ingress controller works. It turned out that many patterns from the sample controller occur also in the Nginx ingress controller. Fundamentally, the Nginx ingress controller listens for create/update/delete events on resources it is interested in, enqueues work into a rate limiting queue, and then a handler function fetches work from the queue in an infinite loop and processes each item.</p>
+
+<p>The code that sets up the event listeners turned out to be in <a href="https://github.com/kubernetes/ingress-nginx/blob/nginx-0.9.0/internal/ingress/controller/listers.go#L63">internal/ingress/controller/listers.go, function createListers()</a>. It listens for events on the following resource types:</p>
+
+<ul>
+  <li>Ingresses</li>
+  <li>Endpoints</li>
+  <li>Secrets</li>
+  <li>ConfigMaps</li>
+</ul>
+
+<p>The queue is represented by <code>controller.syncQueue</code> and the queue handler function is in <a href="https://github.com/kubernetes/ingress-nginx/blob/nginx-0.9.0/internal/ingress/controller/controller.go#L140">internal/ingress/controller/controller.go, function syncIngress()</a>. This function collects all necessary information to regenerate the Nginx config file: it fetches all relevant Ingress objects and looks up associated Pods' IP addresses that the Ingresses should route to.</p>
+
+<p><code>syncIngress()</code> then calls <a href="https://github.com/kubernetes/ingress-nginx/blob/nginx-0.9.0/internal/ingress/controller/nginx.go#L456">internal/ingress/controller/nginx.go, function OnUpdate()</a> to actually write out the new Nginx config file and to reload Nginx.</p>
+
+<h2 id="ingress-ip-address-determination">Ingress IP address determination</h2>
+
+<p>Another interesting aspect is the subsystem that updates the Ingress object's "Status.Address" field, which is supposed to contain the public IP address on which this Ingress is available. I wanted to know how that IP address is determined. Maybe the ingress controller performs some special magic to allocate a new IP address from the cloud provider?</p>
+
+<p>It was not immediately obvious where the "Status.Address" field is updated. But browsing through the Kubernetes dashboard, I found that the nginx-ingress-controller pod printed the following message:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>I0326 08:01:49.534479       5 status.go:352] updating Ingress default/hello-ingress status to [{172.16.103.162 }]
+</code></pre></div>
+<p>So I grepped for the string "updating Ingress" in the kubernetes/ingress-nginx source directory, and found <a href="https://github.com/kubernetes/ingress-nginx/blob/nginx-0.9.0/internal/ingress/status/status.go">internal/ingress/status/status.go</a>. This file implements the <code>StatusSyncher</code> class. In instance of this class is created in the NGINXController constructor. It spawns a background goroutine which, once a minute, queries the IP address of the node on which the Nginx ingress controller is running, and simply updates the "Status.Address" to that value.</p>
+
+<p>When multiple Nginx ingress controllers are running (e.g. if you scaled the associated deployment to a number &gt; 1), then these controllers run a leader election algorithm to ensure that only one controller instance updates "Status.Address".</p>
+
+<p>I'm kinda disappointed. No IP allocation magic from the cloud provider. It's just reporting its own IP address.</p>
+
+<h2 id="not-using-services">Not using Services</h2>
+
+<p>According to the Nginx ingress controller's documentation, it does not route traffic to the associated Service's virtual IP address. Instead it routes directly to the pods' IP addresses, using the endpoints API, for performance reasons and to allow features like session affinity:</p>
+
+<blockquote>
+  <p>"[It routes to pods directly] in order to bypass kube-proxy to allow NGINX features like session affinity and custom load balancing algorithms. It also removes some overhead, such as conntrack entries for iptables DNAT."</p>
+</blockquote>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<figure><img src="/images/2018/nginx-ingress-controller-summary-f7ef5dea.png" alt="" /></figure>
+
+<p>The Nginx ingress controller turns out to be less magical than I first thought.</p>
+
+<h3 id="ingress-controllers">Ingress controllers</h3>
+
+<p>Ingress resources don't do anything by themselves: they are processed by <strong>ingress controllers</strong>, which vanilla Kubernetes does not provide by default. Managed Kubernetes providers may pre-install an appropriate ingress controller for you, e.g. Google Kubernetes Engine pre-installs a <a href="https://github.com/kubernetes/ingress-gce">GCE ingress controller</a> which provisions Google Cloud load balancers.</p>
+
+<p>There is a <a href="https://github.com/kubernetes/ingress-nginx">community-developed Nginx ingress controller</a> which provisions an Nginx instance to handle Ingress resources. It is deployed via a Deployment of the <code>quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.9.0</code> image.</p>
+
+<p>When multiple ingress controllers are installed, one may run into the caveat that multiple ingress controllers try to handle the Ingress resources. This can be prevented by setting the <code>kubernetes.io/ingress.class</code> which instructs only specific controllers to process this Ingress.</p>
+
+<h3 id="how-the-nginx-ingress-controller-works">How the Nginx ingress controller works</h3>
+
+<p>The Nginx ingress controller runs an Nginx installation inside itself. Thus, an Nginx ingress controller <em>is</em> an Nginx installation: it does not provision additional Nginx pods or something.</p>
+
+<p>The Nginx ingress controller works by listening for create/read/update events on resources it is interested in, namely Ingresses, Endpoints, Secrets and ConfigMaps. Every time such an event is detected, it reconfigures the internal Nginx to do the right thing by writing out an appropriate Nginx config file and then telling Nginx to reload.</p>
+
+<p>The Nginx installations route directly to the pods' IP addresses, bypassing the associated Service's virtual IP. This increases performance and allows Nginx features such as session affinity.</p>
+
+<h3 id="ingress-ip-address-publication">Ingress IP address publication</h3>
+
+<p>The Nginx ingress controller merely sets the Ingress resource's "Status.Address" field to its own node's IP address. There is no special IP address provisioning magic going on.</p>
+
+<p>If you scale the Nginx ingress controller's deployment to more than 1, then each instance will run a leader election algorithm so that only 1 controller instance gets to set the "Status.Address" field.</p>
+
+<h3 id="disappointed--relieved-at-the-same-time">Disappointed &amp; relieved at the same time</h3>
+
+<p>On the one hand I'm disappointed that there are no more interesting things, on the other hand I'm relieved because "more interesting" means "more complex".</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-26-studying-the-kubernetes-ingress-system.html&amp;t=Studying%20the%20Kubernetes%20Ingress%20system"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-26-studying-the-kubernetes-ingress-system.html&amp;text=Studying%20the%20Kubernetes%20Ingress%20system%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

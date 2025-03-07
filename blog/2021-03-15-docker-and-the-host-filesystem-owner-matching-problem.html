@@ -1,0 +1,819 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Docker and the host filesystem owner matching problem &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Containers are increasingly used for CLI apps &amp; dev envs, not just servers. But the host filesystem owner matching problem can kill productivity. Now what?">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Docker and the host filesystem owner matching problem">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html">
+    <meta property="og:description" content="Containers are increasingly used for CLI apps &amp; dev envs, not just servers. But the host filesystem owner matching problem can kill productivity. Now what?">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2021/containers-permission-denied-61287eef.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html">Docker and the host filesystem owner matching problem</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2021-03-15" itemprop="datePublished">Mar 15, 2021</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/docker.html">Docker</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;containers-permission-denied-61287eef.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;containers-permission-denied-61287eef.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html&amp;t=Docker%20and%20the%20host%20filesystem%20owner%20matching%20problem"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html&amp;text=Docker%20and%20the%20host%20filesystem%20owner%20matching%20problem%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>Containers are no longer only used on servers. They are increasingly used on the desktop: as CLI apps or as development environments. I call this the <em>"container-as-OS-app"</em> use case. Within this use case, containerized apps often generate files that are not owned by your local machine's user account. Sometimes they can't access files on the host machine at all. This is the <em>host filesystem owner matching problem</em>.</p>
+
+<ul>
+  <li>This is bad for security. Containers shouldn't run as root in the first place!</li>
+  <li>This is a potential productivity killer. It's annoying having to deal with wrong file permissions!</li>
+</ul>
+
+<p>Solutions are available, but they have major caveats. As a result it's easy to implement a solution that only works for some, but not everyone. "It works on my machine" is kind of embarrassing when you distribute a development environment to a coworker, who then runs into issues.</p>
+
+<p>This post describes what causes the host filesystem owner matching problem, and analyzes various solutions and their caveats.</p>
+
+<p><strong></strong></p>
+
+<p><em><strong>Update</strong>: introducing <a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html">MatchHostFsOwner: a cure for the host filesystemowner matching problem</a>!</em></p>
+
+<h2 id="what-is-the-container-as-os-app-use-case">What is the "container-as-OS-app" use case?</h2>
+
+<p>An "OS app" is an app that:</p>
+
+<ul>
+  <li>Runs on your machine (as opposed to in the browser or on a server).</li>
+  <li><strong>Reads or writes files from/to the host OS filesystem.</strong> Files which later may be read/written by other (non-Docker-packaged) apps, such your text editor.</li>
+</ul>
+
+<figure>
+  <a href="/images/2021/host-fs-owner-matching-problem-975a5c4f.png"><img src="/images/2021/host-fs-owner-matching-problem-975a5c4f.png" class="img-largecover" alt="" /></a>
+  <figcaption>Traditional containerized apps vs container-as-OS-apps, and how the host filesystem matching problem only affects the latter</figcaption>
+</figure>
+
+<p>An OS app doesn't have to be graphical in nature. In fact, the kind of OS apps that are often containerized, are CLIs. Examples of OS apps:</p>
+
+<ul>
+  <li>bash</li>
+  <li>ls</li>
+  <li>Git</li>
+  <li>The C/Go/Rust compiler</li>
+  <li>Your text editor</li>
+</ul>
+
+<p>Increasingly, Docker is used to package such apps. Here are a few examples:</p>
+
+<ul>
+  <li><a href="https://github.com/emk/rust-musl-builder">rust-musl-builder</a> — compilation environment for Rust that allows generating statically-linked binaries.</li>
+  <li><a href="http://phusion.github.io/holy-build-box/">Holy Build Box</a> — compilation environment for C/C++ that allows generating portable Linux binaries that run on any Linux distribution.</li>
+</ul>
+
+<p>Both of these examples read or write files from/to the host OS filesystem.</p>
+
+<p>Perhaps a little counter-intuitively, <strong>many development environments often also fall under this category</strong>. Let's say that you setup a development environment for your Ruby, Node.js or Go app, using Docker-Compose. Here's what such a Docker-Compose environment often does:</p>
+
+<ol>
+  <li>It mounts the project directory (on the host filesystem) into the container.</li>
+  <li>(In case of compiled languages:) Inside the container, it compiles the source code located in the project directory. The compilation products, or cache files, are stored under the project directory.</li>
+  <li>Inside the container, it launches the app, which runs until the user requests abortion.</li>
+  <li>(For frameworks/languages where this is applicable:) If the source code on the host OS changes, then the app inside the container live-reloads the new code.</li>
+  <li>The app inside the container writes to log files, located under the project directory.</li>
+</ol>
+
+<p>This problem has been <a href="https://blog.gougousis.net/file-permissions-the-painful-side-of-docker/">documented before</a> by <a href="https://mydeveloperplanet.com/2022/10/19/docker-files-and-volumes-permission-denied/">other</a> <a href="https://www.reddit.com/r/docker/comments/hjsipd/permission_denied_with_volumes/">authors</a> as well.</p>
+
+<p>Key takeaway: development environments often read or write files from/to the host OS filesystem. Files which may be read/written by other apps later.</p>
+
+<h2 id="mismatching-filesystem-owners">Mismatching filesystem owners</h2>
+
+<p>Many containers run apps as root. When they write to files on the host filesystem, they <em>create root-owned files on your host filesystem</em>. You can't modify these files with your host text editor without jumping through some hoops.</p>
+
+<figure>
+  <a href="/images/2021/permission-denied-9704ef2c.png"><img src="/images/2021/permission-denied-9704ef2c.png" alt="" /></a>
+  <figcaption>Many containers run as root, creating root-owned files on the host OS's filesystem. These files cannot be accessed by normal apps on the host OS because of permission problems.</figcaption>
+</figure>
+
+<p>For example: on a Linux machine (not on macOS; see below), let's run a root container which writes a file on the host:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">--rm</span> <span class="nt">-v</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span><span class="s2">:/host"</span> busybox <span class="nb">touch</span> /host/foo.txt
+</code></pre></div>
+<p>This file is owned by root, and we can't modify it:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ ls -l foo.txt
+-rw-r--r-- 1 root root 0 Jan 17 10:36 foo.txt
+$ echo hi &gt; foo.txt
+-bash: foo.txt: Permission denied
+</code></pre></div>
+<p>Some containers adhere to better security practices, and run under a normal user account. However, this creates a new problem: <em>they can't write to the host filesystem anymore</em>! This is because the host directory is only writable by the user who owns it, not by the user inside the container.</p>
+
+<p>Here's an example container that runs under a normal user account instead of root:</p>
+
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="s"> debian:10</span>
+
+<span class="k">RUN </span>addgroup <span class="nt">--gid</span> 1234 app <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    adduser <span class="nt">--uid</span> 1234 <span class="nt">--gid</span> 1234 <span class="nt">--gecos</span> <span class="s2">""</span> <span class="nt">--disabled-password</span> app
+<span class="k">USER</span><span class="s"> app</span>
+</code></pre></div>
+<p>We then build and run it, telling it to create a file on the host:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ docker build . -t usercontainer
+$ docker run --rm -v "$(pwd):/host" usercontainer touch /host/foo.txt
+touch: cannot touch `/host/foo.txt': Permission denied
+</code></pre></div>
+<h3 id="only-on-linux-not-on-macos">Only on Linux, not on macOS</h3>
+
+<p>These problems are <strong>only applicable when using Docker on Linux</strong>. macOS users don't experience these problems at all, because Docker for Mac actually runs a Linux VM, and inside that VM it mounts host filesystems into the container as a network volume. It ensures that:</p>
+
+<ul>
+  <li>Inside the container, all mounted files look as if they're owned by the container user.</li>
+  <li>On the host, all files written by the container become owned by the host user.</li>
+</ul>
+
+<p>But the fact that macOS users don't get this problem, is in itself a problem. It means that when someone creates a container-as-OS-app on macOS, and hands it over to a Linux user, then that app may not work because of the permission problems described above.</p>
+
+<h2 id="solution-strategies-overview">Solution strategies overview</h2>
+
+<p>There are two major strategies to solve the host filesystem owner matching problem:</p>
+
+<ol>
+  <li>Matching the container's UID/GID with the host's UID/GID.</li>
+  <li>Remounting the host path in the container using BindFS.</li>
+</ol>
+
+<p>Each strategy has significant caveats. Let's take a look at how each strategy is implemented, and what the caveats are.</p>
+
+<h2 id="strategy-1-matching-the-containers-uidgid-with-the-hosts">Strategy 1: matching the container's UID/GID with the host's</h2>
+
+<p>The kernel distinguishes users and groups by two numbers: the user ID (UID) and the group ID (GID). Accounts (usernames and group names) are implemented outside the kernel, via user/group account databases that map UIDs and GIDs to usernames and group names. These databases exist in /etc/passwd and /etc/group.</p>
+
+<p>The kernel doesn't care about names, only about UIDs and GIDs. Even files on the filesystem are not owned by <em>usernames</em> or <em>group names</em>, but by UIDs and GIDs.</p>
+
+<p>So if we run an app in a container using the the same UID/GID as the host account's UID/GID, then the files created by that app will be owned by the host's user and group.</p>
+
+<ul>
+  <li>If the container's user/group account database already has accounts with that UID/GID, but with a different name, then that's no problem.</li>
+  <li>If the container's account database doesn't have accounts with that UID/GID, then that's <em>also</em> no problem.</li>
+</ul>
+
+<p>The simplest way to do this is by running <code>docker run --user &lt;HOST UID&gt;:&lt;HOST GID&gt;</code>. This works even if the container has no accounts with this UID/GID.</p>
+
+<p>However, if there are no matching accounts in the container, then many applications won't behave well. This can range from cosmetic problems to crashes. A lot of library code assumes that the username can be queried, and abort on failure. Another problem is that the lack of accounts also mean that there's also no corresponding home directory. A lot of application and library code assume that they can read from or write to the home directory.</p>
+
+<p>So a better way would be to create accounts inside the container with a UID/GID that matches the host's UID/GID. These accounts could have <em>any</em> names: the kernel doesn't care.</p>
+
+<p>Let's go through a practical example to learn how container UIDs/GIDs and accounts work, and how to implement this strategy.</p>
+
+<h3 id="example-creating-a-container-account-with-the-same-uidgid-as-the-host-account">Example: creating a container account with the same UID/GID as the host account</h3>
+
+<p>Here's an example which shows how UIDs and GIDs work. This example must be run on Linux (because you won't run into the host filesystem owner matching problem on macOS). Let's start by figuring out what the host user's UID/GID is by running this command:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>hongli@host$ id
+uid=1000(hongli) gid=1000(hongli) groups=1000(hongli),27(sudo),999(docker)
+</code></pre></div>
+<p>My UID and GID are both 1000.</p>
+
+<p>Now let's start an interactive Debian shell session. We mount the host's current working directory into the container, under /host.</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">-ti</span> <span class="nt">--rm</span> <span class="nt">-v</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span><span class="s2">:/host"</span> debian:10
+</code></pre></div>
+<p>Inside the Debian container's root shell, let's create two things:</p>
+
+<ul>
+  <li>A group called <code>matchinguser</code>, with GID 1000.</li>
+  <li>A user account called <code>matchinguser</code> with UID 1000. We disable the password because it's not relevant in this example.</li>
+</ul>
+
+<div class="highlight"><pre class="highlight shell"><code>addgroup <span class="nt">--gid</span> 1000 matchinguser
+adduser <span class="nt">--uid</span> 1000 <span class="nt">--gid</span> 1000 <span class="nt">--gecos</span> <span class="s2">""</span> <span class="nt">--disabled-password</span> matchinguser
+</code></pre></div>
+<p>Let's use this user account to create a file in the host directory:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>apt update
+apt <span class="nb">install</span> <span class="nt">-y</span> <span class="nb">sudo
+sudo</span> <span class="nt">-u</span> matchinguser <span class="nt">-H</span> <span class="nb">touch</span> /host/foo2.txt
+</code></pre></div>
+<p>If we inspect the file permissions of /host/foo2.txt from inside the container, then we see that it's owned by <code>matchinguser</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>root@container:/# ls -l /host/foo2.txt
+-rw-r--r-- 1 hostuser hostuser 0 Mar 15 09:45 /host/foo2.txt
+</code></pre></div>
+<p>But if we inspect the same file from the host, then we see that it's owned by the host user:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>hongli@host:/# ls -l foo2.txt
+-rw-r--r-- 1 hongli hongli 0 Mar 15 09:45 /host/foo2.txt
+</code></pre></div>
+<p>This is because the file has the UID and GID 1000, which in the container maps to <code>matchinguser</code>, but on the host maps to <code>hongli</code>.</p>
+
+<h3 id="example-modifying-existing-container-accounts-uid">Example: modifying existing container account's UID</h3>
+
+<p>You don't even have to create new container accounts. You can actually modify the UID/GID of existing accounts.</p>
+
+<p>For example, let's delete <code>matchinguser</code>, and recreate it with UID/GID 1500:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>apt <span class="nb">install</span> <span class="nt">-y</span> perl  <span class="c"># needed by deluser on Debian</span>
+deluser <span class="nt">--remove-home</span> matchinguser
+
+addgroup <span class="nt">--gid</span> 1500 matchinguser
+adduser <span class="nt">--uid</span> 1500 <span class="nt">--gid</span> 1500 <span class="nt">--gecos</span> <span class="s2">""</span> <span class="nt">--disabled-password</span> matchinguser
+</code></pre></div>
+<p>We can then use <code>usermod</code> and <code>groupmod</code> to change those accounts' UID/GID to 1000:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>groupmod <span class="nt">--gid</span> 1000 matchinguser
+usermod <span class="nt">--uid</span> 1000 matchinguser
+</code></pre></div>
+<h3 id="implementation-and-caveats">Implementation and caveats</h3>
+
+<p>Here's a simple implementation strategy. If your container doesn't need precreated accounts, then you can do it as follows:</p>
+
+<ul>
+  <li>Add an entrypoint script which creates a user/group account, whose UID/GID equal the host account's UID/GID.</li>
+  <li>The entrypoint script requires two environment variables, <code>HOST_UID</code> and <code>HOST_GID</code>, which specify what the host account's UID and GID are.</li>
+  <li>The entrypoint then executes the next container command, under the newly created user/group accounts.</li>
+  <li>Users must run the container with root privileges, with the environment variables <code>HOST_UID</code> and <code>HOST_GID</code>. The container is responsible for dropping privileges.</li>
+</ul>
+
+<p>If your container requires a precreated account, then you need to modify the strategy a little bit:</p>
+
+<ul>
+  <li>Instead of creating a new account, the entrypoint script modifies the UID/GID of the precreated user account, to the host account's UID/GID.</li>
+</ul>
+
+<p>Here's an example of a naive entrypoint script. The container account that we want to use is called <code>app</code>.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/usr/bin/env bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="k">if</span> <span class="o">[[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$HOST_UID</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"ERROR: please set HOST_UID"</span> <span class="o">&gt;</span>&amp;2
+    <span class="nb">exit </span>1
+<span class="k">fi
+if</span> <span class="o">[[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$HOST_GID</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"ERROR: please set HOST_GID"</span> <span class="o">&gt;</span>&amp;2
+    <span class="nb">exit </span>1
+<span class="k">fi</span>
+
+<span class="c"># Use this code if you want to create a new user account:</span>
+addgroup <span class="nt">--gid</span> <span class="s2">"</span><span class="nv">$HOST_GID</span><span class="s2">"</span> matchinguser
+adduser <span class="nt">--uid</span> <span class="s2">"</span><span class="nv">$HOST_UID</span><span class="s2">"</span> <span class="nt">--gid</span> <span class="s2">"</span><span class="nv">$HOST_GID</span><span class="s2">"</span> <span class="nt">--gecos</span> <span class="s2">""</span> <span class="nt">--disabled-password</span> app
+
+<span class="c"># -OR-</span>
+<span class="c"># Use this code if you want to modify an existing user account:</span>
+groupmod <span class="nt">--gid</span> <span class="s2">"</span><span class="nv">$HOST_GID</span><span class="s2">"</span> app
+usermod <span class="nt">--uid</span> <span class="s2">"</span><span class="nv">$HOST_UID</span><span class="s2">"</span> app
+
+<span class="c"># Drop privileges and execute next container command, or 'bash' if not specified.</span>
+<span class="k">if</span> <span class="o">[[</span> <span class="nv">$# </span><span class="nt">-gt</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">exec sudo</span> <span class="nt">-u</span> <span class="nt">-H</span> app <span class="nt">--</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+<span class="k">else
+    </span><span class="nb">exec sudo</span> <span class="nt">-u</span> <span class="nt">-H</span> app <span class="nt">--</span> bash
+<span class="k">fi</span>
+</code></pre></div>
+<p>The above entrypoint script is a good attempt, but fails to consider these significant caveats:</p>
+
+<ol>
+  <li>
+    <p><strong>What if there's already another container user/group, with the same UID/GID as the host UID/GID?</strong></p>
+
+    <p>Then it's not possible to create a new user account/group with the host UID/GID.</p>
+
+    <p>One way to deal with this is by deleting the conflicting container user/group. However, depending on which account exactly is deleted (and what that account is used for inside the container), this could degrade the behavior of the container in unpredictable ways.</p>
+
+    <p>As a general rule of thumb, accounts with UID &lt; 1000, and groups with GID &lt; 1000, are considered system accounts and groups. System accounts/groups are managed by the OS maintainers, and are not supposed to be messed with by users of the OS.</p>
+
+    <p>In contrast, accounts/groups with UID/GID &gt;= 1000 are "normal accounts"/"normal groups", not managed by the OS maintainers. Users of the OS are free to do whatever they like with those accounts. But here you have to ask yourself: who, in this context, are "users of the OS"? If it's only yourself, and you have full control over which normal accounts go into your container: then there's no problem. But if you're using a base image supplied by someone else, and the base image already comes with precreated normal accounts, then you have to ask yourself whether it's safe to modify them.</p>
+  </li>
+  <li>
+    <p><strong>What if the host user is root?</strong></p>
+
+    <p>The host user being root (with UID 0) is a special case that you need to deal with. It's not a good idea to delete the existing root account in the container and replace it with another account. So if the entrypoint script detects that the host UID is 0, then it should run the next command as root.</p>
+
+    <p>But on weird systems, the host's root user could have a non-zero GID! So if the entrypoint script detects that the UID is 0 but GID is non-zero, then should modify the root group's GID. This in turn could run into the problem described by (1): what if there's already another group with the same GID?</p>
+  </li>
+  <li>
+    <p><strong>In case of precreated accounts: what about the files it owned?</strong></p>
+
+    <p>If your container makes use of a precreated account, then after you modify that account's UID and GID, you should ask yourself what you should do about files that were owned by that account. Should those files' UID/GID be updated to match the new UID/GID?</p>
+
+    <p>The Debian version of <code>usermod --uid</code> automatically updates the UIDs of all files in that account's home directory (recursively). However, <code>groupmod</code> does not update the GIDs, so you need to do that yourself from your entrypoint script.</p>
+
+    <p><code>usermod --uid</code> does not update the UIDs of files outside that account's home directory. It's up to your entrypoint script to update those files, if any.</p>
+
+    <p>Furthermore, you should ask yourself whether it's a good idea to update the UIDs of those files. If those files are world-readable, and your container never writes them, then updating their UIDs/GIDs is redundant. If there are <em>many</em> files, then updating their UIDs/GIDs can take a significant amount of time. I ran into this very problem when using <a href="https://github.com/emk/rust-musl-builder">rust-musl-builder</a>. Rust was installed via <code>rustup</code> into the home directory, and updating the UIDs/GIDs of <code>~/.rustup</code> takes a lot of time.</p>
+
+    <p>Perhaps it's only necessary to update the UIDs/GIDs of only specific files. For example, only the files immediately in the home directory, not recursively. This must be judged on a per-container basis.</p>
+
+    <p>Finally, some Linux kernel versions have bugs in OverlayFS. Updating the UIDs/GIDs of existing files doesn't always work. This can be worked around by making a copy of those files, removing the original files, and renaming the copies to their original names.</p>
+  </li>
+  <li>
+    <p><strong>Requires root privileges</strong></p>
+
+    <p>The simple example entrypoint script is responsible for creating and modifying accounts, which requires root privileges. It's also responsible for dropping privileges to a normal account. However, this means that we can't use the <code>USER</code> stanza in the Dockerfile. Furthermore, users can't run the container with the <code>--user</code> flag, which is counter-intuitive and may make some users wary about the container's security.</p>
+
+    <p>One solution is to make the entrypoint program a <em>setuid root executable</em>. This means turning on the "setuid filesystem bit" on the entrypoint program, so that when the entrypoint program runs, it gains root privileges, even if the program was started by a non-root user.</p>
+
+    <p>The setuid bit is only used by a few select programs that are involved in privilege escalation. For example, Sudo uses the setuid bit. As you can imagine, the setuid bit is very dangerous. When not careful enough, anyone can gain root privileges without authentication. A setuid root program must be specifically written make abuse impossible.</p>
+
+    <p>Another complication is that the setuid root bit does not work on shell scripts, only on "real" executables! So if you want to make use of this bit, you'll have to write the entrypoint program in a language that compiles to native executables, like C, C++, Rust or Go.</p>
+
+    <p>Under what conditions is it safe to run a setuid root entrypoint program? One answer is: if the entrypoint's PID is 1. This means it's the very first program run in the container. This indicates that the entrypoint program is run directly by <code>docker run</code>, so we can assume that it's a safe-ish environment.</p>
+
+    <p>But checking for PID 1 doesn't work in combination with <code>docker run --init</code>, which spawns an init process (whose job is to solve the <a href="https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/">PID 1 zombie reaping problem</a>). The init process can perform arbitrary work, and execute arbitrary processes before it executes our entrypoint program. So we can't can't assume that our PID is 2 either. Instead, we can check whether we're a child process of the init process. Because after the init process executes the next command, it won't execute any further commands.</p>
+  </li>
+  <li>
+    <p><strong>Requires extra environment variables</strong></p>
+
+    <p>In the ideal world, we want users to be able to run our container with <code>docker run --user HOST_UID:HOST_GID</code>, and have the container's entrypoint automatically figure out that the values passed to <code>--user</code> are the host UID/GID.</p>
+
+    <p>But our example entrypoint script requires the user to specify that information through environment variables. So users have to pass redundant parameters, like this:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">HOST_UID</span><span class="o">=</span><span class="s2">"</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-u</span><span class="si">)</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">HOST_GID</span><span class="o">=</span><span class="s2">"</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-g</span><span class="si">)</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">--user</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-u</span><span class="si">)</span><span class="s2">:</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-g</span><span class="si">)</span><span class="s2">"</span> <span class="se">\</span>
+  ...
+</code></pre></div>
+    <p>This is not a good user experience.</p>
+  </li>
+</ol>
+
+<p>With the above caveats, the entrypoint script becomes no longer trivial. If you want to solve caveat 4, then the entrypoint can't even be a shell script anymore.</p>
+
+<h2 id="strategy-2-remounting-the-host-path-in-the-container-using-bindfs">Strategy 2: remounting the host path in the container using BindFS</h2>
+
+<p><a href="https://bindfs.org/">BindFS</a> is a <a href="http://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a> filesystem that allows us to mount a directory in another path, with different filesystem permissions. BindFS doesn't change the original filesystem permissions: it just exposes an alternative view that looks as if all the permissions are different.</p>
+
+<p>So a container can use BindFS to create an alternative view of the host directory. In this alternative view, everything is owned by a normal account in the container (whose UID/GID doesn't have to match the host's). When the container uses that account to write to the alternative view, then the created files are still owned by the original directory's owner.</p>
+
+<p>Thus, BindFS allows two-way mapping between the host's UID/GID and the container's UID/GID, in a way that's transparent to applications.</p>
+
+<figure>
+  <a href="/images/2021/bindfs-c1f3b36c.png"><img src="/images/2021/bindfs-c1f3b36c.png" alt="" /></a>
+  <figcaption>BindFS provides an alternative view of an existing mount. This alternative view can have any permissions, specified by mount options.</figcaption>
+</figure>
+
+<h3 id="bindfs-in-action">BindFS in action</h3>
+
+<p>Let's take a look at how BindFS works. Remember: this example must be run on Linux, because the host filesystem owner matching problem does not appear on macOS.</p>
+
+<p>First, let's figure out what the host user's UID/GID is:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>hongli@host$ id
+uid=1000(hongli) gid=1000(hongli) groups=1000(hongli),27(sudo),999(docker)
+</code></pre></div>
+<p>Next, run a Debian 10 container that mounts the current working directory into <code>/host</code> in the container. Be sure to pass <code>--privileged</code> so that FUSE works.</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">-ti</span> <span class="nt">--rm</span> <span class="nt">--privileged</span> <span class="nt">-v</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span><span class="s2">:/host"</span> debian:10
+</code></pre></div>
+<p>Once you're in the container, install BindFS:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>apt update
+apt <span class="nb">install</span> <span class="nt">-y</span> bindfs
+</code></pre></div>
+<p>Next, create a user account in the container to play with:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>addgroup <span class="nt">--gid</span> 1234 app
+adduser <span class="nt">--uid</span> 1234 <span class="nt">--gid</span> 1234 <span class="nt">--gecos</span> <span class="s2">""</span> <span class="nt">--disabled-password</span> app
+</code></pre></div>
+<p>Let's use BindFS to mount <code>/host</code> to <code>/host.writable-by-app</code>.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">mkdir</span> /host.writable-by-app
+bindfs <span class="nt">--force-user</span><span class="o">=</span>app <span class="nt">--force-group</span><span class="o">=</span>app <span class="nt">--create-for-user</span><span class="o">=</span>1000 <span class="nt">--create-for-group</span><span class="o">=</span>1000 <span class="nt">--chown-ignore</span> <span class="nt">--chgrp-ignore</span> /host /host.writable-by-app
+</code></pre></div>
+<p>Here's what the flags mean:</p>
+
+<ul>
+  <li><code>--force-user=app</code> and <code>--force-group=app</code> mean: make everything in /host look as if they're owned by the user/group named <code>app</code>.</li>
+  <li><code>--create-for-user=1000</code> and <code>--create-for-group=1000</code> mean: when a new file is created, make it owned by UID/GID 1000 (the host's UID/GID).</li>
+  <li><code>--chown-ignore</code> and <code>--chgrp-ignore</code> mean: ignore requests to change a file's owner/group. Because we want all files to be owned by the host's UID/GID.</li>
+</ul>
+
+<p>When you look at the permissions of the two directories, you see that one is owned by the host's UID/GID, and the other by <code>app</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>root@container:/# ls -ld /host /host.writable-by-app
+drwxr-xr-x 18 1000 1000 4096 Mar 15 10:10 /host
+drwxr-xr-x 18 app  app  4096 Mar 15 10:10 /host.writable-by-app
+</code></pre></div>
+<p>Let's see what happens if we use the <code>app</code> account to create a file in both directories. First, install sudo:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>apt <span class="nb">install</span> <span class="nt">-y</span> <span class="nb">sudo</span>
+</code></pre></div>
+<p>Then:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>root@container:/# sudo -u app -H touch /host/foo3.txt
+touch: cannot touch '/host/foo3.txt': Permission denied
+root@container:/# sudo -u app -H touch /host.writable-by-app/foo3.txt
+</code></pre></div>
+<p>Creating a file in /host doesn't work: <code>app</code> doesn't have permissions. But creating a file in /host.writable-by-app <em>does</em> work.</p>
+
+<p>If you look at the file in /host.writable-by-app, then you see that it's owned by <code>app</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>root@container:/# ls -l /host.writable-by-app/foo3.txt
+-rw-r--r-- 1 app app 0 Mar 16 11:06 /host.writable-by-app/foo3.txt
+</code></pre></div>
+<p>But if you look at the file in /host, then you see that it's owned by the host's UID/GID:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>root@container:/# ls -l /host/foo3.txt
+-rw-r--r-- 1 1000 1000 0 Mar 16 11:06 /host/foo3.txt
+</code></pre></div>
+<p>This is corroborated by the host. If you exit the container and look at foo3.txt, then you see that it's owned by the host's user:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>hongli@host$ ls -l foo3.txt
+-rw-r--r-- 1 hongli hongli 0 Mar 16 12:06 foo3.txt
+</code></pre></div>
+<h3 id="implementation">Implementation</h3>
+
+<p>A container that wishes to use the BindFS strategy should have the necessary tools installed, and should include a precreated normal user account. For example:</p>
+
+<div class="highlight"><pre class="highlight docker"><code><span class="k">FROM</span><span class="s"> debian:10</span>
+
+<span class="k">ADD</span><span class="s"> entrypoint.sh /</span>
+<span class="k">RUN </span>apt update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt <span class="nb">install </span>bindfs <span class="nb">sudo</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    addgroup <span class="nt">--gid</span> 1234 app <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    adduser <span class="nt">--uid</span> 1234 <span class="nt">--gid</span> 1234 <span class="nt">--gecos</span> <span class="s2">""</span> <span class="nt">--disabled-password</span> app
+<span class="k">ENTRYPOINT</span><span class="s"> ["/entrypoint.sh"]</span>
+</code></pre></div>
+<p>Then:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker build <span class="nb">.</span> <span class="nt">-t</span> bindfstest
+</code></pre></div>
+<p>The entrypoint script could be as follows. In this example, the entrypoint script assumes that the container is started with <code>/host</code> being mounted to a host directory.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/usr/bin/env bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="k">if</span> <span class="o">[[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$HOST_UID</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"ERROR: please set HOST_UID"</span> <span class="o">&gt;</span>&amp;2
+    <span class="nb">exit </span>1
+<span class="k">fi
+if</span> <span class="o">[[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$HOST_GID</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"ERROR: please set HOST_GID"</span> <span class="o">&gt;</span>&amp;2
+    <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">mkdir</span> /host.writable-by-app
+bindfs <span class="nt">--force-user</span><span class="o">=</span>app <span class="nt">--force-group</span><span class="o">=</span>app <span class="se">\</span>
+    <span class="nt">--create-for-user</span><span class="o">=</span>1000 <span class="nt">--create-for-group</span><span class="o">=</span>1000 <span class="se">\</span>
+    <span class="nt">--chown-ignore</span> <span class="nt">--chgrp-ignore</span> <span class="se">\</span>
+    /host /host.writable-by-app
+
+<span class="c"># Drop privileges and execute next container command, or 'bash' if not specified.</span>
+<span class="k">if</span> <span class="o">[[</span> <span class="nv">$# </span><span class="nt">-gt</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">exec sudo</span> <span class="nt">-u</span> <span class="nt">-H</span> app <span class="nt">--</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+<span class="k">else
+    </span><span class="nb">exec sudo</span> <span class="nt">-u</span> <span class="nt">-H</span> app <span class="nt">--</span> bash
+<span class="k">fi</span>
+</code></pre></div>
+<p>The container is then run as follows:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>docker run -ti --rm --privileged \
+  -v "/some-host-path:/host" \
+  -e "HOST_UID=$(id -u)" \
+  -e "HOST_GID=$(id -g)" \
+  bindfstest
+</code></pre></div>
+<h3 id="caveats">Caveats</h3>
+
+<p>BindFS works very well. But there are two caveats:</p>
+
+<ul>
+  <li>It requires privileged mode! Because FUSE requires this. This might be a security concern.</li>
+  <li>The container cannot be started as non-root! Although it's possible to work around this problem by using a setuid root entrypoint program, as is described in strategy 1 caveat 4.</li>
+</ul>
+
+<p>Some Internet sources say that that <code>--privileged</code> can be replaced with <code>--device /dev/fuse --cap-add SYS_ADMIN</code>. However:</p>
+
+<ul>
+  <li><code>SYS_ADMIN</code> capabilities is not much better than <code>--privileged</code> from a security perspective.</li>
+  <li>This trick doesn't work on Docker for Mac. It results in an error.</li>
+</ul>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>There are two major strategies to solve the host filesystem owner matching problem:</p>
+
+<ol>
+  <li>Matching the container's UID/GID with the host's UID/GID.</li>
+  <li>Remounting the host path in the container using BindFS.</li>
+</ol>
+
+<p>Both strategies have their own benefits and drawbacks.</p>
+
+<ul>
+  <li>Using BindFS is easy to implement by yourself, but requires starting the container with root privileges, and in privileged mode.</li>
+  <li>Running the container in a matching UID/GID does not require privileged mode. It also allows the container to run without root privileges. But it is hard to implement if you want to address all caveats.</li>
+</ul>
+
+<p>BindFS's caveats can't be solved. But the caveats related to "matching the container UID/GID with the host's" <em>can</em> be solved, even if it takes quite a lot of engineering.</p>
+
+<p>Armed with the knowledge provided by this article, you'll be able to build a solution yourself. But wouldn't it be nice if you can use a solution already made by someone else — especially if that solution uses strategy 1, which is hard to implement? I wrote exactly such a tool. Check out <a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html">MatchHostFsOwner: a cure for the host filesystemowner matching problem</a>!</p>
+
+<p><small><i>The Docker icon used in this article's illustrations is made by <a href="https://www.iconfinder.com/icons/4373190/docker_logo_logos_icon">Flatart</a>.</i></small></p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html&amp;t=Docker%20and%20the%20host%20filesystem%20owner%20matching%20problem"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html&amp;text=Docker%20and%20the%20host%20filesystem%20owner%20matching%20problem%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>
