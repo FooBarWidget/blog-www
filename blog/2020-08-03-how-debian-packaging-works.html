@@ -1,0 +1,664 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>How Debian packaging works &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Pulling your hairs out figuring how Debian packaging works? A short guide that demystifies the most important concepts, and that helps producing useful results quickly.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="How Debian packaging works">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2020-08-03-how-debian-packaging-works.html">
+    <meta property="og:description" content="Pulling your hairs out figuring how Debian packaging works? A short guide that demystifies the most important concepts, and that helps producing useful results quickly.">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2020/how-debian-packaging-works-7d4c3891.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2020-08-03-how-debian-packaging-works.html">How Debian packaging works</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2020-08-03" itemprop="datePublished">Aug  3, 2020</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/linux.html">Linux</a>, <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/packaging.html">Packaging</a>, <a href="/blog/tags/debian-packaging.html">Debian packaging</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2020-08-03-how-debian-packaging-works.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2020&#x2F;how-debian-packaging-works-7d4c3891.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2020&#x2F;how-debian-packaging-works-7d4c3891.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-08-03-how-debian-packaging-works.html&amp;t=How%20Debian%20packaging%20works"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-08-03-how-debian-packaging-works.html&amp;text=How%20Debian%20packaging%20works%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>Debian packaging can be quite mysterious and hard to figure out. In this guide I'll provide a simple introduction into the Debian packaging process and its most important concepts.</p>
+
+<p>This is not a full guide into all aspects of packaging. Instead, I'll cover just enough of the basics to help you develop a mental model of what Debian packaging is about, and to be able to produce useful results.</p>
+
+<p>I'll cover:</p>
+
+<ul>
+  <li>What a Debian package is.</li>
+  <li>The anatomy of a package.</li>
+  <li>How to inspect a package.</li>
+  <li>How to create a package.</li>
+  <li>What APT repositories are.</li>
+  <li>How to create an APT repository.</li>
+</ul>
+
+<p><strong><em></em></strong></p>
+
+<p><strong>Table of contents</strong></p>
+
+<ul>
+  <li><a href="#what-is-a-debian-package">What is a Debian package?</a></li>
+  <li><a href="#two-layers-of-package-management-tooling-dpkg-and-apt">Two layers of package management tooling: dpkg and APT</a></li>
+  <li><a href="#packaging-without-debian">Packaging without Debian</a></li>
+  <li><a href="#inspecting-a-package-with-dpkg">Inspecting a package with dpkg</a>
+    <ul>
+      <li><a href="#inspecting-metadata">Inspecting metadata</a></li>
+      <li><a href="#inspecting-files">Inspecting files</a></li>
+    </ul>
+  </li>
+  <li><a href="#inspecting-a-package-with-midnight-commander">Inspecting a package with Midnight Commander</a></li>
+  <li><a href="#creating-packages-with-fpm-aka-the-easy-way">Creating packages with FPM (a.k.a. the easy way)</a></li>
+  <li><a href="#the-official-package-creation-process-aka-the-hard-way">The official package creation process (a.k.a. the hard way)</a></li>
+  <li><a href="#what-is-an-apt-repository">What is an APT repository?</a>
+    <ul>
+      <li><a href="#distributions-components-and-architectures">Distributions, components and architectures</a></li>
+      <li><a href="#real-life-repository-example">Real-life repository example</a></li>
+      <li><a href="#apt-repository-tooling">APT repository tooling</a></li>
+    </ul>
+  </li>
+  <li><a href="#creating-an-apt-repository-with-aptly">Creating an APT repository with aptly</a></li>
+  <li><a href="#conclusion">Conclusion</a></li>
+</ul>
+
+<h2 id="what-is-a-debian-package">What is a Debian package?</h2>
+
+<p>A Debian package contains <strong>metadata</strong> and <strong>files</strong>. The metadata contains the package name, description, a list of dependencies, and more. The files are extracted into the filesystem root (/), so the file paths in a package are absolute paths.</p>
+
+<p>So a Debian package file — a .deb file — is sort of like a tar.gz or zip. It's not actually a tar.gz or zip: the format is <a href="https://en.wikipedia.org/wiki/Ar_(Unix)">ar</a> although that's not important.</p>
+
+<p>Debian packaging, in its simplest form, thus involves creating a .deb file with the metadata and files that you want to put inside it.</p>
+
+<h2 id="two-layers-of-package-management-tooling-dpkg-and-apt">Two layers of package management tooling: dpkg and APT</h2>
+
+<p>The Debian packaging system actually consists of two parts. The lowest part is <code>dpkg</code> and is what manages the system's database that describes which packages are installed. Dpkg can install .deb files and remove already-installed packages.</p>
+
+<p>APT handles downloading .deb files from the Internet, as well as dependency resolution. Dpkg does not handle that. That's why users usually only interact with APT, even though dpkg is the part that performs the core of the work.</p>
+
+<p>The dpkg-APT relationship is like the RPM-DNF relationship on RHEL/CentOS (or RPM-YUM on older versions).</p>
+
+<h2 id="packaging-without-debian">Packaging without Debian</h2>
+
+<p>You actually don't need to run Debian/Ubuntu in order to create and inspect Debian packages! The Debian package manager <code>dpkg</code> is available on other operating systems too. Just don't expect to be able to <em>install</em> any useful packages.</p>
+
+<p>Go ahead and install dpkg, because the rest of this article assumes that you have it.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># RHEL/CentOS; make sure EPEL is enabled first</span>
+yum <span class="nb">install </span>dpkg
+
+<span class="c"># macOS</span>
+brew <span class="nb">install </span>dpkg
+</code></pre></div>
+<h2 id="inspecting-a-package-with-dpkg">Inspecting a package with dpkg</h2>
+
+<p>Download <a href="https://oss-binaries.phusionpassenger.com/apt/passenger/pool/main/p/passenger/passenger-dev_6.0.6-1~xenial1_amd64.deb">a random .deb file</a> to work with.</p>
+
+<h3 id="inspecting-metadata">Inspecting metadata</h3>
+
+<p>You can inspect a Debian package's most important metadata — the "control" section — as follows:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>dpkg-deb <span class="nt">--info</span> passenger-dev_6.0.6-1~xenial1_amd64.deb
+</code></pre></div>
+<p>Which outputs:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code> new Debian package, version 2.0.
+ size 4237584 bytes: control archive=3124 bytes.
+     841 bytes,    20 lines      control
+    8644 bytes,    79 lines      md5sums
+ Package: passenger-dev
+ Source: passenger
+ Version: 1:6.0.6-1~xenial1
+ Architecture: amd64
+ Maintainer: Phusion &lt;info@phusion.nl&gt;
+ Installed-Size: 41972
+ Depends: ruby2.7 | ruby2.6 | ruby2.5 | ruby2.4 | ruby2.3 | ruby2.2 | ruby2.1 | ruby2.0 | ruby1.9.1 | ruby1.8 | ruby-interpreter, passenger (= 1:6.0.6-1~xenial1)
+ Conflicts: ruby-passenger-dev
+ Replaces: ruby-passenger-dev
+ Provides: ruby-passenger-dev
+ Section: ruby
+ Priority: optional
+ Homepage: https://www.phusionpassenger.com/
+ Description: Dependencies for compiling an Nginx module
+  Convenience package that helps users to easily create
+  a custom compilation of Nginx and the Passenger
+  application server. Passenger is a Phusion product that
+  makes deployment of web apps very easy and robust.
+  .
+  This convenience package provides the development dependencies for compiling an Nginx module.
+</code></pre></div>
+<p>Most of the fields are pretty self-explanatory. For an overview of all fields, and a deeper explanation of what they mean, have a look at the <a href="https://www.debian.org/doc/debian-policy/ch-controlfields.html">Debian Policy Manual</a>.</p>
+
+<p>There's more metadata than just the control section. You can view the other metadata by extracting all metadata to files:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>dpkg-deb <span class="nt">--control</span> passenger-dev_6.0.6-1~xenial1_amd64.deb
+</code></pre></div>
+<p>The above extracts the metadata to the current working directory, in a subdirectory called DEBIAN. In case of the <code>passenger-dev</code> package, the only other metadata present is an <code>md5sums</code> file:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>5613a201b8ff4e15a1c55c46678e8d48  usr/lib/passenger/common/libboost_oxt.a
+9240bd822145a709fc24ed6e5d80e115  usr/lib/passenger/common/libpassenger_common/Algorithms/Hasher.o
+eaecffb28791bddda583f4869867083f  usr/lib/passenger/common/libpassenger_common/AppTypeDetector/CBindings.o
+...
+</code></pre></div>
+<h3 id="inspecting-files">Inspecting files</h3>
+
+<p>You can inspect a package's files as follows:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>dpkg-deb <span class="nt">--contents</span> passenger-dev_6.0.6-1~xenial1_amd64.deb
+</code></pre></div>
+<p>This prints:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>drwxr-xr-x root/root         0 2020-07-14 04:40 ./
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/lib/
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/lib/passenger/
+drwxr-xr-x root/root         0 2020-07-14 04:40 ./usr/lib/passenger/common/
+drwxr-xr-x root/root         0 2020-07-14 04:39 ./usr/lib/passenger/common/libpassenger_common/
+drwxr-xr-x root/root         0 2020-07-14 04:39 ./usr/lib/passenger/common/libpassenger_common/JsonTools/
+-rw-r--r-- root/root    785616 2020-07-14 04:39 ./usr/lib/passenger/common/libpassenger_common/JsonTools/CBindings.o
+...
+</code></pre></div>
+<h2 id="inspecting-a-package-with-midnight-commander">Inspecting a package with Midnight Commander</h2>
+
+<p>For those who prefer to a more visual way to inspect the contents of a package, there's <a href="https://midnight-commander.org/">Midnight Commander</a>. It's a terminal-based visual file manager, which can peek inside many types of archives, including Debian packages.</p>
+
+<p>Install it with:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Debian/Ubuntu</span>
+apt <span class="nb">install </span>mc
+
+<span class="c"># RHEL/CentOS</span>
+yum <span class="nb">install </span>mc
+
+<span class="c"># macOS</span>
+brew <span class="nb">install </span>midnight-commander
+</code></pre></div>
+<p>Midnight Commander's Debian package support requires dpkg to be installed, so <a href="#packaging-without-debian">be sure to have it installed</a>.</p>
+
+<p>Open Midnight Commander…</p>
+
+<div class="highlight"><pre class="highlight shell"><code>mc
+</code></pre></div>
+<p>…then open a .deb file. You should see a file listing. Here's what they mean:</p>
+
+<ul>
+  <li>CONTENTS/ — package files (equivalent to <code>dpkg-deb --contents</code>)</li>
+  <li>DEBIAN/ — all metadata files (equivalent to <code>dpkg-deb --control</code>)</li>
+  <li>INFO — just the control file (equivalent to <code>dpkg-deb --info</code>)</li>
+</ul>
+
+<p>View the INFO file by selecting it and pressing F3, and you should see the control metadata in all its glory:</p>
+
+<figure>
+    <img src="/images/2020/mc-deb-cab579b9.png" alt="" />
+</figure>
+
+<h2 id="creating-packages-with-fpm-aka-the-easy-way">Creating packages with FPM (a.k.a. the easy way)</h2>
+
+<p>The easiest way to create a Debian package is with <a href="http://fpm.readthedocs.io/en/latest/">FPM</a>. FPM is a CLI tool. You tell FPM what metadata and files you want to put in the package, and it does just that.</p>
+
+<p>Note that using FPM is not the "right" way to create a Debian package if you want to submit a package for inclusion in a Linux distribution. If that's not your goal, then FPM is fine. We'll get back later to what "the right way" means.</p>
+
+<p>FPM requires <code>dpkg</code>, so <a href="#packaging-without-debian">make sure you have that installed already</a>.</p>
+
+<p>FPM is written in Ruby, so you can install it with the RubyGems package manager:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>gem <span class="nb">install </span>fpm <span class="nt">--no-document</span>
+</code></pre></div>
+<p>To see it in action, let's use FPM to make a simple package that contains a file called /usr/share/doc/mypackage/README.txt, and which depends on 'curl':</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">echo</span> <span class="s1">'hello FPM'</span> <span class="o">&gt;</span> README.txt
+fpm <span class="se">\</span>
+  <span class="nt">--input-type</span> <span class="nb">dir</span> <span class="se">\</span>
+  <span class="nt">--output-type</span> deb <span class="se">\</span>
+  <span class="nt">--name</span> mypackage <span class="se">\</span>
+  <span class="nt">--version</span> 1.0.0 <span class="se">\</span>
+  <span class="nt">--architecture</span> all <span class="se">\</span>
+  <span class="nt">--package</span> mypackage_1.0.0_all.deb <span class="se">\</span>
+  <span class="nt">--depends</span> curl <span class="se">\</span>
+  README.txt<span class="o">=</span>/usr/share/doc/mypackage/
+</code></pre></div>
+<p>Many more customization options are available. See <code>fpm --help</code>.</p>
+
+<p>Congratulations! You've created your first Debian package. But having a .deb file just gets you half way: you also need an APT repository, because users seldomly interact with individual .deb files. We'll get back to that later.</p>
+
+<h2 id="the-official-package-creation-process-aka-the-hard-way">The official package creation process (a.k.a. the hard way)</h2>
+
+<p>How come FPM is not the "right" way to package if you want to submit your package for inclusion in Linux distributions? It's because distributions want you to fully describe the entire package building process, and because using FPM does not adhere to their process standards.</p>
+
+<p>Think about how the full package building process looks like:</p>
+
+<ol>
+  <li>Get the source code.</li>
+  <li>Compile the source code.</li>
+  <li>Create the package file. Here you map files in the source tree, and compilation artifacts, into files inside a package.</li>
+</ol>
+
+<p>FPM only covers step 3. It creates a so-called <strong>binary package</strong>.</p>
+
+<p>Distributions expect you to create a so-called <strong>source package</strong>, which contains files that describe steps 1 and 2. You then submit the source code package — not the binary package — to distributions, and <em>they</em> build the binary package for you.</p>
+
+<p>How to create a source package, and how the official Debian packaging process works, is outside the scope of this article. In any case, that process, and the surrounding tooling, are quite arcane, badly documented, and frankly a usability nightmare. If they weren't, you wouldn't be reading this article in the first place. I do not recommend using the official process or the official tools, unless your explicit goal is to contribute to distributions. Stick with the easy way for as long as you can.</p>
+
+<h2 id="what-is-an-apt-repository">What is an APT repository?</h2>
+
+<p>A repository is a directory which contains one or more packages (.deb files), as well as metadata files that contain:</p>
+
+<ul>
+  <li>Files that list which packages exist in the repository.</li>
+  <li>A copy of all packages' control metadata.</li>
+  <li>Checksums and signatures.</li>
+</ul>
+
+<p>A repository is usually served over HTTP, but can also be a local directory.</p>
+
+<h3 id="distributions-components-and-architectures">Distributions, components and architectures</h3>
+
+<p>A single repository can contain packages for <em>multiple distributions</em>. But note that the concept of "distribution" should be taken with a grain of salt. For example, the official Ubuntu repository defines "bionic", "bionic-updates" and "bionic-backports". As far as APT is concerned, a "distribution" is just a name, for APT to figure out which subdirectory to choose.</p>
+
+<p>A repository can also be organized in multiple <em>components</em>. Users can opt-in for specific components. For example, the official Ubuntu repository has the components <a href="https://www.howtogeek.com/194247/whats-the-difference-between-main-restricted-universe-and-multiverse-on-ubuntu/">"main", "multiverse", "universe" and more</a>.</p>
+
+<p>Finally, a repository is also organized in <em>architectures</em>. APT only downloads packages intended for the current system's architecture.</p>
+
+<h3 id="real-life-repository-example">Real-life repository example</h3>
+
+<p>Let's take a look at a real-life example of a repository. If we look in /etc/apt/sources.list on an Ubuntu system, then we see lines like this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>deb http://archive.ubuntu.com/ubuntu   bionic   main restricted
+#   |-------------- 1 --------------|  |- 2 -|  |----- 3 -----|
+</code></pre></div>
+<p>Here's what the line means:</p>
+
+<ol>
+  <li>The URL of the repository.</li>
+  <li>Which distribution within the repository to pick.</li>
+  <li>Which components within (2) to pick.</li>
+</ol>
+
+<p>If we head to <a href="http://archive.ubuntu.com/ubuntu">archive.ubuntu.com/ubuntu</a>, then we see many files. Here are some interesting parts:</p>
+
+<ul>
+  <li><code>pool/</code> contains the actual .deb files, for all Ubuntu distributions.</li>
+  <li><code>dists/&lt;DISTRO&gt;/&lt;COMPONENT&gt;/binary-&lt;ARCH&gt;</code> contains the repository metadata files for a particular distribution, component and architecture.</li>
+</ul>
+
+<h3 id="apt-repository-tooling">APT repository tooling</h3>
+
+<p>There are many tools available to create a APT repositories. But most of them are not… ahem… <em>sane</em>: bad documentation, bad usability.</p>
+
+<p>An often used hosted solution for "third-party" packages (packages that are not part of a distribution) is <a href="https://help.launchpad.net/Packaging/PPA">Ubuntu PPAs</a> (Personal Package Archives). However, I do not recommend it because Ubuntu PPA expects you to upload source packages only — <em>they</em> will handle building binaries for you. This means you have to use the official Debian packaging tooling, which makes everything exponentially harder. Furthermore, the Ubuntu PPA user interface is very confusing, and its package uploading process is very primitive, cumbersome and unforgiving. It literally involves uploading raw files to an FTP server, and waiting for an email with the build results.</p>
+
+<p>The most friendly open source, self-hosted solution I've seen is <a href="https://www.aptly.info/">Aptly</a>. Just be sure to use version 1.4 or later. Earlier versions have pretty bad bugs.</p>
+
+<p>Another option is <a href="https://bintray.com/">Bintray</a>. Bintray is a commercial, hosted solution. They provide a free plan for open source projects. Unlike Ubuntu PPAs, they don't build binaries for you — you are supposed to upload binary packages and not source packages. This makes Bintray significantly easier to use than PPA because you don't have to adhere to the official package creation process.</p>
+
+<h2 id="creating-an-apt-repository-with-aptly">Creating an APT repository with aptly</h2>
+
+<p>Aptly does not directly operate on the APT repo files of the sort that you see in <a href="http://archive.ubuntu.com/ubuntu">archive.ubuntu.com/ubuntu</a>. Instead, it operates primarily on an <em>internal</em> database. You then tell Aptly to <em>publish</em> (export) its internal database to a "real" APT repository, in the format that APT expects.</p>
+
+<p>The Aptly internal database is stored in <code>~/.aptly</code> by default. When you tell Aptly to publish its internal database, it publishes to <code>~/.aptly/public</code> by default. Both of these paths are customizable through the Aptly <a href="https://www.aptly.info/doc/configuration/">configuration file</a>, but for the purposes of this demo let's stick to the default paths.</p>
+
+<p>So let's see it in action. First, tell Aptly to create a repository named "myrepo":</p>
+
+<div class="highlight"><pre class="highlight shell"><code>aptly repo create myrepo
+</code></pre></div>
+<p>Next, import the .deb file we created, into the "myrepo" repository.</p>
+
+<div class="highlight"><pre class="highlight shell"><code>aptly repo add myrepo /path/to/mypackage_1.0.0_all.deb
+</code></pre></div>
+<p>We now have an internal repository with one package in it. To publish it to a "real" APT repository, we have to create a <em>publication</em> that's linked to a particular repository.</p>
+
+<p>The package we built is distribution-agnostic and architecture-agnostic. So let's say that it belongs to the "agnostic" distribution, the "main" component, and the "amd64" (Debian's name for x86_64) architecture.</p>
+
+<p>APT repositories are normally GPG signed, but in this demo we'll skip signing in order to avoid going through the trouble.</p>
+
+<p>Create the publication as follows:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>aptly publish repo <span class="nt">-skip-signing</span> <span class="nt">-distribution</span><span class="o">=</span>agnostic <span class="nt">-component</span><span class="o">=</span>main <span class="nt">-architectures</span><span class="o">=</span>amd64 myrepo
+</code></pre></div>
+<p>Now we have an APT repository in <code>~/.aptly/public</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ find ~/.aptly/public/dists/agnostic -type f
+~/.aptly/public/dists/agnostic/Contents-amd64.gz
+~/.aptly/public/dists/agnostic/Release
+~/.aptly/public/dists/agnostic/main/Contents-amd64.gz
+~/.aptly/public/dists/agnostic/main/binary-amd64/Packages.gz
+~/.aptly/public/dists/agnostic/main/binary-amd64/Release
+~/.aptly/public/dists/agnostic/main/binary-amd64/Packages.bz2
+~/.aptly/public/dists/agnostic/main/binary-amd64/Packages
+</code></pre></div>
+<p>Let's try to use this APT repository on a Debian or Ubuntu server. We tar up this repo and copy it to a Debian/Ubuntu server:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">tar</span> <span class="nt">-C</span> ~/.aptly/public <span class="nt">-czf</span> myaptrepo.tar.gz <span class="nb">.</span>
+scp myaptrepo.tar.gz mydebianserver.com:
+</code></pre></div>
+<p>Then we login to the Debian/Ubuntu server, extract the tarball somewhere, and add it as an APT source:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># On the Debian/Ubuntu server:</span>
+<span class="nb">mkdir </span>myaptrepo
+<span class="nb">tar</span> <span class="nt">-C</span> myaptrepo <span class="nt">-xzf</span> myaptrepo.tar.gz
+<span class="nb">echo</span> <span class="s2">"deb [allow-insecure=yes] file:</span><span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span><span class="s2">/myaptrepo agnostic main"</span> <span class="se">\</span>
+  | <span class="nb">sudo tee</span> /etc/apt/sources.list.d/myaptrepo.list
+</code></pre></div>
+<p>Then install the package and verify that it works:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># On the Debian/Ubuntu server:</span>
+<span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>mypackage
+<span class="nb">cat</span> /usr/share/doc/mypackage/README.txt
+<span class="c"># =&gt; hello FPM</span>
+</code></pre></div>
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Most Debian packaging documentation out there are about the official packaging process for Linux distributions. For some reason, the use case of independent software vendors, or the use case of people who just want to package their internal apps for their internal infrastructure, is widely neglected. They shouldn't be. I hope that with this guide, you've been able to make sense of Debian packaging, and that I've helped you on your way to create your own packages. Good luck!</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-08-03-how-debian-packaging-works.html&amp;t=How%20Debian%20packaging%20works"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-08-03-how-debian-packaging-works.html&amp;text=How%20Debian%20packaging%20works%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

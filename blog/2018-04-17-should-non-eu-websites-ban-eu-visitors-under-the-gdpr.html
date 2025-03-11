@@ -1,0 +1,375 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Should non-EU websites ban EU visitors under the GDPR? &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="On 2018 May 25, Europe’s General Data Protection Regulation (GDPR) will start being enforced. The GDPR defines strict rules on how personal data should be handled. But there is a lot of fear and controversy about the GDPR from people worldwide. With the controversial concepts, the compliance overhead and hefty multi-million fines, is it a good idea for non-EU companies to simply ban all EU visitors from accessing their websites?
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Should non-EU websites ban EU visitors under the GDPR?">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html">
+    <meta property="og:description" content="On 2018 May 25, Europe’s General Data Protection Regulation (GDPR) will start being enforced. The GDPR defines strict rules on how personal data should be handled. But there is a lot of fear and controversy about the GDPR from people worldwide. With the controversial concepts, the compliance overhead and hefty multi-million fines, is it a good idea for non-EU companies to simply ban all EU visitors from accessing their websites?
+">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html">Should non-EU websites ban EU visitors under the GDPR?</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-04-17" itemprop="datePublished">Apr 17, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/gdpr.html">GDPR</a>, <a href="/blog/tags/privacy.html">Privacy</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;kjpargeter-golden-bokeh-75dfcb67.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;kjpargeter-golden-bokeh-75dfcb67.jpg"
+          style=""
+          title="Background vector created by @kjpargeter - Freepik.com"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html&amp;t=Should%20non-EU%20websites%20ban%20EU%20visitors%20under%20the%20GDPR%3F"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html&amp;text=Should%20non-EU%20websites%20ban%20EU%20visitors%20under%20the%20GDPR%3F%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>On 2018 May 25, Europe's <a href="https://en.wikipedia.org/wiki/General_Data_Protection_Regulation">General Data Protection Regulation (GDPR)</a> will start being enforced. The GDPR defines strict rules on how personal data should be handled. It is truly a privacy regulation designed for modern times in which privacy concerns run rampant.</p>
+
+<p>But there is a lot of fear and controversy about the GDPR, not only from EU citizen but also from people worldwide. This is because EU declares that even companies outside the EU, who process personal data about EU citizen, must comply to the GDPR as well. GDPR concepts such as "the right to be forgotten" has spawned a lot of heated debate on the Internet about whether these concepts are a good thing at all. Combined with hefty fines that can go up to 4% of worldwide revenue or 40 million EUR (whichever is higher), as well as compliance overhead, is it a good idea for non-EU companies to simply ban all EU visitors from accessing their websites?</p>
+
+<h2 id="no">No</h2>
+
+<p><a href="https://en.wikipedia.org/wiki/Betteridge%27s_law_of_headlines">Betteridge's law of headlines</a> applies. The answer is "no". There is a <em>lot</em> of scaremongering on the Internet about GDPR. Some people on Hacker News honestly spoke about banning EU visitors just in case. I am currently reading <a href="https://ictrecht.nl/boeken/handboek-avg-compliance-in-de-praktijk/">Handbook GDPR, Compliance in practice</a> (Dutch: <em>Handboek AVG, Compliance in de praktijk</em>), written by <a href="http://www.arnoud.engelfriet.net/">Arnoud Engelfriet</a> &amp; co, a prominent Dutch IT lawyer who works at the law work <a href="http://ictrecht.nl">ICTRecht</a>. With this article – backed by the powers of aforementioned book – I hope to put some fears to rest.</p>
+
+<figure>
+  <a href="https://ictrecht.nl/boeken/handboek-avg-compliance-in-de-praktijk/"><img src="/images/2018/Handboek-AVG-Compliance-in-de-praktijk-website-09b34504.jpg" width="250px" class="img-thumbnail" alt="" /></a>
+  <figcaption><a href="https://ictrecht.nl/boeken/handboek-avg-compliance-in-de-praktijk/">Handbook GDPR, Compliance in practice</a>,<br />by <a href="http://www.arnoud.engelfriet.net/">Arnoud Engelfriet</a> &amp; co of Dutch IT law company <a href="http://ictrecht.nl">ICTRecht</a></figcaption>
+</figure>
+
+<h2 id="fines-are-meant-to-encourage-good-behavior">Fines are meant to encourage good behavior</h2>
+
+<p>The biggest fears revolve around hefty GDPR fines. It is important to understand that GDPR fines serve a purpose. They are meant to stimulate good behavior, rather than as heavy punishments. The fines are also meant to be reasonable and in proportion to the offense (neither too light nor too heavy), as well as meant to set an example for others. Source: page 9-11.</p>
+
+<p>The United Kingdom's Information Commissioner's Office claimed a similar thing in <a href="https://iconewsblog.org.uk/2017/08/09/gdpr-sorting-the-fact-from-the-fiction/">GDPR – sorting the fact from the fiction</a>:</p>
+
+<blockquote>
+  <p>"It's scaremongering to suggest that we’ll be making early examples of organisations for minor infringements or that maximum fines will become the norm.</p>
+
+  <p>The ICO’s commitment to guiding, advising and educating organisations about how to comply with the law will not change under the GDPR. We have always preferred the carrot to the stick.</p>
+
+  <p>[…] we intend to use those powers proportionately and judiciously."</p>
+</blockquote>
+
+<h2 id="does-the-gdpr-apply-to-non-eu-companies">Does the GDPR apply to non-EU companies?</h2>
+
+<p>Maybe, it depends. I know that some people find it ridiculous that an EU law can apply to companies in countries where they have no jurisdiction, and some people even see it as a continuation of European colonialism. This is understandable, but consider the following.</p>
+
+<p>The Internet has made borders blurry. A company can be physically located in one location, but may serve customers from another location. This is a continuum. On one side, you have for example a Canadian web shop that simply accepts orders world-wide and allows shipping world-wide, and sometimes gets a European customer. This web shop does not have to comply to the GDPR.</p>
+
+<p>On the other side, you have companies like Google or Twitter who are truly multinational. These companies <em>do</em> need to comply to the GDPR, even though their headquarters are based in the United States and even though the servers are located in the United States.</p>
+
+<p>The criterium for whether a non-EU company needs to comply to GDPR is: does the company intent to seriously service EU citizen? This is determined based on multiple factors, such as the website's language (do they have e.g. German translations?), providing pricing in euros, testimonials from EU customers, or having a contract with a parcel company with the specific intention of delivering to EU customers. The mere fact that the website <em>can</em> be used by an EU citizen is not enough to have it fall under the GDPR.</p>
+
+<p>Source: page 11.</p>
+
+<h2 id="keep-calm-and-carry-on">Keep calm and carry on</h2>
+
+<p>If you are not structurally serving EU customers then you have nothing to fear. But if you are – e.g. you are like Google and Twitter – then I argue that you <em>should</em> think about complying to EU laws. Despite all its fault, I still stand behind the spirit of the GDPR. It represents a re-evaluation of our societal values on how to balance corporate profits with the rights of private citizen. This re-evaluation is <a href="https://vimeo.com/265333734">much needed</a>.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html&amp;t=Should%20non-EU%20websites%20ban%20EU%20visitors%20under%20the%20GDPR%3F"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html&amp;text=Should%20non-EU%20websites%20ban%20EU%20visitors%20under%20the%20GDPR%3F%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

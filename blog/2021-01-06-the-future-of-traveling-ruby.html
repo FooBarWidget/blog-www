@@ -1,0 +1,393 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>The future of Traveling Ruby &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Reflecting on the challenges of doing a new release, and the future of the project.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="The future of Traveling Ruby">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2021-01-06-the-future-of-traveling-ruby.html">
+    <meta property="og:description" content="Reflecting on the challenges of doing a new release, and the future of the project.">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2021-01-06-the-future-of-traveling-ruby.html">The future of Traveling Ruby</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2021-01-06" itemprop="datePublished">Jan  6, 2021</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2021-01-06-the-future-of-traveling-ruby.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg"
+          style=""
+          title="Background vector created by @StarLine - Freepik.com"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-06-the-future-of-traveling-ruby.html&amp;t=The%20future%20of%20Traveling%20Ruby"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-06-the-future-of-traveling-ruby.html&amp;text=The%20future%20of%20Traveling%20Ruby%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>A couple of years ago, I had a dream: to make it dead-easy to distribute Ruby CLI apps to end users, without requiring those users to install Ruby or muck about with gems and Bundler. And thus <a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> was born.</p>
+
+<p>Traveling Ruby hasn't seen updates for quite a while now. Recently I tried making a new bugfix release, but I found it to be more challenging than I had hoped. In this article I reflect on those challenges, as well as on the future of Traveling Ruby.</p>
+
+<p><strong></strong></p>
+
+<h2 id="the-dream-of-a-single-self-contained-package">The dream of a single, self-contained package</h2>
+
+<p>Back in the 90s, I wrote Windows desktop apps with Delphi. Unlike its contemporary competitors such as Visual Basic and Java, which generated apps that required users to install a runtime, Delphi produced a single .exe that just works. Fast forward to the mid 2010s, and we saw that Go – which could also produce a single executable that required no runtime – was gaining popularity. Sometimes at the expense of Ruby.</p>
+
+<p>While Traveling Ruby doesn't produce a single executable, it allows you to package your Ruby app as a single self-contained directory, which is good enough.</p>
+
+<h2 id="whats-needed-sustainability-and-democratization">What's needed: sustainability and democratization</h2>
+
+<p>Traveling Ruby hasn't seen updates for quite a while now, but it's still being used. Yesterday, the author of the <a href="https://docs.pact.io/">Pact contract testing framework</a> asked me to do a new release, because he <a href="https://github.com/phusion/traveling-ruby/pull/94#issuecomment-754371791">needed a bug fix for supporting paths that contain spaces</a>. So I gave it a try. Predictably, the build system is broken due to all the changes in Linux and macOS the past few years, and fixing it all takes a lot of effort.</p>
+
+<p>However, this is not a sustainable. The reason why Traveling Ruby stopped getting updates after a while is because it's too dependent on a single maintainer: myself. The main contributing factor to why there's only a single maintainer, is that maintaining Traveling Ruby requires <a href="https://github.com/phusion/traveling-ruby/issues/88#issuecomment-336400119">expert knowledge on C-based build systems and binary compatibility</a> for both Linux and macOS. This is a low-level skill that's not commonly found in the Ruby community.</p>
+
+<p>The same issue potentially threatens <a href="https://fullstaqruby.org">Fullstaq Ruby</a>, which is my current main focus. Fullstaq Ruby also requires skills in the areas of C-based build systems, and OS packaging. This time I've learned my lesson, so I <a href="/blog/2020-05-15-why-fullstaq-ruby.html">seek to make Fullstaq Ruby sustainable</a> through these strategies:</p>
+
+<ul>
+  <li><strong>Automation</strong> of as many maintenance tasks as possible.</li>
+  <li><strong>Knowledge sharing</strong> through documentation. Allow anyone to learn the required skills, and clearly describe all the maintenance procedures.</li>
+  <li><strong>Actively recruiting</strong> more maintainers.</li>
+</ul>
+
+<p>These strategies are not easily implemented, and take time. With Traveling Ruby, we didn't get much further than <a href="https://github.com/phusion/traveling-ruby/issues/88#issuecomment-336400119">a short brain dump</a>.</p>
+
+<p>I hope to revive Traveling Ruby's vision one day. A successor project should employ the same strategies to ensure the sustainability of the project. A successor project should aim for <strong>democratization</strong>: making it easy for <em>anyone</em> to contribute.</p>
+
+<h2 id="challenges">Challenges</h2>
+
+<p>In Traveling Ruby's case, macOS seems to be doing everything it can to prevent democratization from being realized.</p>
+
+<p>Building Traveling Ruby requires setting up an isolated, carefully-controlled build environment. In Linux this is easy: spin up a Docker container. MacOS has no native containers: Docker for Mac is merely a Linux VM; containers don't run macOS inside. So we try to set up such an environment by using environment variables. However, some things cannot be isolated, such as random libraries in /usr/local. So this gives maintainers two options:</p>
+
+<ol>
+  <li>While maintaining Traveling Ruby, temporarily clear elements that may pollute the build environment. When done with the maintenance work, restore those elements.</li>
+  <li>Set up an entirely new, clean macOS instance, specifically for the purpose of maintaining Traveling Ruby. Preferably, make this a CI server so that we can automate things.</li>
+</ol>
+
+<p>Option 1 is easier than 2, but it's a <em>hassle</em>, and not automated.</p>
+
+<p>Option 2 is very bad too:</p>
+
+<ul>
+  <li>Setting up a macOS CI server is very expensive, money-wise. This is because its license only allows running on Apple hardware. This means buying or renting dedicated Apple hardware, as opposed to spinning up virtualized cloud instances that run on commodity hardware.</li>
+  <li>Setting up a macOS CI server is very expensive, time- and effort-wise. Virtualization is a great way to backup, restore and reset the CI server. But macOS is neither a good server OS, nor a good virtualization host. Installing Linux on Apple hardware is not an easy task. Installing macOS in a production-grade virtualizion platform, such as KVM, is also not an easy task.</li>
+  <li>Thanks to the restrictive licensing, there are very few hosting providers that offer macOS. MacStadium and Amazon Web Services are all that I can think of. All of them are very expensive.</li>
+</ul>
+
+<p>What about CI providers, such as Azure DevOps and Github Actions? I hoped that they would bring about more democratization. Unfortunately, there are more roadblocks, making those options entirely unfeasible.</p>
+
+<p>macOS's increasingly restrictive security features, conflict with Traveling Ruby's build environment. In particular, we rely on <code>DYLD_LIBRARY_PATH</code>, but this doesn't work when System Integrity Protection (SIP) is enabled. Disabling SIP on managed CI instances such as Azure DevOps or Github Actions is not possible. I don't know whether disabling SIP on MacStadium and AWS is possible.</p>
+
+<p>This means that we'll need a dedicated Mac machine for maintainers to use. Someone has to buy it, build it and maintain it. This makes that someone a potential bottleneck.</p>
+
+<p>macOS also evolves in much more impactful ways than Linux. This makes knowledge sharing hard, because the knowledge must be ever-evolving. Maintainers must be experts that both understand the underlying issues, as well as keep up with the latest changes, so that they can debug new problems. Finding out that <code>DYLD_LIBRARY_PATH</code> stopped working due to System Integrity Protection, is an example of an obscure problem that's not easily diagnosed by those with insufficient knowledge of macOS's internals.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Making a successor to Traveling Ruby, that's sustainable and democratized, is no easy task, in large thanks to macOS. I have no easy answers to these challenges: it seems that there's no option but to bite the bullet. I hope that its dream will be fulfilled some day, because I love Ruby.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-06-the-future-of-traveling-ruby.html&amp;t=The%20future%20of%20Traveling%20Ruby"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-01-06-the-future-of-traveling-ruby.html&amp;text=The%20future%20of%20Traveling%20Ruby%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

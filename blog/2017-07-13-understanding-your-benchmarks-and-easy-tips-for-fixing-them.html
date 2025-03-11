@@ -1,0 +1,552 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Understanding your benchmarks and easy tips for fixing them &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Update August 9: urikanegun has kindly contributed a Japanese translation of this article.
+
+Developers love speed, so developers love benchmarks. Benchmarks on programming language performance, app server performance, JavaScript engine performance, etc. have always attracted a lot of attention. However, there are lots of caveats involved in running a good benchmark. One of those caveats is benchmark stability: if you run a benchmark multiple times then the timings usually differ a bit. A a lot of people have the tendency to hand-wave this caveat by just shutting down all apps, rerunning the benchmark a few times and averaging the results. Is that truly good enough?
+
+Lately, I have been researching the topic of benchmark stability because I am interested in creating reliable benchmarks that are reproducible by third parties, so that they can verify benchmark results by themselves — e.g. allowing users of my software to verify that my benchmarks are reliable. Such research has led me to Victor Stinner, a Python core developer who has been focusing on improving Python 3 performance for several years.
+
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Understanding your benchmarks and easy tips for fixing them">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html">
+    <meta property="og:description" content="Update August 9: urikanegun has kindly contributed a Japanese translation of this article.
+
+Developers love speed, so developers love benchmarks. Benchmarks on programming language performance, app server performance, JavaScript engine performance, etc. have always attracted a lot of attention. However, there are lots of caveats involved in running a good benchmark. One of those caveats is benchmark stability: if you run a benchmark multiple times then the timings usually differ a bit. A a lot of people have the tendency to hand-wave this caveat by just shutting down all apps, rerunning the benchmark a few times and averaging the results. Is that truly good enough?
+
+Lately, I have been researching the topic of benchmark stability because I am interested in creating reliable benchmarks that are reproducible by third parties, so that they can verify benchmark results by themselves — e.g. allowing users of my software to verify that my benchmarks are reliable. Such research has led me to Victor Stinner, a Python core developer who has been focusing on improving Python 3 performance for several years.
+
+">
+        <link rel="canonical" href="https://blog.phusion.nl/2017/07/13/understanding-your-benchmarks-and-easy-tips-for-fixing-them/">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html">Understanding your benchmarks and easy tips for fixing them</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2017-07-13" itemprop="datePublished">Jul 13, 2017</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/benchmarking.html">Benchmarking</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html&amp;t=Understanding%20your%20benchmarks%20and%20easy%20tips%20for%20fixing%20them"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html&amp;text=Understanding%20your%20benchmarks%20and%20easy%20tips%20for%20fixing%20them%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p><em>Update August 9: urikanegun has kindly contributed <a href="https://techracho.bpsinc.jp/hachi8833/2017_08_07/43658">a Japanese translation</a> of this article.</em></p>
+
+<p>Developers love speed, so developers love benchmarks. Benchmarks on programming language performance, app server performance, JavaScript engine performance, etc. have always attracted a lot of attention. However, there are lots of caveats involved in running a good benchmark. One of those caveats is <em>benchmark stability</em>: if you run a benchmark multiple times then the timings usually differ a bit. A a lot of people have the tendency to hand-wave this caveat by just shutting down all apps, rerunning the benchmark a few times and averaging the results. Is that truly good enough?</p>
+
+<p>Lately, I have been researching the topic of benchmark stability because I am interested in creating reliable benchmarks that are reproducible by third parties, so that they can verify benchmark results by themselves — e.g. allowing users of my software to verify that my benchmarks are reliable. Such research has led me to <a href="https://haypo.github.io/">Victor Stinner</a>, a Python core developer who has been focusing on improving Python 3 performance for several years.</p>
+
+<p><strong></strong></p>
+
+<p>Stinner recently gave <a href="https://www.youtube.com/watch?v=d65dCD3VH9Q">a talk at PyCon 2017</a> (with an excellent summary by <a href="https://lwn.net/Articles/725114/">Linux Weekly News</a>) about this topic. Stinner needed a way to test if optimizations really helped, and if performance regressions had been introduced. He needed this in a form that can be integrated in a continuous integration tool so performance changes can be tracked reliably over time and commits. To that end, he developed a benchmarking methodology, as well as a benchmarking framework named <a href="https://github.com/haypo/perf">perf</a>.</p>
+
+<p>Stinner's methodology can be summarized as:</p>
+
+<ul>
+  <li>Warm up the benchmark</li>
+  <li>Combine time budgets with iterations</li>
+  <li>Use multiple processes, in a sequential manner</li>
+  <li>Investigate large deviations</li>
+  <li>Tune the system at the kernel and hardware level</li>
+</ul>
+
+<p>System tuning work consists of:</p>
+
+<ul>
+  <li>Use CPU affinity</li>
+  <li>Run the kernel scheduler on a dedicated core</li>
+  <li>Set the CPU to a constant, minimum clock speed</li>
+  <li>Use dedicated hardware</li>
+</ul>
+
+<p>Let's have a closer look at his methodology and tuning strategies. I have not yet put his methodology into practice, although I hope I will get the chance to do it soon. Having said that, I will report my own analysis on the matter as well.</p>
+
+<h2 id="warm-up-the-benchmark">Warm up the benchmark</h2>
+
+<p>This one is pretty obvious and standard:</p>
+
+<p>Stinner considers the first benchmark iteration a warmup round, and discards its results. The idea is to allow the warmup round to initialize lazily-loaded stuff, and to fill necessary caches (whether that be CPU caches, I/O caches, JIT caches or whatever). In some cases one warm up round may not be enough, so Stinner's perf tool allows configuring the number of warmup rounds.</p>
+
+<h2 id="combine-time-budgets-with-iterations">Combine time budgets with iterations</h2>
+
+<p>Choosing the number of iterations to run in the benchmark is not trivial. Having too few iterations means that the benchmark may produce unreliable results, while having too many iterations means that the benchmark takes too much time, which negatively impacts developer motivation.
+Stinner's methodology embraces the concept of time budgets (also known as "stopwatch benchmarking"). Instead of choosing a number iterations, he runs the benchmark for a reasonable time, and observes the number of iterations. He then locks down the test to that number of iterations, repeats it several more times (see next section), and averages the results.</p>
+
+<h2 id="use-multiple-processes-in-a-sequential-manner">Use multiple processes, in a sequential manner</h2>
+
+<p>Instead of running the benchmark inside a single process only, Stinner repeats his benchmark in 20 different processes, which run sequentially. Each process run performs the benchmark according to the number of iterations calculated from the time budget described in the previous section. The results from all process runs are then averaged. The reason why Stinner does this is because processes have some amount of random state, which can affect performance.</p>
+
+<p>For example, <a href="https://en.wikipedia.org/wiki/Address_space_layout_randomization">Address Space Layout Randomization</a> (ASLR) is a commonly-employed technique for preventing certain classes of security exploits, but this randomization can affect the locality of code and data, which impacts benchmark performance. Other examples include the hash table function seed as used in Ruby and Python: in order to mitigate attacks that try to exploit hash table collisions, Ruby and Python's hash table functions depend on a seed which is randomly chosen during startup. This results in variable hash table performance.</p>
+
+<p>Disabling ASLR, random hash table seeds, and other similar techniques is not a good idea. Not only does disabling them make systems potentially more vulnerable, it is also not representative of real-world performance. Furthermore, the aforementioned random factors are just the tip of the iceberg and there are many more. Stinner accounts for such variations in performance by averaging the results over multiple process runs.</p>
+
+<h2 id="investigate-large-deviations">Investigate large deviations</h2>
+
+<p>Stinner not only looks at the average, but also at the standard deviation and how much various metrics deviate from the average. If the standard deviation is too high, or if the maximum and minimum deviate too much from the average, then Stinner considers the results invalid and proceeds with investigating what causes the deviations. His <code>perf</code> prints a warning if the standard deviation is greater than 10% of the average, or if the maximum/minimum deviate from the average by at least 50%.</p>
+
+<h2 id="use-cpu-affinity">Use CPU affinity</h2>
+
+<p>The operating system can schedule a process or a thread on any CPU core at any time. Every time a process/thread moves to a different CPU core, benchmark stability is affected because the new core does not have the same data in its L1 cache as the old core. By the time that that process/thread is scheduled back to the old core, that core's cache may already have been polluted by other work that was scheduled on that core. So it is important to:</p>
+
+<ul>
+  <li>ensure that a process/thread "sticks" to a certain CPU core.</li>
+  <li>ensure that a CPU core only runs one thread (and thus only one process).</li>
+</ul>
+
+<p>This is called CPU affinity.</p>
+
+<p>A benchmark should be run on a system with a sufficient number of real CPU cores. HyperThreading does not count as a "real CPU core": two HyperThread cores share the same physical core (and thus the same L1 cache), where by the CPU sort-of time slices the core based on which HyperThread is waiting for RAM.</p>
+
+<p>Linux provides two tools to set CPU affinity:</p>
+
+<ul>
+  <li>
+    <p><a href="https://linux.die.net/man/1/taskset">The <code>taskset</code> command</a> allows you to tell the kernel which CPU cores a certain process or thread may be scheduled on. <a href="http://xmodulo.com/run-program-process-specific-cpu-cores-linux.html">Xmodulo.com has a tutorial</a>. <a href="http://www.glennklockwood.com/hpc-howtos/process-affinity.html#3-defining-affinity">Glenn Klockwood</a> has another tutorial on how to use <code>taskset</code> on threads.</p>
+
+    <p>If code modification is an option, then applications can also set CPU affinity by calling the <a href="http://man7.org/linux/man-pages/man3/pthread_setaffinity_np.3.html"><code>pthread_setaffinity_np()</code></a> function.</p>
+  </li>
+  <li>
+    <p><a href="http://www.linuxtopia.org/online_books/linux_kernel/kernel_configuration/re46.html">The <code>isolcpus</code> kernel command line option</a> allows you to exclude certain CPU cores from being used for scheduling processes, unless otherwise specified by the user (e.g. with <code>taskset</code>). <a href="https://perf.readthedocs.io/en/latest/system.html#enable-isolcpus">The perf documentation</a> teaches you how to use this.</p>
+  </li>
+</ul>
+
+<h2 id="run-the-kernel-scheduler-on-a-dedicated-core">Run the kernel scheduler on a dedicated core</h2>
+
+<p>The Linux kernel has a scheduler interrupt which fires up to 1000 times per second in order to perform time slicing on a CPU core. This is not good because every time the tick fires, the CPU core context switches to the kernel, which pollutes CPU caches (the kernel has to load its own code data structures in memory). Therefore it is recommended to configure the kernel to limit the scheduler tick to a core that isn't used for running benchmarks.[<a href="https://haypo.github.io/journey-to-stable-benchmark-system.html">1</a>][<a href="http://www.breakage.org/2013/11/15/nohz_fullgodmode/">2</a>][<a href="https://lwn.net/Articles/549580/">3</a>]</p>
+
+<p>This can be done using two configuration options: the <code>nohz_full</code> and the <code>rcu_nocbs</code> command line options. Both of these options are documented in the kernel's <a href="https://www.kernel.org/doc/Documentation/timers/NO_HZ.txt">NO_HZ.txt document</a>. The former sets the scheduler to "full tickless" mode, while the latter limits the kernel scheduler to a specific CPU core. Both of these options have to be used together because of a compatibility problem with Linux's Intel P-state power saving driver, <a href="https://haypo.github.io/intel-cpus-part2.html">as described on Stinner's blog</a> and <a href="https://bugzilla.redhat.com/show_bug.cgi?id=1378529">as reported on Red Hat's Bugzilla</a>.</p>
+
+<h2 id="set-the-cpu-to-a-constant-minimum-clock-speed">Set the CPU to a constant, minimum clock speed</h2>
+
+<p>Modern CPUs do not have a constant clock speed (or frequency). They change their clock speed frequently in order to maximize performance when needed, but save energy when there is little work to be done. As a result, performance on a system can vary wildly based on the workload and when the workload is run. Furthermore, temperature also plays a big role: modern CPUs have lots of mechanisms to prevent overheating. If the CPU gets too hot then it will dial back its own performance.</p>
+
+<p>The following technologies and mechanisms govern clock speed scaling: Intel Turbo Boost (the modern equivalent of the CPU turbo button, but automatic), C-states (power saving states) and P-states (execution power states). These are described on Stinner's blog: <a href="https://haypo.github.io/intel-cpus.html">part 1</a> and <a href="https://haypo.github.io/intel-cpus-part2.html">part 2</a>.</p>
+
+<p>All of this behavior is detrimental to benchmark stability. So Stinner's methodology is to set the CPU clock speed to the <em>minimum</em> value possible and to disable all clock speed autoscaling mechanisms. The reason why he sets it to a constant minimum instead of a constant maximum is to prevent heat. After all, the raw performance of a benchmark doesn't matter: just that a benchmark result can be reliably compared to another benchmark result.</p>
+
+<p>Setting a CPU's clock speed to the minimum value can be done at the kernel level with:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq | sudo tee  /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+</code></pre></div>
+<p>However, this option does not persist between reboots: there are userspace tools — such as cpufrequtils — that also set this option. It seems that the best way is to configure cpufrequtils instead of the kernel directly. <a href="https://askubuntu.com/questions/523640/how-i-can-disable-cpu-frequency-scaling-and-set-the-system-to-performance">On Debian</a>, cpufrequtils can be configured by editing /etc/default/cpufrequtils and setting <code>GOVERNOR=powersave</code>. <a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Power_Management_Guide/cpufreq_governors.html#governor_types">The Red Hat Power Management Guide</a> explains what the different cpufrequtils governor values mean.</p>
+
+<h2 id="use-dedicated-hardware">Use dedicated hardware</h2>
+
+<p>Running a benchmark locally on your laptop is not good for benchmark stability, because other apps can interfere. Even if you close all apps, it is still not good enough because some things — which are unnecessary for the benchmark but necessary for normal laptop use — still need to run in the background. The various kernel- and hardware-level tunings described above cannot always be conveniently performed on your laptop. For example, my Mac doesn't run Linux, and I'm not keen on figuring out how to do that just so I can run stable benchmarks.</p>
+
+<p>Another problem is that your laptop isn't <em>reproducible</em>. Users cannot easily get an exact replica of my laptop's hardware and software in order to reproduce the benchmark.</p>
+
+<p>Your laptop is <em>convenient</em> though because it allows a short development-testing cycle. Buying and setting up dedicated hardware is expensive and time-consuming. Cloud servers and virtual machines are not ideal either because they cannot guarantee stable performance. Other VMs running on the same host system will leech away CPU and will cause hypervisor context switches. The way that a lot of cloud providers provide burstable CPU performance (giving your VM more CPU when other VMs are idle) is great for production environments, but bad for benchmark stability. There are also various hardware-level tunings that cannot be performed on cloud servers because they are virtualized.</p>
+
+<h3 id="in-search-of-a-viable-hosting-provider">In search of a viable hosting provider</h3>
+
+<p>So what do we do then? I have found the following options that seem reasonably achievable, convenient and cost-effective:</p>
+
+<ul>
+  <li>
+    <p><a href="https://aws.amazon.com/ec2/dedicated-hosts/">Amazon Dedicated Hosts</a>. Amazon allows you to launch EC2 instances on defined dedicated hardware, which is billed on an hourly basis. They don't allow you direct access to the hardware because the instances are still virtualized, but it comes pretty close.</p>
+
+    <p>Pros:</p>
+
+    <ul>
+      <li>Amazon is popular, so it is very accessible to a large amount of people.</li>
+      <li>Spinning up and setting up a dedicated host + instance is fully automatable.</li>
+      <li>Hourly billing.</li>
+      <li><a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/processor_state_control.html">Officially supports control over CPU frequency scaling.</a></li>
+    </ul>
+
+    <p>Cons:</p>
+
+    <ul>
+      <li>Unable to set CPU affinity to specific physical CPU cores because the CPU is still virtualized. I don't know how big of a problem this is, it’s something to investigate in the future.</li>
+    </ul>
+  </li>
+  <li>
+    <p><a href="https://www.hetzner.com/">Hetzner</a> is a budget dedicated hardware hosting provider. You can get a dedicated server for as cheap as 39 EUR/mo (though there is a ~79 EUR setup fee).</p>
+
+    <p>Pros:</p>
+
+    <ul>
+      <li>Not hourly billing, but still cheap.</li>
+      <li>Full access to underlying hardware. You can set CPU affinity, disable CPU frequency scaling, etc.</li>
+    </ul>
+
+    <p>Cons:</p>
+
+    <ul>
+      <li>Depending on the exact server model, there is a setup fee.</li>
+      <li>Monthly commitment. Not bad but not as good as hourly billing.</li>
+      <li>Hetzner regularly changes their hardware offerings, making older hardware models unavailable. This is a problem for third parties who want to reproduce a benchmark on the exact same hardware.</li>
+      <li>Limited automation possible. Their API is not as good as Amazon's.</li>
+    </ul>
+  </li>
+  <li>
+    <p><a href="https://www.rackspace.com/en-nl/cloud/servers/onmetal">RackSpace OnMetal</a> provides dedicated hardware with hourly billing. I haven't been able to try this out because of a problem with their control panel, so I can't tell whether they allow true access to dedicated hardware or whether there's still a virtualization layer.</p>
+  </li>
+  <li>
+    <p><a href="https://www.scaleway.com/baremetal-cloud-servers/">Scaleway Bare Metal Cloud</a> provides dedicated x86_64 (Intel Atom) and ARM servers.</p>
+
+    <p>Pros:</p>
+
+    <ul>
+      <li>Hourly billing.</li>
+      <li>Automatable through their API and CLI tools.</li>
+      <li>Very very cheap.</li>
+    </ul>
+
+    <p>Cons:</p>
+
+    <ul>
+      <li>I have not had good experience with their ARM hardware. They seem to crash in strange ways.</li>
+    </ul>
+
+    <p>Potential pitfalls:</p>
+
+    <ul>
+      <li>It is not clear whether their x86_64 servers are virtualized in any way, I don't know whether it's possible to set CPU affinity to physical cores.</li>
+      <li>Their x86_64 offerings are Atom CPUs. I do not have any experience with ARM. At a first glance, it appears that ARM does not do CPU frequency scaling (or at least, it's not configurable), but who knows?</li>
+      <li>Their reliability in general is pretty dodgy. I would not recommend them (yet?) for serious production workloads, but running benchmarks is fine.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Stinner's benchmark methodology does not involve a lot of statistical techniques. It is mostly system tuning. Stinner checks the standard deviation of the benchmarks results, and if the deviation is too big he'll discard the results and proceed to investigate what needs tuning in order to make the benchmark more stable. A large part of his methodology focuses on the operating system and the hardware level. Benchmarks are run in multiple processes in order to cope with the effects of ASLR and random seeds; the kernel's CPU settings are tuned; and the CPU's clock speed is tuned.</p>
+
+<p>Most of this methodology is codified in Stinner's <a href="https://perf.readthedocs.io/en/latest/">perf</a> tool. Stinner reported that his methodology has helped him a lot with obtaining stable and reliable results. This not only led to a new <a href="https://speed.python.org/">Python benchmark suite</a>, but also to a continuous integration system where the benchmark results are <a href="https://github.com/python/performance">tracked over time</a>.</p>
+
+<p>I have not yet put this methodology into practice, but I will definitely do it next time I run a benchmark and I will report on my practical findings.</p>
+
+<p>Are you also interested in benchmarking? Let me know whether this article has helped you and whether you have any insights to share. Good luck and happy benchmarking.</p>
+
+<h2 id="sources-and-further-reading">Sources and further reading</h2>
+
+<ul>
+  <li><a href="https://lwn.net/Articles/725114/">Making Python faster</a> — Linux Weekly News</li>
+  <li><a href="https://speakerdeck.com/haypo/how-to-run-a-stable-benchmark">How to run a stable benchmark</a> — presentation by Victor Stinner at FOSDEM 2017 Brussels</li>
+  <li><a href="https://perf.readthedocs.io/en/latest/run_benchmark.html">How to get reproducible benchmark results</a> — by Victor Stinner</li>
+  <li><a href="https://perf.readthedocs.io/en/latest/system.html">Tune the system for benchmarks</a> — by Victor Stinner</li>
+  <li><a href="http://haypo-notes.readthedocs.io/benchmark.html">Miscellaneous benchmark notes</a> — by Victor Stinner</li>
+  <li><a href="https://haypo.github.io/journey-to-stable-benchmark-system.html">My journey to stable benchmark, part 1 (system)</a> — Victor Stinner's blog</li>
+  <li><a href="https://haypo.github.io/journey-to-stable-benchmark-average.html">My journey to stable benchmark, part 3 (average)</a> — Victor Stinner's blog</li>
+  <li><a href="https://stackoverflow.com/questions/410437/is-stopwatch-benchmarking-acceptable">Is stopwatch benchmarking acceptable?</a> — Stack Overflow</li>
+  <li><a href="http://www.breakage.org/2013/11/15/nohz_fullgodmode/">nohz_full=godmode ?</a> — Jeremy Eder's blog</li>
+  <li><a href="https://www.kernel.org/doc/Documentation/timers/NO_HZ.txt">Linux kernel documentation on tickless scheduler mode</a></li>
+  <li><a href="https://stackoverflow.com/questions/38112585/tickless-kernel-isolcpus-nohz-full-and-rcu-nocbs">How to configure a tickless kernel: isolcpus,nohz-full,and rcu_nocbs</a> — Stack Overflow</li>
+  <li><a href="https://askubuntu.com/questions/523640/how-i-can-disable-cpu-frequency-scaling-and-set-the-system-to-performance">How I can disable CPU frequency scaling and set the system to performance?</a> — Stack Overflow</li>
+  <li><a href="https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/Power_Management_Guide/cpufreq_governors.html#governor_types">CPUfrequtils governor types</a> — Red Hat Power Management Guide</li>
+  <li><a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/processor_state_control.html">Processor State Control for Your EC2 Instance</a> — Amazon EC2</li>
+</ul>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html&amp;t=Understanding%20your%20benchmarks%20and%20easy%20tips%20for%20fixing%20them"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html&amp;text=Understanding%20your%20benchmarks%20and%20easy%20tips%20for%20fixing%20them%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

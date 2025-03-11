@@ -1,0 +1,624 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Joyful Bikeshedding: Hongli Lai, CTO&#x27;s take on coding &amp; company building</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="google-site-verification" content="9Co4RmXKuHziEPwU5z6rjvELFUFo8JWp6ya7wJuA-gg" />
+    <meta name="msvalidate.01" content="A3E75EA804E0BACF2EFF751BF713DAE3">
+    <meta name="likebtn-website-verification" content=" bc99493e9107ad8e">
+    <meta name="description" content="Hongli Lai is a CTO, consultant and entrepreneur. On his website he blogs about coding, company building and other advice.">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <div class="main-container main-container-with-post-previews">
+        <main class="post-previews">
+                <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2025-03-07-ebs-storageclass-with-volumebindingmode-immediate-is-incompatible-with-pod-topology-pinning.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2025&#x2F;ebs-volume-binding-mode-immediate-pod-topology-pinning.avif" type="image&#x2F;avif">
+<source srcset="&#x2F;images&#x2F;2025&#x2F;ebs-volume-binding-mode-immediate-pod-topology-pinning-230cc113.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2025&#x2F;ebs-volume-binding-mode-immediate-pod-topology-pinning-230cc113.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2025-03-07-ebs-storageclass-with-volumebindingmode-immediate-is-incompatible-with-pod-topology-pinning.html">EBS StorageClass with VolumeBindingMode Immediate is incompatible with pod topology pinning</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2025-03-07">Mar  7, 2025</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/aws.html">AWS</a>, <a href="/blog/tags/eks.html">Eks</a>, <a href="/blog/tags/ebs.html">Ebs</a>, <a href="/blog/tags/kubernetes.html">Kubernetes</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>We ran into a weird pod scheduling error on Amazon Elastic Kubernetes Service (EKS). Some pods, which scheduled just fine in the past, now stay in Pending with the following event:</p>
+
+<blockquote>
+  <p>Failed to schedule pod, incompatible with nodepool "default",
+daemonset...</p>
+</blockquote>
+            <div class="post-read-more"><a href="/blog/2025-03-07-ebs-storageclass-with-volumebindingmode-immediate-is-incompatible-with-pod-topology-pinning.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2025-02-10-causes-of-major-page-faults.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2025&#x2F;major-page-faults.avif" type="image&#x2F;avif">
+<source srcset="&#x2F;images&#x2F;2025&#x2F;major-page-faults-929b64f7.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2025&#x2F;major-page-faults-929b64f7.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2025-02-10-causes-of-major-page-faults.html">Causes of major page faults</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2025-02-10">Feb 10, 2025</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/unix.html">Unix</a>, <a href="/blog/tags/debugging.html">Debugging</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>There's a common Prometheus alert called "NodeMemoryMajorPagesFaults". It's <a href="https://github.com/prometheus/node_exporter/blob/v1.8.2/docs/node-mixin/alerts/alerts.libsonnet#L347">part of the Node Exporter's node-mixin project</a> and also <a href="https://github.com/prometheus-community/helm-charts/blob/prometheus-node-exporter-4.43.1/charts/kube-prometheus-stack/templates/prometheus/rules-1.14/node-exporter.yaml#L652">included in the kube-prometheus-stack default alert rules</a>.</p>
+
+<picture><img src="/images/2025/node-memory-major-page-faults-alert-49d1e9fd.png" alt="NodeMemoryMajorPageFaults alert" style="box-shadow: 0px 0px 4px #bbb"></picture>
+
+<p>But what does this alert mean, and what do you do about it? This article helps you form a good mental model and provides practical guidance.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2025-02-10-causes-of-major-page-faults.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2023&#x2F;cure-docker-pain-2bfec2d4.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2023&#x2F;cure-docker-pain-2bfec2d4.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html">Cure Docker volume permission pains with MatchHostFsOwner</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2023-04-20">Apr 20, 2023</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/docker.html">Docker</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Run a container with a host directory mount, and it either leaves root-owned files behind or it runs into "permission denied" errors. Welcome to the dreadful <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html">container host filesystem owner matching problem</a>. These issues <a href="https://www.reddit.com/r/docker/comments/hjsipd/permission_denied_with_volumes/">confuse</a> <a href="https://medium.com/@nielssj/docker-volumes-and-file-system-permissions-772c1aee23ca">and</a> <a href="https://mydeveloperplanet.com/2022/10/19/docker-files-and-volumes-permission-denied/">irritate</a> <a href="https://blog.gougousis.net/file-permissions-the-painful-side-of-docker/">people</a>, and they happen because apps in the container run as a different user than the host user.</p>
+
+<p>There are <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html#solution-strategies-overiew">various strategies to solve this issue</a>, but they are all non-trivial (requiring complex logic) and/or have significant caveats (e.g., requiring privileged containers). Here's where my new tool <a href="https://github.com/FooBarWidget/matchhostfsowner">MatchHostFsOwner</a> comes in.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html">Ubuntu 22.04 support for Fullstaq Ruby is here</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2022-04-30">Apr 30, 2022</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/fullstaq-ruby.html">Fullstaq Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Ubuntu 22.04 was released a couple of days ago. Fullstaq Ruby now provides packages for this distribution!</p>
+
+            <div class="post-read-more"><a href="/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg"
+          style=""
+          title="Photo by Dmitri Popov on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html">Ruby gem: distributed locking on Google Cloud</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-09-14">Sep 14, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/rubygems.html">Ruby gems</a>, <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/google-cloud.html">Google cloud</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I previously designed a robust <a href="2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html.md">distributed locking algorithm based on Google Cloud</a>. Now I'm releasing a Ruby implementation of this algorithm: <a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby">distributed-lock-google-cloud-storage-ruby</a>.</p>
+
+<p>To use this, add to your Gemfile:</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">gem</span> <span class="s1">'distributed-lock-google-cloud-storage'</span>
+</code></pre></div>
+<p><strong><em></em></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;distributed-locks-5f8223e9.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;distributed-locks-5f8223e9.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html">A robust distributed locking algorithm based on Google Cloud Storage</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-05-19">May 19, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/google-cloud.html">Google cloud</a>, <a href="/blog/tags/distributed-systems.html">Distributed systems</a>, <a href="/blog/tags/distributed-locking.html">Distributed locking</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Many workloads nowadays involve many systems that operate concurrently. This ranges from microservice fleets to workflow orchestration to CI/CD pipelines. Sometimes it's important to coordinate these systems so that concurrent operations don't step on each other. One way to do that is by using <em>distributed locks</em> that work across multiple systems.</p>
+
+<p>Distributed locks used to require complex algorithms or complex-to-operate infrastructure, making them expensive both in terms of costs as well as in upkeep. With the emergence of fully managed and serverless cloud systems, this reality has changed.</p>
+
+<p>In this post I'll look into a distributed locking algorithm based on Google Cloud. I'll discuss several existing implementations and suggest algorithmic improvements in terms of performance and robustness.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;containers-permission-denied-61287eef.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;containers-permission-denied-61287eef.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html">Docker and the host filesystem owner matching problem</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-03-15">Mar 15, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/docker.html">Docker</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Containers are no longer only used on servers. They are increasingly used on the desktop: as CLI apps or as development environments. I call this the <em>"container-as-OS-app"</em> use case. Within this use case, containerized apps often generate files that are not owned by your local machine's user account. Sometimes they can't access files on the host machine at all. This is the <em>host filesystem owner matching problem</em>.</p>
+
+<ul>
+  <li>This is bad for security. Containers shouldn't run as root in the first place!</li>
+  <li>This is a potential productivity killer. It's annoying having to deal with wrong file permissions!</li>
+</ul>
+
+<p>Solutions are available, but they have major caveats. As a result it's easy to implement a solution that only works for some, but not everyone. "It works on my machine" is kind of embarrassing when you distribute a development environment to a coworker, who then runs into issues.</p>
+
+<p>This post describes what causes the host filesystem owner matching problem, and analyzes various solutions and their caveats.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-02-06-traveling-ruby-20210206-released.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;travel-be13ccdf.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;travel-be13ccdf.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-02-06-traveling-ruby-20210206-released.html">Traveling Ruby 20210206: maintenance update featuring Ruby 2.4</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-02-06">Feb  6, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p><a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> allows you to easily ship Ruby apps to end users. It lets you create self-contained Ruby app packages that run on multiple versions of Windows, Linux and macOS.</p>
+
+<p>Today I’ve released version 20210206. This release supports Ruby 2.4, bumps all the gem versions, bumps the minimum supported macOS and Linux versions, and fixes some bugs.</p>
+
+<p>It has been a <em>long</em> time since the last release. So this post also adresses an elephant in the room: is Traveling Ruby back?</p>
+
+            <div class="post-read-more"><a href="/blog/2021-02-06-traveling-ruby-20210206-released.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-01-13-alternative-to-macos-dyld-library-path.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;library-a58b98d0.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;library-a58b98d0.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-01-13-alternative-to-macos-dyld-library-path.html">An alternative to macOS&#x27;s DYLD_LIBRARY_PATH</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-01-13">Jan 13, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>, <a href="/blog/tags/software-development.html">Software development</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>In my <a href="/blog/2021-01-06-the-future-of-traveling-ruby.html">last blog post about Traveling Ruby's future</a>, I said that it's hard to democratize the development of Traveling Ruby because of System Integrity Protection (SIP). Traveling Ruby's build process relies on <code>DYLD_LIBRARY_PATH</code>, which is blocked by SIP. This means that:</p>
+
+<ul>
+  <li>Contributors that build Traveling Ruby on their own laptops, must disable SIP.</li>
+  <li>Traveling Ruby cannot be built on many CI hosting services, such as Azure DevOps and Github Actions, because it's not possible to disable SIP there.</li>
+</ul>
+
+<p>After some research and experimentation, I've found an alternative to <code>DYLD_LIBRARY_PATH</code>, meaning that it's no longer necessary to disable SIP. This significantly changes the ability to democratize Traveling Ruby's development.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-01-13-alternative-to-macos-dyld-library-path.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2021-01-06-the-future-of-traveling-ruby.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;starline-yellow-comic-b8b19e55.jpg"
+          style=""
+          title="Background vector created by @StarLine - Freepik.com"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2021-01-06-the-future-of-traveling-ruby.html">The future of Traveling Ruby</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2021-01-06">Jan  6, 2021</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/traveling-ruby.html">Traveling Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>A couple of years ago, I had a dream: to make it dead-easy to distribute Ruby CLI apps to end users, without requiring those users to install Ruby or muck about with gems and Bundler. And thus <a href="http://phusion.github.io/traveling-ruby">Traveling Ruby</a> was born.</p>
+
+<p>Traveling Ruby hasn't seen updates for quite a while now. Recently I tried making a new bugfix release, but I found it to be more challenging than I had hoped. In this article I reflect on those challenges, as well as on the future of Traveling Ruby.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2021-01-06-the-future-of-traveling-ruby.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+
+        </main>
+
+                <div class="post-paginator">
+        <div class="older">
+                <a href="/page/2/" class="button orange">&laquo; Older posts</a>
+        </div>
+        <div class="position">
+            Page 1 of 6
+        </div>
+        <div class="newer">
+                <div class="placeholder"></div>
+        </div>
+    </div>
+
+
+        <aside class="about-me-panel-container after-post-previews">
+            <div class="about-me-panel after-post-previews">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </div>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">You are reading</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

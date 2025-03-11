@@ -1,0 +1,597 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Joyful Bikeshedding: Hongli Lai, CTO&#x27;s take on coding &amp; company building</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="google-site-verification" content="9Co4RmXKuHziEPwU5z6rjvELFUFo8JWp6ya7wJuA-gg" />
+    <meta name="msvalidate.01" content="A3E75EA804E0BACF2EFF751BF713DAE3">
+    <meta name="likebtn-website-verification" content=" bc99493e9107ad8e">
+    <meta name="description" content="Hongli Lai is a CTO, consultant and entrepreneur. On his website he blogs about coding, company building and other advice.">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <div class="main-container main-container-with-post-previews">
+        <main class="post-previews">
+                <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;euruko-boat-deck-e579fbec.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;euruko-boat-deck-e579fbec.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html">EuRuKo 2019 was lots of fun</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-07-01">Jul  1, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/euruko.html">Euruko</a>, <a href="/blog/tags/conferences.html">Conferences</a>, <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/talks.html">Talks</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p><a href="https://euruko2019.org/">EuRuKo 2019</a> – the largest Ruby conference in Europe, took place on the 21st and 22nd of June. I gave a talk on the 21st about what causes Ruby memory bloat (where I also reported new findings since I <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">first blogged about the issue</a>), as well as about <a href="https://fullstaqruby.org">Fullstaq Ruby</a>. Fullstaq Ruby is a server-optimized Ruby distribution that's faster, uses less memory, and is easier to security-patch thanks to being distributed via RPMs and DEBs.</p>
+
+<p class="embed-responsive embed-responsive-16by9"><iframe src="https://www.youtube.com/embed/JBIN-Hh8wTA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe></p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg"
+          style=""
+          title="Photo by Mike Newbry on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html">The status of Ruby memory trimming &amp; how you can help with testing</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-03-29">Mar 29, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>My blog post earlier this month about <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">what causes Ruby memory bloat</a>, and about a way to potentially reduce memory usage by 70%, triggered quite a storm in the community! It's clear that I stumbled upon a significant pain point.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2019-03-29-the-status-of-ruby-memory-trimming-and-how-you-can-help-with-testing.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;ruby_memory_bloat_banner-f0bdf762.png" type="image&#x2F;png">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;ruby_memory_bloat_banner-f0bdf762.png"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html">What causes Ruby memory bloat?</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-03-14">Mar 14, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Ruby apps can use <em>a lot</em> of memory. But why? Various people in the community attribute it to memory fragmentation, and provide two “hacky” solutions. Dissatisfied by the current explanations and provided solutions, I set out on a journey to discover the deeper truth and to find better solutions.</p>
+
+            <div class="post-read-more"><a href="/blog/2019-03-14-what-causes-ruby-memory-bloat.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;usdt-tracepoints-90e8a430.png" type="image&#x2F;png">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;usdt-tracepoints-90e8a430.png"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html">Full-system dynamic tracing on Linux using eBPF and bpftrace</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-01-31">Jan 31, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/linux.html">Linux</a>, <a href="/blog/tags/tracing.html">Tracing</a>, <a href="/blog/tags/operating-systems.html">Operating systems</a>, <a href="/blog/tags/debugging.html">Debugging</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Linux has two well-known tracing tools:</p>
+
+<ul>
+  <li>
+<a href="https://en.wikipedia.org/wiki/Strace">strace</a> allows you to see what system calls are being made.</li>
+  <li>
+<a href="https://en.wikipedia.org/wiki/Ltrace">ltrace</a> allows you to see what dynamic library calls are being made.</li>
+</ul>
+
+<p>Though useful, these tools are limited. What if you want to trace what happens inside a system call or library call? What if you want to do more than just logging calls, e.g. you want to compile statistics on certain behavior? What if you want to trace multiple processes and correlate data from multiple sources?</p>
+
+<p>In 2019, there's finally a decent answer to that on Linux: <a href="https://github.com/iovisor/bpftrace">bpftrace</a>, based on <a href="https://lwn.net/Articles/740157/">eBPF</a> technology. Bpftrace allows you to write small programs that execute whenever an event occurs.</p>
+
+<p>This article shows you how to setup bpftrace and teaches you its basic usage. I'll also give an overview of how the tracing ecosystem looks like (e.g. "what's eBPF?") and how it came to be what it is today.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2019-01-02-self-awareness-vs-confidence.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;gerson-repreza-592052-unsplash-a5da8d5e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;gerson-repreza-592052-unsplash-a5da8d5e.jpg"
+          style=""
+          title="Photo by Gerson Repreza on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2019-01-02-self-awareness-vs-confidence.html">Self-awareness vs confidence</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2019-01-02">Jan  2, 2019</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/philosophy.html">Philosophy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Some people I know tend to have an air of confidence around them. They wield their Steve Jobs reality distortion field, commanding attention and persuading people. They almost always act like they are certain of everything.</p>
+
+<p>My natural inclination appears to be the opposite: I tend to be careful until I have done a careful analysis. I only act confident when I am sure, which can take a while. I think a lot about whether I am doing the right thing.</p>
+
+<p>Experience has given me reason to believe that I am more self-aware than many other people. Yet I have also learned that this self-awareness comes at a price. Thus, I have been wondering why I am like this, and what I should learn from self-certain people.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2019-01-02-self-awareness-vs-confidence.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-12-17-keeping-your-schema-close-to-you-with-the-annotate-gem.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;DVD_Rental_Query-cb839f35.png" type="image&#x2F;png">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;DVD_Rental_Query-cb839f35.png"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-12-17-keeping-your-schema-close-to-you-with-the-annotate-gem.html">Keeping your schema close to you with the &#x27;annotate&#x27; gem</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-12-17">Dec 17, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/rails.html">Rails</a>, <a href="/blog/tags/rubygems.html">Ruby gems</a>, <a href="/blog/tags/development.html">Development</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>When developing a Rails app, have there been times when you’re wondering “what properties/columns does this model have”? The easiest way to find out is by inspecting db/schema.rb, but that gets annoying quickly. If only there’s a way to keep your schema closer to you. Enter <a href="https://github.com/ctran/annotate_models">the annotate gem</a>.</p>
+
+            <div class="post-read-more"><a href="/blog/2018-12-17-keeping-your-schema-close-to-you-with-the-annotate-gem.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-12-13-performance-reviews-considered-harmful.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;toine-garnier-396670-unsplash-d7b50d9a.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;toine-garnier-396670-unsplash-d7b50d9a.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-12-13-performance-reviews-considered-harmful.html">Performance reviews considered harmful</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-12-13">Dec 13, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/communication.html">Communication</a>, <a href="/blog/tags/management.html">Management</a>, <a href="/blog/tags/company-building.html">Company building</a>, <a href="/blog/tags/philosophy.html">Philosophy</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>There’s something wrong with the way most companies do performance reviews. Here’s why, and here’s how I do them.</p>
+
+            <div class="post-read-more"><a href="/blog/2018-12-13-performance-reviews-considered-harmful.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-12-12-yes-communication-is-supposed-to-be-hard.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;casey-horner-463254-unsplash-4a30f942.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;casey-horner-463254-unsplash-4a30f942.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-12-12-yes-communication-is-supposed-to-be-hard.html">Yes, communication is supposed to be hard</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-12-12">Dec 12, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/philosophy.html">Philosophy</a>, <a href="/blog/tags/communication.html">Communication</a>, <a href="/blog/tags/management.html">Management</a>, <a href="/blog/tags/company-building.html">Company building</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Lots of friction and frustration in teams are caused by miscommunication. How do these occur and what should be our attitude towards them?</p>
+
+            <div class="post-read-more"><a href="/blog/2018-12-12-yes-communication-is-supposed-to-be-hard.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-12-05-software-philosophy.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;clement-h-544786-unsplash-59d23857.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;clement-h-544786-unsplash-59d23857.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-12-05-software-philosophy.html">Coding is not enough</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-12-05">Dec  5, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/philosophy.html">Philosophy</a>, <a href="/blog/tags/company-building.html">Company building</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Over the course of twenty years, I’ve noticed that my philosophy about software and the development thereof differs significantly from many other software developers and IT people. Here’s how, and here’s why I think coding should not be the most important thing.</p>
+
+            <div class="post-read-more"><a href="/blog/2018-12-05-software-philosophy.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-11-27-john-sonmez-on-career-paths-growth-and-building-a-personal-brand.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;software-dev-career-path-984e1d23.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;software-dev-career-path-984e1d23.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-11-27-john-sonmez-on-career-paths-growth-and-building-a-personal-brand.html">John Sonmez on career paths, growth and building a personal brand</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-11-27">Nov 27, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/quick-thoughts.html">Quick thoughts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I was researching career path advice for software developers when I stumbled upon <a href="https://simpleprogrammer.com/software-development-career-paths/">Software Development Career Paths</a> by John Sonmez. It's an excellent blog post. John advises that you make several key decisions (e.g. on what kind of developer you want...</p>
+            <div class="post-read-more"><a href="/blog/2018-11-27-john-sonmez-on-career-paths-growth-and-building-a-personal-brand.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+
+        </main>
+
+                <div class="post-paginator">
+        <div class="older">
+                <a href="/page/4/" class="button orange">&laquo; Older posts</a>
+        </div>
+        <div class="position">
+            Page 3 of 6
+        </div>
+        <div class="newer">
+                <a href="/page/2/" class="button orange">Newer posts &raquo;</a>
+        </div>
+    </div>
+
+
+        <aside class="about-me-panel-container after-post-previews">
+            <div class="about-me-panel after-post-previews">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </div>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">You are reading</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

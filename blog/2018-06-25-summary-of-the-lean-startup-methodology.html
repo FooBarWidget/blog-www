@@ -1,0 +1,466 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Summary of the Lean Startup methodology &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="If you hang out in startup circles like I do, then you may have heard of the “Learn Startup” methodology. But what is it exactly? I’ve been researching Lean Startup and in this blog post I will summarize what I’ve learned, explain what new insights this research has given me, and talk about future research and blogging directions.
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Summary of the Lean Startup methodology">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-06-25-summary-of-the-lean-startup-methodology.html">
+    <meta property="og:description" content="If you hang out in startup circles like I do, then you may have heard of the “Learn Startup” methodology. But what is it exactly? I’ve been researching Lean Startup and in this blog post I will summarize what I’ve learned, explain what new insights this research has given me, and talk about future research and blogging directions.
+">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-06-25-summary-of-the-lean-startup-methodology.html">Summary of the Lean Startup methodology</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-06-25" itemprop="datePublished">Jun 25, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/lean-startup.html">Lean Startup</a>, <a href="/blog/tags/business.html">Business</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2018-06-25-summary-of-the-lean-startup-methodology.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-blurred-bokeh-4d4faeee.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-blurred-bokeh-4d4faeee.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-25-summary-of-the-lean-startup-methodology.html&amp;t=Summary%20of%20the%20Lean%20Startup%20methodology"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-25-summary-of-the-lean-startup-methodology.html&amp;text=Summary%20of%20the%20Lean%20Startup%20methodology%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p><em>This is part of a <a href="/blog/tags/lean-startup.html">series of posts about lean startup</a>.</em></p>
+
+<p>If you hang out in startup circles like I do, then you may have heard of the "Learn Startup" methodology. The most famous principle is probably the one that says one should validate an idea before building the product. Even if you haven't heard of it, you may have encountered bits and pieces of it, e.g. people who launch landing pages that describe a future product and then convince you to subscribe to their newsletter to stay up to date, or the principle of building things iteratively.</p>
+
+<p>I am currently building out a new business idea, and I've found that it's quite challenging to organize my thoughts because of the sheer number of factors involved. In an effort to seek tools to help me organize my thoughts and to give me new insights, I decided to check out the Lean Startup methodology more closely.</p>
+
+<figure>
+  <a href="https://udacity.com/course/how-to-build-a-startup--ep245"><img src="/images/2018/how-to-build-a-startup-cc51d564.png" class="img-thumbnail" alt="" /></a>
+  <figcaption>Steve Blank's free course at Udacity</figcaption>
+</figure>
+
+<p>I've found that there are <strong>multiple variants</strong> of the methodology. I'm not so concerned about which one is the "one true" way (I don't believe in such a thing), what matters more is that one should fully understand the concept and adapt it to one's own situation and mental organization. So I picked a course that is low-cost and seems fun to enroll in: <a href="https://steveblank.com/">Steve Blank</a>'s free <a href="https://udacity.com/course/how-to-build-a-startup--ep245">How to Build a Startup</a> class at <a href="https://www.udacity.com">Udacity</a>.</p>
+
+<p>In this blog post I will summarize what I've learned, explain what new insights this class has given me, and talk about future research and blogging directions.</p>
+
+<h2 id="why-learn-startup">Why Learn Startup?</h2>
+
+<p>Most startups fail because they run out of money. The reason why <em>that</em> happens is most often because they fail to find product market fit. First come up with an idea, then build it, then launch it, then sell it. And then finding out that nobody is interested.</p>
+
+<p>Many people build startups using traditional business building paradigms, e.g. the traditional MBA curriculum. Make a business plan, then execute it. But this traditional paradigm is meant for a time when consumer demand and competitors change a lot slower than they do nowadays. The paradigm is also meant for existing, large businesses. This latter point is very important.</p>
+
+<p><strong>A startup is not simply a smaller version of a large business</strong>. Whereas a large business <em>executes</em> an existing business model, a startup is a <em>temporary</em> organization that is <a href="https://www.slideshare.net/sblank/search-versus-execution">in search of a scalable, repeatable and profitable business model</a>. The strategies and tactics involved are very different. And a startup's goal is not to stay a startup forever, but to become a real business.</p>
+
+<h3 id="if-you-build-it-they-wont-come">If you build it, they won't come</h3>
+
+<p>For startup founders it is tempting to come up with a "brilliant" idea, then build the "perfect" version of it and then launch it. But <strong>you don't know what customers truly want.</strong> Often times customers don't know that themselves either. Build-launch-sell is essentially the waterfall model, and we already know that that doesn't work because requirements change so often. Building a startup should be an incremental process, where you keep your eyes and ears open on what customers want.</p>
+
+<p>It doesn't matter how well you build something, if you don't build the right thing. <a href="https://steveblank.com/2010/04/08/no-plan-survives-first-contact-with-customers-%E2%80%93-business-plans-versus-business-models/">No business plan survives first contact with customers</a>.</p>
+
+<h3 id="structured-validated-learning">Structured, validated learning</h3>
+
+<p>Building incrementally is by itself not enough. The startup must also learn from customer feedback and mistakes. Unfortunately, many startups lack a structured process for learning, and so learning devolves into ad-hoc methods which are hard to repeat and hard to scale in the organization. Many startups also didn't prepare sufficiently, and so when things don't work out they have no idea what went wrong or what they can learn from it. The Lean Startup methodology describes a process for structured, validated learning.</p>
+
+<h2 id="interesting-key-ideas">Interesting key ideas</h2>
+
+<p>The methodology has many key ideas, but I find several of them especially worth mentioning before summarizing the actual methodology steps.</p>
+
+<h3 id="customer-discovery-before-validation">Customer discovery before validation</h3>
+
+<p>You may have heard of the need to validate customers and ideas. True, this is important, but turns out there is something before that: customer discovery.</p>
+
+<p>Validation requires that one starts with a hypothesis that's reasonably close to the target. But if you're too far off, then you learn nothing from validation besides that it went wrong. To find that initial set of reasonably valid hypothesis, one must <em>discover</em> problems. See also: <a href="https://blog.leanstack.com/the-problem-with-problems-50dd364ccb2b">The Problem with Problems</a>.</p>
+
+<h3 id="talk-to-customers-dont-use-surveys-dont-rely-too-much-on-statisticsdata">Talk to customers, don't use surveys, don't rely too much on statistics/data</h3>
+
+<p>Don't perform mental exercises and think too hard. Don't even stare too hard at statistics and data. There are no facts inside your building, only hypotheses. There is only one way to discover problems: get out and talk to customers, tons of them.</p>
+
+<p>Interview customers instead of sending them surveys. Surveys are great if ask the right questions, but when starting out with customer discovery you probably don't know the right questions. Interviews give you a lot more freedom to discover and give you a lot more insights.</p>
+
+<h3 id="do-not-build-for-the-mainstream">Do not build for the mainstream</h3>
+
+<p>Startups <em>should not build for the mainstream</em>.</p>
+
+<p>In existing businesses, the traditional product management process is to collect requirements for <em>all</em> customers, then prioritize them and hand them to engineering. This process is rational, but should not be adopted by startups because startups lack resources. Even if you know the requirements for all customers, building a product using this process takes so long that the product will be obsolete on arrival.</p>
+
+<figure><img src="/images/2018/tech-adoption-lifecycle-2091ebaf.png" alt="" /></figure>
+
+<p>The book <a href="https://www.amazon.com/Crossing-Chasm-Marketing-High-Tech-Mainstream/dp/0060517123">Crossing the Chasm</a> states that new products are are adopted by innovators and by early adopters (for the sake of convenience, let's refer to both groups as "early adopters"). The Lean Startup methodology states that in the beginning, you should focus only on the early adopters. You don't have the resources to build for the mainstream, and you don't know the mainstream well. But early adopters are the "crazy people" who buy into your vision and who are willing to accept your MVP.</p>
+
+<p>Target early adopters because they give you the funds and intelligence necessary to target the mainstream later.</p>
+
+<p>This idea is very important. I've been trying a while to collect information on what problems people have in order to validate my business idea. But I've found that a lot of people are reluctant to talk to me or even to refer me to the right people, unless I already have a product on the market. At this point it is tempting to just launch something just so I can talk to more people, but Lean Startup tells me to ignore these people (the mainstream) and to try harder to find people who <em>are</em> interested in helping me. It's okay if this group of early adopters are small because you're supposed to use them to reach the mainstream later.</p>
+
+<h2 id="what-is-an-early-adopter">What is an early adopter?</h2>
+
+<p>What are early adopters? They are people for which <em>all</em> of the following hold:</p>
+
+<ol>
+  <li>They have a problem.</li>
+  <li>They understand that they have a problem.</li>
+  <li>They are actively searching for a solution.</li>
+  <li>The problem is so painful that they've assembled a homegrown solution.</li>
+  <li>They have a budget to acquire a solution.</li>
+</ol>
+
+<p>I did not expect 4 to be part of the checklist. It makes sense because if they have a problem but haven't tried to solve it then evidently the problem isn't painful enough. But won't the homegrown solution compete with your product? Sometimes it might, but that's not necessarily a bad thing. <em>This</em> customer is happy with his homegrown solution but others may not be; not all customers are good at making solutions. If anything, the existance if a customer who has made a serious homegrown solution is evidence that a market exists, i.e. there are other fish you can go after. Steve Blank <a href="https://steveblank.com/2010/01/11/victory-from-adversity/">documented such a story on his blog</a>.</p>
+
+<p>See also <a href="http://customerdevlabs.com/2017/03/20/who-are-early-adopters/">Who Are Early Adopters</a> by Customer Development Labs.</p>
+
+<h2 id="the-lean-startup-methodology-in-a-nutshell">The Lean Startup methodology in a nutshell</h2>
+
+<figure><img src="/images/2018/lean-startup-methodology-1612ee91.png" class="img-thumbnail" alt="" /></figure>
+
+<p>The methodology consists of 4 phases:</p>
+
+<ol>
+  <li>
+    <p><strong>Customer discovery</strong>.</p>
+
+    <p>Define a set of hypotheses about the market and the customers, and think about ways to prove or disprove them. Then talk to customers to test the hypotheses, to gain insights about the problems and to test whether the solution one had in mind is viable. Such sessions are aided by problem/solution presentations and lo-fi prototypes, but the emphasis is still on getting customers to talk to you. Adjust hypotheses as you gain more insights. At the end of this phase, one ends up with strong hypotheses and either decides to pivot or to proceed.</p>
+
+    <p>I have written more about this phase in <a href="/blog/2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html">a dedicated blog post</a>.</p>
+  </li>
+  <li>
+    <p><strong>Customer validation</strong></p>
+
+    <p>Having strong hypotheses is not enough. In this phase, one performs more rigorous tests of whether the strong hypotheses are true and whether the resulting business model is repeatable and scalable. This is done by selling a product pitch. In the process of doing so, one not only tests whether customers are serious, but one also gains insights about monetary issues (e.g. acceptable pricing, who controls the budget) as well as insights necessary for building a sales roadmap. Adjust hypotheses if necessary, and decide whether to pivot or to proceed.</p>
+  </li>
+  <li>
+    <p><strong>Customer creation</strong></p>
+
+    <p>This is the start of actual business model execution. Build the product, then use sales and marketing strategies to drive customers into your sales funnel.</p>
+  </li>
+  <li>
+    <p><strong>Company building.</strong></p>
+
+    <p>This is were the Lean Startup methodology ends and where we turn into a real company.</p>
+  </li>
+</ol>
+
+<p>I will soon blog about each phase in more detail.</p>
+
+<h2 id="resources">Resources</h2>
+
+<p>The information in this blog post was constructed from the following resources:</p>
+
+<ul>
+  <li>The <a href="https://udacity.com/course/how-to-build-a-startup--ep245">How to Build a Startup</a> class at Udacity by <a href="https://steveblank.com/">Steve Blank</a>.</li>
+  <li><a href="https://www.amazon.com/Startup-Owners-Manual-Step-Step-ebook/dp/B009UMTMKS">The Startup Owner's Manual</a>, whose content is complementary to the class.</li>
+  <li><a href="https://blog.leanstack.com/the-problem-with-problems-50dd364ccb2b">The Problem With Problems</a>, which describes why one should perform customer <em>discovery</em> before customer validation. This is the article that led me to research the Lean Startup methodology.</li>
+  <li><a href="https://thembaisdead.com/2018/03/06/getting-traction-through-customer-interviews/">Getting Traction Through Customer Interviews</a> — The MBA Is Dead.</li>
+  <li><a href="http://customerdevlabs.com/2017/03/20/who-are-early-adopters/">Who Are Early Adopters?</a> — Customer Development Labs.</li>
+</ul>
+
+<h2 id="future-research-and-blogging-directions">Future research and blogging directions</h2>
+
+<ul>
+  <li>I have learned that there is an alternative canvas called the Lean Canvas, developed by <a href="https://leanstack.com/welcome">Leanstack</a>. This canvas is potentially more suitable to startups than the Business Model Canvas. I'll research this in the future.</li>
+  <li><a href="/blog/2018-06-30-customer-discovery-according-to-the-lean-startup-methodology.html">Read about my dedicated blog post on the Customer Discovery phase</a></li>
+  <li>In the future I will also blog about the "Customer Validation" phase.</li>
+</ul>
+
+<p><em>This is part of a <a href="/blog/tags/lean-startup.html">series of posts about lean startup</a>.</em></p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-25-summary-of-the-lean-startup-methodology.html&amp;t=Summary%20of%20the%20Lean%20Startup%20methodology"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-06-25-summary-of-the-lean-startup-methodology.html&amp;text=Summary%20of%20the%20Lean%20Startup%20methodology%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

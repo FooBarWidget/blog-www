@@ -1,0 +1,889 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Causes of major page faults &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Seeing &#x27;major page faults&#x27; alert in Prometheus? Don&#x27;t panic! It just means there&#x27;s heavy disk read activity. But why is it happening and  to diagnose it?
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Causes of major page faults">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2025-02-10-causes-of-major-page-faults.html">
+    <meta property="og:description" content="Seeing &#x27;major page faults&#x27; alert in Prometheus? Don&#x27;t panic! It just means there&#x27;s heavy disk read activity. But why is it happening and  to diagnose it?
+">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2025/major-page-faults-929b64f7.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2025-02-10-causes-of-major-page-faults.html">Causes of major page faults</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2025-02-10" itemprop="datePublished">Feb 10, 2025</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/unix.html">Unix</a>, <a href="/blog/tags/debugging.html">Debugging</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2025-02-10-causes-of-major-page-faults.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2025&#x2F;major-page-faults.avif" type="image&#x2F;avif">
+<source srcset="&#x2F;images&#x2F;2025&#x2F;major-page-faults-929b64f7.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2025&#x2F;major-page-faults-929b64f7.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2025-02-10-causes-of-major-page-faults.html&amp;t=Causes%20of%20major%20page%20faults"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2025-02-10-causes-of-major-page-faults.html&amp;text=Causes%20of%20major%20page%20faults%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>There's a common Prometheus alert called "NodeMemoryMajorPagesFaults". It's <a href="https://github.com/prometheus/node_exporter/blob/v1.8.2/docs/node-mixin/alerts/alerts.libsonnet#L347">part of the Node Exporter's node-mixin project</a> and also <a href="https://github.com/prometheus-community/helm-charts/blob/prometheus-node-exporter-4.43.1/charts/kube-prometheus-stack/templates/prometheus/rules-1.14/node-exporter.yaml#L652">included in the kube-prometheus-stack default alert rules</a>.</p>
+
+<picture><img src="/images/2025/node-memory-major-page-faults-alert-49d1e9fd.png" alt="NodeMemoryMajorPageFaults alert" style="box-shadow: 0px 0px 4px #bbb" /></picture>
+
+<p>But what does this alert mean, and what do you do about it? This article helps you form a good mental model and provides practical guidance.</p>
+
+<p><strong></strong></p>
+
+<h2 id="what-are-major-page-faults-anyway">What are major page faults anyway?</h2>
+
+<p>"Major page fault" means that an application is <em>using the memory management system</em> to either read data from disk, or to swap in memory.</p>
+
+<ul>
+  <li>Despite the ominous name, it doesn't mean that the system is encountering errors. However, since it indicates heavy disk reads, it <em>could</em> still indicate that something is wrong.</li>
+  <li>The part "using the memory management system" is key: major page faults are a separate I/O pathway from the normal one.</li>
+  <li>The part about "reading data" is also important: major page faults are strictly about <em>reading</em> data.</li>
+</ul>
+
+<p>A NodeMemoryMajorPageFaults alert should thus be interpreted as "there is heavy disk read activity, either reading from file or from swap".</p>
+
+<h3 id="virtual-memory">Virtual memory</h3>
+
+<p>To understand why major page faults are called this way and what they actually do, we have to first understand <em>virtual memory</em>.</p>
+
+<p>When an application uses memory, one might think that the application uses a part of your physical RAM.</p>
+
+<picture><img src="/images/2025/real-memory-concept.drawio-2ce02d3f.svg" alt="Concept showing that an application uses a part of physical RAM" /></picture>
+
+<p>But on modern operating systems, applications do not access the physical RAM directly. Instead, they access a virtual representation of RAM — virtual memory. This virtual memory is "infinite" in size (256 TB on x86_64), and is also called the <em>address space</em>.</p>
+
+<p>Virtual memory is organized in chunks called "pages". A page might be backed by a piece of the physical RAM, but also pieces of other things, like a swap disk or a file. Obviously your real RAM is not as big as the address space. The fact that a page can be swapped to disk is one of the reasons that a large address space is possible.</p>
+
+<picture><img src="/images/2025/virtual-memory-concept.drawio-a2950c56.svg" alt="Concept depicting virtual memory: each page is backed by RAM, swap or file" /></picture>
+
+<p>Having parts of virtual memory be backed by a file is also called "memory mapping", or "mmap" in short.</p>
+
+<p>When an application reads from a page that's not backed by RAM, the CPU complains and raises a "major page fault" event. This triggers the operating system kernel, which then fetches the data from swap or a file.</p>
+
+<blockquote>
+  <p>"Minor page faults" exist too, but that's out of the scope of this article.</p>
+</blockquote>
+
+<p>This fetching isn't done on every access: such data is <em>cached</em> in RAM. The kernel calls this storage location the "page cache". This cache can be evicted when the system is low on RAM.</p>
+
+<h2 id="who-is-producing-major-page-faults">Who is producing major page faults?</h2>
+
+<p>The Prometheus alert doesn't tell you which process caused major page faults. How can you find out?</p>
+
+<p>Through some preliminary Internet searches I've found that <a href="https://manpages.ubuntu.com/manpages/noble/man5/proc_pid_stat.5.html">/proc/$PID/stat</a> has a "majflt" field that shows the number of major page faults produced so far by this process. So we <em>could</em> write a shell script that parses /proc/*/stat, waits for a period of time, then parses those files again, and compares the results to find the offending process. But this is rather cumbersome.</p>
+
+<p>Major page faults involve I/O, so maybe they'd show up in <a href="https://www.tecmint.com/iotop-monitor-linux-disk-io-activity-per-process/">iotop</a>. However, since they use a special I/O pathway, it's unclear whether they'd actually appear in iotop. We have to verify this.</p>
+
+<p>And finally, even if we've managed to identify the offending process, how can we find the offending file? Or if it's caused by swapping, how can we see that?</p>
+
+<p>Before continuing the research, we need a way to reproduce major page faults.</p>
+
+<h3 id="reproducing-file-backed-major-page-faults">Reproducing file-backed major page faults</h3>
+
+<p>We write a C program which:</p>
+
+<ol>
+  <li>Maps a file into memory.</li>
+  <li>In an infinite loop:
+    <ol>
+      <li>Sequentially read all parts the file-backed memory address, on a page-by-page basis.</li>
+      <li>Tell the kernel that it's free to evict the page cache for this file.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>Step 2.2 is important. Reading the file-backed memory addresses will result in all that data being cached in RAM. Once cached, reading from those addresses will no longer produce major page faults.</p>
+
+<p>Telling the kernel to evict the page cache requires two actions:</p>
+
+<ol>
+  <li>The application must mark the memory address as "unused". This is done with the <a href="https://man7.org/linux/man-pages/man2/madvise.2.html">madvise(MADV_DONTNEED)</a> call. However, this is only a hint, and during testing I've found that the Linux kernel does not actually evict the page cache. That's where action 2 comes in.</li>
+  <li>Tell the kernel to evict its page cache by running <code>echo 1 &gt; /proc/sys/vm/drop_caches</code>. Note that this only works if <code>madvise(MADV_DONTNEED)</code> was called.</li>
+</ol>
+
+<p>Source code of the C program:</p>
+
+<div class="highlight"><pre class="highlight cpp"><code><span class="c1">// Save as filemajorpagefaults.c</span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;sys/mman.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;sys/stat.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;fcntl.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Usage: %s &lt;file-to-map&gt;</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Open a file in read-only mode.</span>
+    <span class="kt">int</span> <span class="n">fd</span> <span class="o">=</span> <span class="n">open</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">O_RDONLY</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">fd</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">perror</span><span class="p">(</span><span class="s">"open"</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Obtain the file size.</span>
+    <span class="k">struct</span> <span class="nc">stat</span> <span class="n">st</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">fstat</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">st</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">perror</span><span class="p">(</span><span class="s">"fstat"</span><span class="p">);</span>
+        <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="kt">size_t</span> <span class="n">filesize</span> <span class="o">=</span> <span class="n">st</span><span class="p">.</span><span class="n">st_size</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">filesize</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Error: File size is zero.</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+        <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Memory–map the file.</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">map</span> <span class="o">=</span> <span class="n">mmap</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="n">filesize</span><span class="p">,</span> <span class="n">PROT_READ</span><span class="p">,</span> <span class="n">MAP_SHARED</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">map</span> <span class="o">==</span> <span class="n">MAP_FAILED</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">perror</span><span class="p">(</span><span class="s">"mmap"</span><span class="p">);</span>
+        <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+        <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kt">int</span> <span class="n">pagesize</span> <span class="o">=</span> <span class="n">getpagesize</span><span class="p">();</span>
+
+    <span class="c1">// Infinite loop: drop pages and then access the mapping to force a major fault.</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Access the mapping. This read will trigger a page fault</span>
+        <span class="c1">// if the page is not in cache.</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">filesize</span><span class="p">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="n">pagesize</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">volatile</span> <span class="kt">char</span> <span class="n">value</span> <span class="o">=</span> <span class="n">map</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+            <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">value</span><span class="p">;</span> <span class="c1">// Use the value to avoid compiler optimizations.</span>
+        <span class="p">}</span>
+
+        <span class="c1">// Advise the OS that the pages are no longer needed.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">madvise</span><span class="p">(</span><span class="n">map</span><span class="p">,</span> <span class="n">filesize</span><span class="p">,</span> <span class="n">MADV_DONTNEED</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">perror</span><span class="p">(</span><span class="s">"madvise"</span><span class="p">);</span>
+            <span class="n">exit</span><span class="p">(</span><span class="n">EXIT_FAILURE</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>We create a large file (let's say 512 MB), then we compile and run the program:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">dd </span><span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>block <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span>512
+cc <span class="nt">-Wall</span> filemajorpagefaults.c <span class="nt">-o</span> filemajorpagefaults
+./filemajorpagefaults block
+</code></pre></div>
+<p>In another terminal, we continuously tell the kernel to evict the page cache:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="k">while </span><span class="nb">true</span><span class="p">;</span> <span class="k">do </span><span class="nb">echo </span>1 <span class="o">&gt;</span> /proc/sys/vm/drop_caches<span class="p">;</span> <span class="k">done</span>
+</code></pre></div>
+<p>Now that the simulation and the page cache eviction loop are running, let's verify that the program actually generates major page faults. According to <a href="https://manpages.ubuntu.com/manpages/noble/man5/proc_pid_stat.5.html">the /proc/$PID/stat man page</a>, majflt is field number 12, so:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">cat</span> /proc/<span class="si">$(</span>pidof filemajorpagefaults<span class="si">)</span>/stat | <span class="nb">awk</span> <span class="s1">'{ print $12 }'</span>
+<span class="c"># =&gt; prints: 53</span>
+<span class="nb">sleep </span>60
+<span class="nb">cat</span> /proc/<span class="si">$(</span>pidof filemajorpagefaults<span class="si">)</span>/stat | <span class="nb">awk</span> <span class="s1">'{ print $12 }'</span>
+<span class="c"># =&gt; prints: 450</span>
+</code></pre></div>
+<p>The counter goes up. Success: we've reproduced file-backed major page faults!</p>
+
+<h3 id="reproducing-swap-backed-major-page-faults">Reproducing swap-backed major page faults</h3>
+
+<p>We write a C program that:</p>
+
+<ol>
+  <li>Allocates more memory than we have RAM.</li>
+  <li>In an infinite loop, sequentially read every page in the allocated memory range.</li>
+</ol>
+
+<p>Because not all parts of the allocated memory fit in RAM, this should result in constant swapping.</p>
+
+<p>Source code:</p>
+
+<div class="highlight"><pre class="highlight cpp"><code><span class="c1">// Save as swapmajorpagefaults.c</span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span>
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Usage: %s &lt;size in MB&gt;</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+        <span class="k">return</span> <span class="n">EXIT_FAILURE</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Convert the command-line argument to a long integer.</span>
+    <span class="kt">long</span> <span class="n">mb</span> <span class="o">=</span> <span class="n">atol</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">mb</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Invalid size provided: %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+        <span class="k">return</span> <span class="n">EXIT_FAILURE</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Calculate total size in bytes.</span>
+    <span class="kt">size_t</span> <span class="n">totalsize</span> <span class="o">=</span> <span class="n">mb</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">;</span>
+
+    <span class="c1">// Allocate the memory.</span>
+    <span class="kt">char</span> <span class="o">*</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">totalsize</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">"Memory allocation failed</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+        <span class="k">return</span> <span class="n">EXIT_FAILURE</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Initialize the memory: force the kernel to actually allocate it.</span>
+    <span class="n">memset</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">totalsize</span><span class="p">);</span>
+
+    <span class="c1">// Get the system's page size.</span>
+    <span class="kt">int</span> <span class="n">pagesize</span> <span class="o">=</span> <span class="n">getpagesize</span><span class="p">();</span>
+
+    <span class="c1">// Infinite loop: sequentially read a byte from every page.</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">offset</span> <span class="o">&lt;</span> <span class="n">totalsize</span><span class="p">;</span> <span class="n">offset</span> <span class="o">+=</span> <span class="n">pagesize</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// The volatile keyword forces the compiler to actually perform the read.</span>
+            <span class="k">volatile</span> <span class="kt">char</span> <span class="n">value</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">[</span><span class="n">offset</span><span class="p">];</span>
+            <span class="c1">// Optionally, do something with 'value' to prevent further optimization.</span>
+            <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">value</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Before running the program, let's check the system's memory usage:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:            7751        1075        5661          15        1303        6675
+Swap:              0           0           0
+</code></pre></div>
+<p>The system has 7551 MB RAM, no swap. We create a 1.5 GB swap file and enable it:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>dd if=/dev/zero of=block bs=1M count=1536
+chmod 600 block
+mkswap block
+sudo swapon block
+</code></pre></div>
+<p>We then compile and run the program:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>cc <span class="nt">-Wall</span> swapmajorpagefaults.c <span class="nt">-o</span> swapmajorpagefaults
+./swapmajorpagefaults 7751
+</code></pre></div>
+<p>After some time, we confirm that the system is swapping:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:            7751        7648         163           0         151         102
+Swap:           1535        1140         395
+</code></pre></div>
+<p>We also confirm that the program generates major page faults:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">cat</span> /proc/<span class="si">$(</span>pidof swapmajorpagefaults<span class="si">)</span>/stat | <span class="nb">awk</span> <span class="s1">'{ print $12 }'</span>
+<span class="c"># =&gt; prints: 803</span>
+<span class="nb">sleep </span>5
+<span class="nb">cat</span> /proc/<span class="si">$(</span>pidof swapmajorpagefaults<span class="si">)</span>/stat | <span class="nb">awk</span> <span class="s1">'{ print $12 }'</span>
+<span class="c"># =&gt; prints: 18838</span>
+</code></pre></div>
+<h3 id="does-iotop-show-major-page-faults">Does iotop show major page faults?</h3>
+
+<p>When filemajorpagefaults and the associated page cache eviction loop are running, we see that there's a lot of disk read activity. So, <strong>yes, iotop <em>does</em> show file-backed major page faults.</strong></p>
+
+<p>One thing of note: by default, iotop sorts processes by disk write, so it doesn't show the majorpagefaults simulator on top. To see it, I had to press the left arrow key to sort by disk read.</p>
+
+<picture><img src="/images/2025/iotop-filemajorpagefaults-3933eb50.png" alt="iotop showing the filemajorpagefaults simulator producing a lot of disk read activity" /></picture>
+
+<p>When swapmajorpagefaults is running, we also see that there's a lot of disk read activity. So, <strong>yes, iotop <em>also</em> shows swap-backed major page faults.</strong></p>
+
+<picture><img src="/images/2025/iotop-swapmajorpagefaults-94fd1ab8.png" alt="iotop showing the swapmajorpagefaults simulator producing a lot of disk read activity" /></picture>
+
+<h3 id="identifying-exact-major-page-fault-source">Identifying exact major page fault source</h3>
+
+<p>Since iotop allows us to identify the offending process, how do we know whether it's caused by file access or by swapping? And if it's caused by file access, how do we know which file? Here's a possible methodology:</p>
+
+<ol>
+  <li>Find out the <em>virtual memory address</em> at which the major page fault occurred.</li>
+  <li>Look in /proc/$PID/maps to see whether that address maps to a file. If not, then it's swap.</li>
+</ol>
+
+<p>For finding out the major page fault memory address, here are some methods:</p>
+
+<ul>
+  <li>Using the <a href="https://perfwiki.github.io/">perf</a> whole-system profiler.</li>
+  <li>Using <a href="2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html.md">eBPF tracing</a> (<a href="https://github.com/bpftrace/bpftrace">bpftrace</a>).</li>
+</ul>
+
+<p>Both tools make use of kernel tracing events under the hood. <code>perf</code> is more limited in its user interface and supports fewer kinds of tracing events, but that also makes it relatively easy to use. <code>bpftrace</code> is more flexible and complicated, allowing you to write arbitrary tracing logic.</p>
+
+<p>They also differ in where they perform the tracing. <code>perf</code> performs most of its logic outside the kernel (in userspace), while <code>bpftrace</code> uploads an eBPF program to the kernel and runs it there. The latter is what allows <code>bpftrace</code> to be more flexible.</p>
+
+<p>Some of my production systems run on <a href="https://aws.amazon.com/bottlerocket/">AWS BottleRocket</a>. Its kernel is very locked down, so it doesn't have a convenient tracing event that <code>perf</code> can use. Instead, I have to use more cumbersome events that require more logic to extract the data that I want. That is only possible using <code>bpftrace</code>. So I will cover using both tools.</p>
+
+<h4 id="inspecting-file-backed-major-page-faults-with-perf">Inspecting file-backed major page faults with <code>perf</code></h4>
+
+<p>We start by installing Perf:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Debian/Ubuntu:</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>linux-tools-common linux-tools-generic
+</code></pre></div>
+<p>We run <code>perf list</code> to see what kind of tracing events we can use:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ perf list
+List of pre-defined events (to be used in -e or -M):
+
+  ...
+  major-faults                                       [Software event]
+  ...
+  page-faults OR faults                              [Software event]
+  ...
+  exceptions:page_fault_user                         [Tracepoint event]
+</code></pre></div>
+<p>There are several candidates which seem useful. Let's try "page-faults" first. We run filemajorpagefaults and the associated page cache eviction loop, then we run <code>perf record</code> to start recording events:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>perf record <span class="nt">-e</span> page-faults <span class="nt">-p</span> <span class="si">$(</span>pidof filemajorpagefaults<span class="si">)</span>
+</code></pre></div>
+<p>After a few seconds, we press Ctrl-C to stop the recording. We then inspect the recorded events with <code>perf script</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ sudo perf script
+ filemajorpagefa   52415 237518.889179:    1 page-faults:   6535fd11440a main+0x1c1 (/home/hongli/filemajorpagefaults)
+ filemajorpagefa   52415 237519.122898:    1 page-faults:   6535fd11440a main+0x1c1 (/home/hongli/filemajorpagefaults)
+</code></pre></div>
+<p>In the output we see a bunch of things:</p>
+
+<ul>
+  <li>The program name ("filemajorpagefa", truncated)</li>
+  <li>The PID (52415)</li>
+  <li>A timestamp (237518.889179)</li>
+  <li>The event name (page-faults)</li>
+  <li>A virtual memory address (0x6535fd11440a)</li>
+</ul>
+
+<p>Now, let's check /proc/$PID/maps. Here's a snippet:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>6535fd114000-6535fd115000 r-xp 00001000 08:01 256489  /home/hongli/filemajorpagefaults
+...
+71f48d800000-71f4ad800000 r--s 00000000 08:01 257163  /home/hongli/block
+71f4ad800000-71f4ad828000 r--p 00000000 08:01 150182  /usr/lib/x86_64-linux-gnu/libc.so.6
+
+^-- start    ^-- end      ^-- permissions             ^-- filename (optional)
+    addr         addr
+</code></pre></div>
+<ul>
+  <li>Column 1 (6535fd114000-6535fd115000) is an address range.</li>
+  <li>Column 2 (r-xp) is the permissions on that address range, e.g., whether it's read-write or read-only.</li>
+  <li>Column 6 (/home/hongli/filemajorpagefaults) whether this range maps to a file.</li>
+</ul>
+
+<p>We expected the memory address reported by <code>perf</code> (0x6535fd11440a) to map to /home/hongli/block, but we see that it actually maps to /home/hongli/filemajorpagefaults! Furthermore, this address range is executable ("x"), which means that it contains code. So 0x6535fd11440a is not the address at which the page fault occurred, but the address at which the CPU was executing instructions (instruction pointer)!</p>
+
+<p>Upon inspecting the <code>perf record</code> and <code>perf script</code> man pages and performing additional Internet searches, it seems that the <code>page-faults</code> event is incapable of recording the memory access address.</p>
+
+<p>Running the test again with the <code>major-faults</code> event yields the same result.</p>
+
+<p>Might we fare better with <code>exceptions:page_fault_user</code>?</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nv">$ </span><span class="nb">sudo </span>perf record <span class="nt">-e</span> exceptions:page_fault_user <span class="nt">-p</span> <span class="si">$(</span>pidof filemajorpagefaults<span class="si">)</span>
+&lt;pressed Ctrl-C after a few seconds&gt;
+<span class="o">[</span> perf record: Woken up 1 <span class="nb">times </span>to write data <span class="o">]</span>
+<span class="o">[</span> perf record: Captured and wrote 0.010 MB perf.data <span class="o">(</span>32 samples<span class="o">)</span> <span class="o">]</span>
+
+<span class="nv">$ </span><span class="nb">sudo </span>perf script
+ filemajorpagefa   52415 <span class="o">[</span>002] 238352.611105: exceptions:page_fault_user: <span class="nv">address</span><span class="o">=</span>0x71f4acc00000 <span class="nv">ip</span><span class="o">=</span>0x6535fd11440a <span class="nv">error_code</span><span class="o">=</span>0x4
+...
+</code></pre></div>
+<p>Success: there's now an <code>address</code> field in addition to an <code>ip</code> (instruction pointer) field! Looking in /proc/$PID/maps, 0x71f4acc00000 indeed belongs to the range mapped to /home/hongli/block!</p>
+
+<h4 id="inspecting-swap-backed-major-page-faults-with-perf">Inspecting swap-backed major page faults with <code>perf</code></h4>
+
+<p>Let's see how things look like when major page faults are caused by swapping. With swapmajorpagefaults running, we start recording page faults:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ sudo perf record -e exceptions:page_fault_user -p $(pidof swapmajorpagefaults)
+&lt;pressed Ctrl-C after a few seconds&gt;
+[ perf record: Woken up 7 times to write data ]
+[ perf record: Captured and wrote 2.048 MB perf.data (24276 samples) ]
+
+$ sudo perf script
+ swapmajorpagefa   66634 [002] 293739.435811: exceptions:page_fault_user: address=0x7303e3871000 ip=0x7305213993ba error_code=0x6
+</code></pre></div>
+<p>Let's look for 0x7303e3871000 in /proc/66634/maps:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>73033ca00000-730521101000 rw-p 00000000 00:00 0
+
+^-- start    ^-- end      ^-- permissions             ^-- filename (optional)
+    addr         addr
+</code></pre></div>
+<p>This address range has no filename. This means that it belongs to "normal" memory and is not backed by a file. Any major page faults occurring here is due to swapping.</p>
+
+<h4 id="inspecting-major-page-faults-with-bpftrace">Inspecting major page faults with <code>bpftrace</code></h4>
+
+<p>Recall the reason I'm showing how to use bpftrace: on BottleRocket I can't use the <code>exceptions:page_fault_user</code> event. There are other events, but they can only be used by bpftrace.</p>
+
+<p>What events can we use? One candidate I was able to find, is <code>kprobe:handle_mm_fault</code>. This corresponds to the <a href="https://github.com/torvalds/linux/blob/v6.1/mm/memory.c#L5187">handle_mm_fault</a> function in the Linux kernel. According to <a href="https://www.amazon.com/Understanding-Linux-Virtual-Memory-Manager/dp/0131453483">Understanding the Linux Virtual Memory Manager</a> by Mel Gorman, <code>handle_mm_fault</code> is the function where page fault handling starts (<a href="https://www.kernel.org/doc/gorman/html/understand/understand007.html">chapter 4.6.1 Handling a Page Fault</a>). This function is architecture-independent (calls architecture-specific parts internally) and its functionality and function signature are relatively stable over time.</p>
+
+<p>According to the <a href="https://github.com/torvalds/linux/blob/master/mm/memory.c#L6166">code</a>, there is an <code>address</code> parameter that identifies the page fault address. But we also want to distinguish between major and minor page faults. This distinction is not passed to <code>handle_mm_fault</code>. Instead, its return value tells us whether the page fault was a major one. From the book:</p>
+
+<blockquote>
+  <p>The possible return values for handle_mm_fault() are VM_FAULT_MINOR, VM_FAULT_MAJOR, VM_FAULT_SIGBUS and VM_FAULT_OOM.</p>
+</blockquote>
+
+<p>In bpftrace we don't have access to constants (which only exist during C compile time). So we have to look for the integer value for <code>VM_FAULT_MAJOR</code>. After a search, we find its definition in the C header <a href="https://github.com/torvalds/linux/blob/v6.1/include/linux/mm_types.h#L870">mm_types.h</a>:</p>
+
+<div class="highlight"><pre class="highlight cpp"><code><span class="k">enum</span> <span class="n">vm_fault_reason</span> <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="n">VM_FAULT_MAJOR</span> <span class="o">=</span> <span class="p">(</span><span class="n">__force</span> <span class="n">vm_fault_t</span><span class="p">)</span><span class="mh">0x000004</span><span class="p">,</span>
+    <span class="p">...</span>
+<span class="p">};</span>
+</code></pre></div>
+<p>So the value is 4.</p>
+
+<p>With this knowledge, we can start designing a bpftrace script. We want to:</p>
+
+<ol>
+  <li>Attach to the <code>kprobe:handle_mm_fault</code> event and extract the <code>address</code> argument.</li>
+  <li>Attach to the <code>kretprobe:handle_mm_fault</code> event (which is fired when the function returns) and check whether the returned bitmask contains <code>VM_FAULT_MAJOR</code>. If so, then log the address.</li>
+</ol>
+
+<p>Source:</p>
+
+<div class="highlight"><pre class="highlight perl"><code><span class="sr">//</span> <span class="nv">Save</span> <span class="nv">as</span> <span class="nv">handle_mm_fault</span><span class="o">.</span><span class="nv">bpftrace</span>
+
+<span class="sr">//</span> <span class="nv">Change</span> <span class="mi">581572</span> <span class="nv">to</span> <span class="nv">the</span> <span class="nv">page</span> <span class="nv">fault</span> <span class="nv">simulator</span><span class="p">'</span><span class="s1">s actual PID.
+kprobe:handle_mm_fault /pid == 581572/
+{
+    // Save the faulting address (arg1, or 2nd parameter) to a map, keyed by thread ID.
+    // We</span><span class="p">'</span><span class="nv">ll</span> <span class="k">use</span> <span class="nv">it</span> <span class="nv">later</span> <span class="nv">when</span> <span class="nv">handle_mm_fault</span> <span class="nv">returns</span> <span class="p">(</span><span class="nv">in</span> <span class="nv">the</span> <span class="nv">kretprobe</span><span class="p">)</span><span class="o">.</span>
+    <span class="nv">@fault</span><span class="p">[</span><span class="nv">tid</span><span class="p">]</span> <span class="o">=</span> <span class="nv">arg1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="sr">//</span> <span class="mi">4</span> <span class="nv">is</span> <span class="nv">the</span> <span class="nv">value</span> <span class="k">for</span> <span class="nv">VM_FAULT_MAJOR</span><span class="o">.</span>
+<span class="nv">kretprobe:handle_mm_fault</span> <span class="sr">/(@fault[tid] &amp;&amp; (retval &amp; 4))/</span>
+<span class="p">{</span>
+    <span class="sr">//</span> <span class="nv">If</span> <span class="nv">the</span> <span class="k">return</span> <span class="nv">value</span> <span class="nv">has</span> <span class="nv">VM_FAULT_MAJOR</span> <span class="nv">set</span><span class="p">,</span> <span class="k">print</span> <span class="nv">the</span> <span class="nv">faulting</span> <span class="nv">address</span><span class="o">.</span>
+    <span class="nb">printf</span><span class="p">("</span><span class="s2">major page fault at 0x%lx</span><span class="se">\n</span><span class="p">",</span> <span class="nv">@fault</span><span class="p">[</span><span class="nv">tid</span><span class="p">]);</span>
+    <span class="nb">delete</span><span class="p">(</span><span class="nv">@fault</span><span class="p">[</span><span class="nv">tid</span><span class="p">]);</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Now let's install bpftrace:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Debian/Ubuntu</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>bpftrace
+
+<span class="c"># AWS BottleRocket (in admin container) and Amazon Linux</span>
+<span class="nb">sudo </span>yum <span class="nb">install </span>bpftrace
+</code></pre></div>
+<p>With a major page fault simulator running (either filemajorpagefaults or swapmajorpagefaults), we run bpftrace:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code># bpftrace handle_mm_fault.bpftrace
+Attaching 2 probes...
+major page fault at 0xffff87b39000
+major page fault at 0xffff8e029000
+major page fault at 0xffff81859000
+...
+(press Ctrl-C)
+</code></pre></div>
+<p>Now that we have a bunch of addresses, let's search for them in /proc/581572/maps:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>ffff6f3d9000-ffff8f3d9000 r--s 00000000 103:10 35875842   /block
+
+^-- start    ^-- end      ^-- permissions                 ^-- filename (optional)
+    addr         addr
+</code></pre></div>
+<p>Success! We've verified that the major page fault is related to the file <code>/block</code>!</p>
+
+<p>Or, if the <code>/proc/$PID/maps</code> entry contains no filename or if the filename is "[heap]", then that means it's a normal memory range with no file backing. Any major page faults are then caused by swapping.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Major page faults means that there's heavy disk read activity, either from a file or from swap. We've developed a method for investigating the source of major page faults.</p>
+
+<p>First, identify the offending process by looking in <code>iotop</code> and sorting by disk read (pressing the left arrow key).</p>
+
+<p>To determine whether the page faults are due to file access or swapping:</p>
+
+<ol>
+  <li>
+    <p>Use <a href="https://perfwiki.github.io/">perf</a> or <a href="https://github.com/bpftrace/bpftrace">bpftrace</a> to identify the memory addresses at which page faults.</p>
+
+    <ul>
+      <li>
+        <p><code>perf</code> is suitable for most systems. To install it:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Debian/Ubuntu:</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>linux-tools-common linux-tools-generic
+</code></pre></div>
+        <p>Start tracing on the exceptions:page_fault_user event, and run it for a few seconds:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ sudo perf record -e exceptions:page_fault_user -p &lt;PID&gt;
+&lt;pressed Ctrl-C after a few seconds&gt;
+[ perf record: Woken up 7 times to write data ]
+[ perf record: Captured and wrote 2.048 MB perf.data (24276 samples) ]
+
+$ sudo perf script
+swapmajorpagefa   66634 [002] 293739.435811: exceptions:page_fault_user: address=0x7303e3871000 ip=0x7305213993ba error_code=0x6
+</code></pre></div>
+        <p>The <code>addres=...</code> column tells you the memory address at which the page fault occurred.</p>
+      </li>
+      <li>
+        <p><code>bpftrace</code> is suitable for AWS BottleRocket. To install it:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c"># Debian/Ubuntu</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>bpftrace
+
+<span class="c"># AWS BottleRocket (in admin container) and Amazon Linux</span>
+<span class="nb">sudo </span>yum <span class="nb">install </span>bpftrace
+</code></pre></div>
+        <p>Save the following bpftrace script. Make sure you change the PID 581572 on line 3 to the actual PID you want to inspect.</p>
+
+<div class="highlight"><pre class="highlight cpp"><code><span class="c1">// Save as handle_mm_fault.bpftrace</span>
+
+<span class="n">kprobe</span><span class="o">:</span><span class="n">handle_mm_fault</span> <span class="o">/</span><span class="n">pid</span> <span class="o">==</span> <span class="mi">581572</span><span class="o">/</span>
+<span class="p">{</span>
+    <span class="c1">// Save the faulting address (arg1, or 2nd parameter) keyed by thread ID.</span>
+    <span class="err">@</span><span class="n">fault</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">=</span> <span class="n">arg1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// 4 is the value for VM_FAULT_MAJOR.</span>
+<span class="nl">kretprobe:</span><span class="n">handle_mm_fault</span> <span class="o">/</span><span class="p">(</span><span class="err">@</span><span class="n">fault</span><span class="p">[</span><span class="n">tid</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">retval</span> <span class="o">&amp;</span> <span class="mi">4</span><span class="p">))</span><span class="o">/</span>
+<span class="p">{</span>
+    <span class="c1">// If the return value has VM_FAULT_MAJOR set, print the faulting address.</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"major page fault at 0x%lx</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="err">@</span><span class="n">fault</span><span class="p">[</span><span class="n">tid</span><span class="p">]);</span>
+    <span class="k">delete</span><span class="p">(</span><span class="err">@</span><span class="n">fault</span><span class="p">[</span><span class="n">tid</span><span class="p">]);</span>
+<span class="p">}</span>
+</code></pre></div>
+        <p>Run the trace:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code># bpftrace handle_mm_fault.bpftrace
+Attaching 2 probes...
+major page fault at 0xffff87b39000
+major page fault at 0xffff8e029000
+major page fault at 0xffff81859000
+...
+(press Ctrl-C)
+</code></pre></div>      </li>
+    </ul>
+  </li>
+  <li>
+    <p>Look up the address in <code>/proc/$PID/maps</code>. It contains entries in this format:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>71f48d800000-71f4ad800000 r--s 00000000 08:01 257163  /home/hongli/block
+
+^-- start    ^-- end      ^-- permissions             ^-- filename (optional)
+ addr         addr
+</code></pre></div>
+    <ul>
+      <li>Column 1 (71f48d800000-71f4ad800000) is the address range in hexadecimal.</li>
+      <li>Column 2 (r–s) is the permissions on that address range, e.g., whether it's read-write or read-only.</li>
+      <li>Column 6 (/home/hongli/block) is an optional filename.</li>
+    </ul>
+
+    <p>If there's no filename or if the filename is "[heap]", then it means the major page faults are caused by swapping.</p>
+  </li>
+</ol>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2025-02-10-causes-of-major-page-faults.html&amp;t=Causes%20of%20major%20page%20faults"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2025-02-10-causes-of-major-page-faults.html&amp;text=Causes%20of%20major%20page%20faults%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

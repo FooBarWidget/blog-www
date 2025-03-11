@@ -1,0 +1,461 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Why Fullstaq Ruby? &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="What is its vision, its importance to the community, and how to stay a viable and healthy project?">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Why Fullstaq Ruby?">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2020-05-15-why-fullstaq-ruby.html">
+    <meta property="og:description" content="What is its vision, its importance to the community, and how to stay a viable and healthy project?">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2019/fullstaq-ruby-banner-2650cc4e.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2020-05-15-why-fullstaq-ruby.html">Why Fullstaq Ruby?</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2020-05-15" itemprop="datePublished">May 15, 2020</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/fullstaq-ruby.html">Fullstaq Ruby</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2020-05-15-why-fullstaq-ruby.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;fullstaq-ruby-banner-2650cc4e.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-05-15-why-fullstaq-ruby.html&amp;t=Why%20Fullstaq%20Ruby%3F"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-05-15-why-fullstaq-ruby.html&amp;text=Why%20Fullstaq%20Ruby%3F%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>A while ago, the people from <a href="https://fullstaq.com">Fullstaq</a> and I started the <a href="https://fullstaqruby.org">Fullstaq Ruby</a> project: a Ruby distribution that's optimized for server use cases. Compared to normal MRI Ruby, Fullstaq Ruby <a href="https://dev.to/evilmartians/fullstaq-ruby-first-impressions-and-how-to-migrate-your-docker-kubernetes-ruby-apps-today-4fm7">uses 50% less memory</a>, is faster, and is easier to install and security-patch because of RPM and DEB packages.</p>
+
+<p>Since I <a href="/blog/2019-07-01-euruko-2019-was-lots-of-fun.html">announced Fullstaq Ruby on EuRuKo 2019</a>, I have received many questions about Fullstaq Ruby's vision, purpose and nature:</p>
+
+<ul>
+  <li>Is Fullstaq Ruby a commercial product, or are there such plans?</li>
+  <li>How will Fullstaq Ruby stay maintained?</li>
+  <li>Who is in control of Fullstaq Ruby?</li>
+  <li>Why are the changes in Fullstaq Ruby not in upstream Ruby? What is the current, and envisioned, relationship between the Ruby core developers and Fullstaq Ruby?</li>
+</ul>
+
+<p>In other words, people are wondering: "how do I know this is, and stays, a real thing that I can count on?"</p>
+
+<p>These are legit questions! As the author of <a href="https://www.phusionpassenger.com">Passenger</a> and <a href="http://www.rubyenterpriseedition.com/">Ruby Enterprise Edition</a>, I've experienced first-hand what the challanges are of building a healthy open source project. In this post, I will describe my vision on this matter.</p>
+
+<p><strong></strong></p>
+
+<h2 id="fullstaq-ruby-is-open-source">Fullstaq Ruby is open source</h2>
+
+<p>Fullstaq is entirely open source in the fullest sense. It's not just open source in the sense of "here's a code dump". No, we're really committed to go the last mile. We envision these that anybody should be able to:</p>
+
+<ul>
+  <li>understand how Fullstaq Ruby works.</li>
+  <li>contribute to Fullstaq Ruby.</li>
+  <li>fork Fullstaq Ruby.</li>
+  <li>benefit from Fullstaq Ruby's work, without being locked-in to it.</li>
+  <li>have a say in its future direction.</li>
+</ul>
+
+<p>We want to achieve this through several pillars.</p>
+
+<ul>
+  <li>
+    <p>The first pillar is <strong>automating</strong> everything, and open sourcing that automation. All organizational processes are to be stored as code, and the code is the canonical sense of truth. There should be as few manual processes as possible.</p>
+
+    <p>One should be able to understand everything about how the project works, by reading the code. One should be able to contribute to any part of the project, by modifying code.</p>
+
+    <p>With <a href="https://fullstaq.com/blog/2020-05-05-fullstaq-ruby-epic-3/">the introduction of a CI/CD system not long ago</a>, this pillar has mostly been reached.</p>
+  </li>
+  <li>
+    <p>The second pillar is <strong>documenting</strong> everything. Having code is nice, but code alone does not always allow <em>understanding</em>. Code is not always easy to read and may not convey enough high-level information. The code should be accompanied with documentation that explains concepts, architecture and processes. There should be no undocumented processes, i.e. processes that live in a few individuals' heads.</p>
+
+    <p>With the proper documentation, we want to promote understanding, and to make it easy to contribute. If one runs into an issue, we want to make it easy to debug and resolve that issue by having the proper documentation. If it's easy for anyone to resolve an issue, then that eliminates vendor lock-in.</p>
+  </li>
+  <li>
+    <p>The third pillar is <strong>reproducibility</strong>. Setting up a software system can be very complex, with lots of dependencies to install and lots of configuration to manage. Furthermore, and increasing amount of software nowadays rely on supporting cloud infrastructure: SaaSes, build servers and CI/CD pipelines. To fork a project, more than just code and documentation is necessary.</p>
+
+    <p>We tackle these issues by automating as much as possible through the use of <a href="https://www.docker.com">Docker</a>. This should allow anyone to work on Fullstaq Ruby with a minimal amount of setup.</p>
+
+    <p>We also tackle these issues by making the infrastructure reproducible. We encode as much infrastructure as possible using <a href="https://terraform.io/">Terraform</a> and <a href="https://kubernetes.io">Kubernetes</a>. This should allow anyone to understand how our infrastructure works, as well as to fork our infrastructure and run it on their favorite cloud provider with minimal hassle.</p>
+  </li>
+  <li>
+    <p>The fourth pillar is <strong>working in public</strong>. Development and discussions happen in public places such as Github.</p>
+  </li>
+</ul>
+
+<p>You can see these pillars in action through the fact that the <a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition">build system</a>, <a href="https://github.com/fullstaq-labs/fullstaq-ruby-website">website</a>, <a href="https://github.com/fullstaq-labs/fullstaq-ruby-umbrella/projects">roadmap</a>, and <a href="https://github.com/fullstaq-labs/fullstaq-ruby-infra">infrastructure</a> are all open source and available on Github. We welcome discussions and pull requests.</p>
+
+<p>But note that we're not there yet. For example there isn't a lot of contributor documentation yet. Check out our <a href="https://github.com/fullstaq-labs/fullstaq-ruby-umbrella/projects">roadmap</a> to track our progress.</p>
+
+<h2 id="fullstaq-is-all-about-community">Fullstaq is all about community</h2>
+
+<p>While the people from Fullstaq and I are the founders of this project, we do not intend on being the only developers of Fullstaq Ruby. From the beginning, we intend for Fullstaq Ruby to be a community project.</p>
+
+<p><strong>We will soon be recruiting core maintainers from the community.</strong> Right now we are working on establishing a good organizational structure, by ensuring that the proper automation, documentation and processes are in place.</p>
+
+<p>With a proper environment that allows anyone to contribute and to join as a core maintainer, we increase the likelihood that the Fullstaq Ruby project stays healthy.</p>
+
+<h2 id="fullstaq-ruby-is-not-commercial">Fullstaq Ruby is not commercial</h2>
+
+<p>There are no monetization plans. There will be no paid version.</p>
+
+<p><a href="https://fullstaq.com">Fullstaq's main business model</a> is consultancy, training and managed services in the area of cloud native technologies and DevOps. Their mission is to help startups and SMBs to succeed in the cloud native way of working, which is why they're sponsoring this project.</p>
+
+<figure>
+  <a href="https://fullstaq.com"><img src="/images/2020/fullstaq-logo-13a7922b.svg" alt="Fullstaq Logo" class="img-smallwidth" /></a>
+  <figcaption><a href="https://fullstaq.com">Fullstaq B.V.</a> is a founder of the Fullstaq Ruby project. They have no monetization plans for Fullstaq Ruby.</figcaption>
+</figure>
+
+<h2 id="how-fullstaq-ruby-stays-viable">How Fullstaq Ruby stays viable</h2>
+
+<p>We've all seen it: some gem you use becomes unmaintained, and now you have to wonder what to do with that. Nobody's waiting for such a scenario, no matter how easy it is to fork the project and to take over maintenance.</p>
+
+<p>So while some people see the lack of monetization of Fullstaq Ruby as a good thing, others are worried: without monetization plans, how will Fullstaq Ruby stay viable?</p>
+
+<p>The answer is two-fold:</p>
+
+<ol>
+  <li><strong>Automation</strong>. With sufficient automation (and sufficiently <em>robust</em> automation and infrastructure), a project will keep working for quite a while even if its maintainers become less active.</li>
+  <li><strong>Community</strong>, as explained above. With sufficient maintainers from the community (and sufficient continuous recruitment), the project stays viable even if the founders become less active.</li>
+</ol>
+
+<h2 id="fullstaq-ruby-and-the-ruby-core-developers">Fullstaq Ruby and the Ruby core developers</h2>
+
+<p>Some people wonder why the improvements in Fullstaq Ruby are not in upstream Ruby. The answer is because Fullstaq Ruby's improvements are <strong>opinionated and specialized</strong>.</p>
+
+<p>Fullstaq Ruby's memory allocation changes are optimized for <strong>server use cases</strong>, but these optimizations are probably not suitable for non-server use cases, such as embedded systems and <a href="https://www.chef.io">automation frameworks</a>. Some of these optimizations require invasive platform-specific changes in the Ruby codebase.</p>
+
+<p>Some optimizations are not even fully understood: for example Jemalloc 3 yields memory savings but Jemalloc 5 does not. The cause is still unknown; I hope to research this further in the future.</p>
+
+<p>At EuRuKo 2019, I spoke with Ruby's creator as well as a Ruby core developer, namely <a href="https://twitter.com/yukihiro_matz">Yukihiro Matsumoto</a> and <a href="https://twitter.com/mametter">Yuske Endoh</a>. Matsumoto told me that, as the author of a language, he should take care of <em>all</em> of his users. This is one the reasons why the Ruby core team is hesitant to integrate Jemalloc. The other reason is because (as mentioned above) Jemalloc's operation is not fully understood.</p>
+
+<figure>
+  <img src="/images/2019/euruko-matz-endoh-791a68b1.jpg" alt="Yukihiro Matsumoto, Yuske Endoh, and myself" />
+  <figcaption>Yukihiro Matsumoto, Yuske Endoh, and myself discussing future collaboration opportunities at EuRuKo 2019</figcaption>
+</figure>
+
+<p>I have a lot of respect for Matsumoto's position. Having said that, the server use case is an important one. Plus, one does not have to fully understand a phenomenon in order to benefit from it. For example scientists still don't know why a bike does not fall over when moving. The benefits are so clear, I want as many server users to be able to benefit as possible.</p>
+
+<p>There is also the aspect of <strong>security patching</strong>. Currently the Ruby core team does not provide any binaries, only sources. In this day and age, fewer and fewer people are comfortable with compiling software. Linux distributions always lag behind the source releases. I think there is a need for Ruby binary packages that are always up-to-date with the source releases.</p>
+
+<p>But packaging is a whole different discipline, very distinct from developing a programming language. It is a very different kind of work from the work that the Ruby core developers currently do.</p>
+
+<h2 id="towards-a-brighter-future">Towards a brighter future</h2>
+
+<p>How might we solve all of the issues described in the previous section? I think that that opinionated and specialized concerns do not <em>have</em> to be taken care of by the Ruby core team. There's nothing wrong with such concerns being taken care of by a separate project. The only dangers are:</p>
+
+<ol>
+  <li>The separate project lacking mindshare because of lack of official blessings.</li>
+  <li>The separate project running out of steam (e.g. falling behind with official Ruby releases), due to insufficient number of contributors.</li>
+</ol>
+
+<p>So clearly, for a separate project to succeed, it should work closely with the Ruby core team. There should also be a degree of official blessing.</p>
+
+<p><a href="https://ubuntu.com/download/flavours">Ubuntu Flavors</a> might be a good example of such a concept in action. Ubuntu is based in the GNOME desktop environment, but there are separate projects (flavors) that use KDE (<a href="https://www.kubuntu.org/">Kubuntu</a>) and XFCE (<a href="https://xubuntu.org/">Xubuntu</a>) as the desktop environment.</p>
+
+<p>So my vision is that Fullstaq Ruby becomes an <strong>officially blessed external project</strong>, whose mission is to take care of optimizations for server use cases. Matsumoto has shown interest in this idea. When Fullstaq Ruby becomes a bit more mature (organization-wise) I will talk to Matsumoto again about implementing this concept.</p>
+
+<p>Please send me a <a href="https://twitter.com/honglilai">tweet</a> or an <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#104;&#111;&#110;&#103;&#108;&#105;&#064;&#104;&#111;&#110;&#103;&#108;&#105;&#046;&#110;&#108;">email</a> and let me know what you think.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-05-15-why-fullstaq-ruby.html&amp;t=Why%20Fullstaq%20Ruby%3F"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-05-15-why-fullstaq-ruby.html&amp;text=Why%20Fullstaq%20Ruby%3F%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Prefixing your commands or scripts with a timestamp &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="When you run a command or a script that runs for a long time, it may be helpful to have all its output prefixed with a timestamp. Here&#x27;s how you can do it.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Prefixing your commands or scripts with a timestamp">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html">
+    <meta property="og:description" content="When you run a command or a script that runs for a long time, it may be helpful to have all its output prefixed with a timestamp. Here&#x27;s how you can do it.">
+        <link rel="canonical" href="https://fullstaq.com/blog/2020-04-28-prefixing-your-commands-or-scripts-with-a-timestamp/">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html">Prefixing your commands or scripts with a timestamp</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2020-04-26" itemprop="datePublished">Apr 26, 2020</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/shell-scripting.html">Shell scripting</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;daniel-von-appen-276282-unsplash-2e287220.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;daniel-von-appen-276282-unsplash-2e287220.jpg"
+          style=""
+          title="Photo by Daniel von Appen on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html&amp;t=Prefixing%20your%20commands%20or%20scripts%20with%20a%20timestamp"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html&amp;text=Prefixing%20your%20commands%20or%20scripts%20with%20a%20timestamp%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>When you run a command or a script that runs for a long time, it may be helpful to have all its output prefixed with a timestamp. For example we want to change this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>foo
+bar
+baz
+</code></pre></div>
+<p>to this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>[2020-12-13 12:20:38] foo
+[2020-12-13 12:21:32] bar
+[2020-12-13 12:22:20] baz
+</code></pre></div>
+<p>Here's how you can do it.</p>
+
+<p><strong></strong></p>
+
+<h2 id="piping-to-awk">Piping to Awk</h2>
+
+<p>The key is to pipe the output to another tool that reads everything from standard input, and prints the same thing but with a prefix added.</p>
+
+<p>What tool do we use? <a href="https://en.wikipedia.org/wiki/AWK">Awk</a> is a perfect candidate because it's installed pretty much everywhere. Awk is a tool for processing streams of texts.</p>
+
+<h2 id="usage-in-single-commands">Usage in single commands</h2>
+
+<p>Here's an example involving a single command:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">command</span> | <span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span>
+</code></pre></div>
+<p>However, note that the above only adds timestamp prefixes to text written to standard output. If you want text written to standard error to be timestamp-prefixed too, then make sure you redirect standard error to standard output, like this:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">command </span>2&gt;&amp;1 | <span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span>
+</code></pre></div>
+<p>The magic part is <code>2&gt;&amp;1</code>. It means: redirect file descriptor number 2 (standard error) to file descriptor number 1 (standard output).</p>
+
+<h2 id="usage-in-bash-scripts">Usage in Bash scripts</h2>
+
+<p>Bash scripts usually invoke multiple commands. You don't want to manually pipe every command to awk: the script would turn <code>awk</code>ward pretty quickly. 🙃</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+<span class="nb">set</span> <span class="nt">-o</span> pipefail
+
+<span class="c"># Yeah, no...</span>
+apt-get update 2&gt;&amp;1 | <span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span>
+apt-get <span class="nb">install</span> <span class="nt">-y</span> foo 2&gt;&amp;1 | <span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span>
+systemctl restart foo.service 2&gt;&amp;1 | <span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span>
+</code></pre></div>
+<p>Can we do better? Yes: you can tell Bash that all of its own output (which includes all output by commands run from Bash) should be redirected to another command:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">exec</span> <span class="o">&gt;</span> <span class="o">&gt;(</span><span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span><span class="o">)</span> 2&gt;&amp;1
+</code></pre></div>
+<p>What bizarre magic is this?!?!</p>
+
+<ul>
+  <li>A naked <code>exec</code> statement, without a further command given, means: we don't want to actually execute anything, we only want to manipulate some file descriptors (pipes) in the current Bash process.</li>
+  <li><code>&gt;</code> means: redirect standard output (which now includes standard error) to the given file.</li>
+  <li>
+    <p><code>&gt;(some command)</code> is a <a href="https://www.linuxjournal.com/content/shell-process-redirection">process substitution</a>. It means: create a new pipe, then run <code>some command</code> with its standard input connected to that pipe, then return a filename to that pipe.</p>
+
+    <p>So <code>&gt; &gt;(some command)</code> means: redirect standard output to the pipe created by the process substitution.</p>
+  </li>
+  <li><code>2&gt;&amp;1</code> means: in the current Bash process, redirect standard error to standard output.</li>
+</ul>
+
+<p>The pipe created by the process substitution is temporary, and is closed as soon as that line ends. Here you can see it in action:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ echo The named pipe filename is &gt;(true)
+The named pipe filename is /dev/fd/63
+</code></pre></div>
+<p>But if you try to access it immediately thereafter, you will see that it's already gone:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ ls /dev/fd/63
+ls: /dev/fd/63: Bad file descriptor
+</code></pre></div>
+<p>So putting it all together, the awkward script above becomes:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="nb">exec</span> <span class="o">&gt;</span> <span class="o">&gt;(</span><span class="nb">awk</span> <span class="s1">'{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'</span><span class="o">)</span> 2&gt;&amp;1
+
+apt-get update
+apt-get <span class="nb">install</span> <span class="nt">-y</span> foo
+systemctl restart foo.service
+</code></pre></div>
+<h2 id="caveat-this-is-bash-not-sh">Caveat: this is Bash, not sh</h2>
+
+<p><code>sh</code> is not Bash. <code>sh</code> is a shell whose history is older than Bash. Although <code>/bin/sh</code> may point to the same executable as Bash, when Bash is run as <code>sh</code> it will execute in a sort of "legacy mode" and disable some features. So if your shell scripts use the trick described in this blog post, make sure your shebang line is <code>#!/bin/bash</code> and not <code>#!/bin/sh</code>.</p>
+
+<h2 id="caveat-block-buffering">Caveat: block buffering</h2>
+
+<p>Commands behave a little bit differently if their output is redirected to a pipe.</p>
+
+<p>Normally, commands use <em>line buffering</em>, which means that every time they've printed a complete line, that line will be written to the terminal.</p>
+
+<p>But when the output is redirected to something which is not a terminal, then commands will use <em>block buffering</em>, which means that they don't actually write out what they intend to print; until a threshold as been reached, or until the command exits. This threshold is around 16 KB. You can see block buffering in action here:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>python <span class="nt">-c</span> <span class="s1">'import time; print("x" * (1024 * 15)); time.sleep(10)'</span> | <span class="nb">cat</span>
+</code></pre></div>
+<p>This Python command prints 15 KB of data to standard output, then sleeps for 10 seconds. The output is piped to cat. Note that during the 10-second sleep, nothing is printed. Only after the 10 seconds does it print something.</p>
+
+<p>If you increase <code>15</code> to <code>16</code>, then you'll see the output immediately.</p>
+
+<p>If this behavior is problematic for you, then there are various ways to force line buffering:</p>
+
+<ul>
+  <li>
+    <p>On Linux and FreeBSD, you can use <a href="https://linux.die.net/man/1/stdbuf">stdbuf</a>. Prefix it to any command for which you want to force line buffering:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">stdbuf</span> <span class="nt">-oL</span> python <span class="nt">-c</span> <span class="s1">'import time; print("x" * (1024 * 15)); time.sleep(10)'</span> | <span class="nb">cat</span>
+</code></pre></div>  </li>
+  <li>
+    <p>On macOS, you can install stdbuf from Homebrew. It's part of coreutils.</p>
+
+<div class="highlight"><pre class="highlight shell"><code>brew <span class="nb">install </span>coreutils
+/usr/local/opt/coreutils/libexec/gnubin/stdbuf <span class="nt">-oL</span> python <span class="nt">-c</span> <span class="s1">'import time; print("x" * (1024 * 15)); time.sleep(10)'</span> | <span class="nb">cat</span>
+</code></pre></div>  </li>
+  <li>
+    <p>For Python scripts, you can set the environment variable <code>PYTHONUNBUFFERED=1</code>, which tells Python to disable any sort of output buffering entirely.</p>
+  </li>
+</ul>
+
+<h2 id="caveats-of-alternatives-to-awk">Caveats of, alternatives to Awk</h2>
+
+<p>That there are multiple implementations of Awk, with different features. On Linux, you would usually be using the GNU implementation. On macOS, you would be using a BSD implementation. If you intent to write shell scripts that run on more than just one OS, then be sure to test things on all platforms you intend to support.</p>
+
+<p>In fact, the Awk implementation on macOS does not support the <code>strftime</code> function!</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ echo hi | awk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+/usr/bin/awk: calling undefined function strftime
+ input record number 1, file
+ source line number 1
+</code></pre></div>
+<p>You could use Perl as an alternative. Perl is also widely installed.</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ echo hi | perl -pe 'use POSIX strftime; print strftime "[%Y-%m-%d %H:%M:%S%z] ", localtime; STDOUT-&gt;flush()'
+[2020-04-27 15:13:33+0200] hi
+</code></pre></div>
+<p>Or you could explicitly install the GNU implementation and use that. The GNU implementation is also called <code>gawk</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>$ brew install gawk
+$ echo hi | gawk '{ print strftime("[%Y-%m-%d %H:%M:%S]"), $0 }'
+[2020-04-27 15:15:51] hi
+</code></pre></div>
+<h2 id="more-about-awk">More about Awk</h2>
+
+<p>Awk is surprisingly powerful, yet concise! Here's an <a href="http://www.grymoire.com/Unix/Awk.html">Awk tutorial</a>. For more in-depth information, check the <a href="https://www.gnu.org/software/gawk/manual/gawk.html">GNU Awk User's Guide</a>.</p>
+
+<p>Good luck, and don't shy away from being <code>awk</code>ward. 🙃</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html&amp;t=Prefixing%20your%20commands%20or%20scripts%20with%20a%20timestamp"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-04-26-prefixing-your-commands-or-scripts-with-a-timestamp.html&amp;text=Prefixing%20your%20commands%20or%20scripts%20with%20a%20timestamp%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

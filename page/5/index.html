@@ -1,0 +1,617 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Joyful Bikeshedding: Hongli Lai, CTO&#x27;s take on coding &amp; company building</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="google-site-verification" content="9Co4RmXKuHziEPwU5z6rjvELFUFo8JWp6ya7wJuA-gg" />
+    <meta name="msvalidate.01" content="A3E75EA804E0BACF2EFF751BF713DAE3">
+    <meta name="likebtn-website-verification" content=" bc99493e9107ad8e">
+    <meta name="description" content="Hongli Lai is a CTO, consultant and entrepreneur. On his website he blogs about coding, company building and other advice.">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <div class="main-container main-container-with-post-previews">
+        <main class="post-previews">
+                <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-04-18-who-is-responsible-for-the-software-we-build.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;who-is-responsible-for-software-we-build-c070d4df.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;who-is-responsible-for-software-we-build-c070d4df.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-04-18-who-is-responsible-for-the-software-we-build.html">Who&#x27;s responsible for the software we build?</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-04-18">Apr 18, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ethics.html">Ethics</a>, <a href="/blog/tags/privacy.html">Privacy</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Turns out running a company isn’t just about money, fame or even cool products and happy customers. We have a social responsibility towards our employees and society at large.</p>
+
+            <div class="post-read-more"><a href="/blog/2018-04-18-who-is-responsible-for-the-software-we-build.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;kjpargeter-golden-bokeh-75dfcb67.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;kjpargeter-golden-bokeh-75dfcb67.jpg"
+          style=""
+          title="Background vector created by @kjpargeter - Freepik.com"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html">Should non-EU websites ban EU visitors under the GDPR?</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-04-17">Apr 17, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/gdpr.html">GDPR</a>, <a href="/blog/tags/privacy.html">Privacy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>On 2018 May 25, Europe’s General Data Protection Regulation (GDPR) will start being enforced. The GDPR defines strict rules on how personal data should be handled. But there is a lot of fear and controversy about the GDPR from people worldwide. With the controversial concepts, the compliance overhead and hefty multi-million fines, is it a good idea for non-EU companies to simply ban all EU visitors from accessing their websites?</p>
+
+            <div class="post-read-more"><a href="/blog/2018-04-17-should-non-eu-websites-ban-eu-visitors-under-the-gdpr.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-04-14-your-company-purpose-must-be-congruent-with-what-you-do.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-04-14-your-company-purpose-must-be-congruent-with-what-you-do.html">Your company purpose must be congruent with what you do</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-04-14">Apr 14, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/quick-thoughts.html">Quick thoughts</a>, <a href="/blog/tags/company-building.html">Company building</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I have not had much luck so far with figuring out <a href="/blog/2018-03-28-how-to-build-a-good-company-purpose.html">what makes a good company purpose</a>. However, I did spend the past few weeks thinking about what Phusion <em>should</em> stand for. One of the topics I have been researching a lot is technology ethics. Technology...</p>
+            <div class="post-read-more"><a href="/blog/2018-04-14-your-company-purpose-must-be-congruent-with-what-you-do.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-03-28-how-to-build-a-good-company-purpose.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;mike-newbry-229532-unsplash-1a0c5a20.jpg"
+          style=""
+          title="Photo by Mike Newbry on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-03-28-how-to-build-a-good-company-purpose.html">How to build a good company purpose?</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-03-28">Mar 28, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/business.html">Business</a>, <a href="/blog/tags/company-building.html">Company building</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>It has often been stated by business consultants and startup advisors that a company should have a purpose beyond vision. Studies show that that result in more motivated and loyal customers and employees. As Simon Sinek said: people don’t buy or follow what you do, but why you do it.</p>
+
+<p>I agree. That was the easy part. But how do you actually define a good purpose? People need to feel that your purpose is aligned with their own values, and a purpose statement needs to balance many different things for many different people.</p>
+
+<p>This post documents the start of my journey in an attempt to find answers.</p>
+
+            <div class="post-read-more"><a href="/blog/2018-03-28-how-to-build-a-good-company-purpose.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-03-26-studying-the-kubernetes-ingress-system.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;kubernetes-banner-884590a9.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;kubernetes-banner-884590a9.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-03-26-studying-the-kubernetes-ingress-system.html">Studying the Kubernetes Ingress system</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-03-26">Mar 26, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/kubernetes.html">Kubernetes</a>, <a href="/blog/tags/research.html">Research</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I have been researching how the Kubernetes Ingress system works. My use case is to setup an autoscaled Nginx cluster that reverse proxies to Pods in multiple Deployments. It wasn't immediately obvious how to do this. By default, Pods in Kubernetes are not supposed to be reachable from outside the cluster. One makes them reachable either by associating those pods with a Service of the right type (i.e. either NodePort or LoadBalancer), or by defining an Ingress. But what <em>is</em> an Ingress? How do I put Nginx in between an Ingress and a set of Pods? This post describes my journey through the jargon-loaded Kubernetes documentation which does not hold any hands, as well as my journey through the Kubernetes source code, all in a quest to find answers.</p>
+
+<p>This post a bit long, so if you just want a summary then you can skip straight to the conclusion at the bottom.</p>
+
+<figure>
+    <img src="/images/2018/kubernetes-nginx-ingress-problem-c3c7516d.png" alt="">
+    <figcaption>Defining a Service is straightforward enough... but how do you point Nginx to that? And how does Nginx relate to this Ingress thing?</figcaption>
+</figure>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2018-03-26-studying-the-kubernetes-ingress-system.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-03-24-appreciating-prometheus.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-03-24-appreciating-prometheus.html">In appreciation of Prometheus&#x27; engineering</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-03-24">Mar 24, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/prometheus.html">Prometheus</a>, <a href="/blog/tags/monitoring.html">Monitoring</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>Even though I rejected <a href="https://prometheus.io/">Prometheus</a> as a choice in my <a href="/blog/2018-03-22-netdata-simple-server-monitoring.html">last blog post about Netdata</a>, I actually appreciate Prometheus' engineering quality. From its documentation it is apparent that the authors are very experienced on the subject and have thought through things.</p>
+
+<p>This post reviews some of the things that demonstrate that, namely their responses to the push vs pull debacle, the way they limit Prometheus' scope, the way their alerting system is designed and documented, and the way they treat storage.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2018-03-24-appreciating-prometheus.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-03-22-netdata-simple-server-monitoring.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2018&#x2F;netdata-60037a24.png" type="image&#x2F;png">
+        <img
+          src="&#x2F;images&#x2F;2018&#x2F;netdata-60037a24.png"
+          style="background-position: top"
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-03-22-netdata-simple-server-monitoring.html">Netdata: simple server monitoring</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-03-22">Mar 22, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/netdata.html">Netdata</a>, <a href="/blog/tags/monitoring.html">Monitoring</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>I have been looking for an easy-to-use monitoring solution for Phusion's servers. One that does not require a lot of setup and that provides a reasonable interface without too much work. Such a solution has to display a bunch of graphs at the very least. (Email) alerting is considered a bonus. The solution also has to be open source, not only because of the cost factor but because I want to own my data. So solutions like New Relic and Datadog are out.</p>
+
+<p>In this blog post I will describe the solutions that I've checked out – Ganglia, Monit, Munin, Prometheus, Grafana – and why I didn't like them. Then I will explain why I think <a href="https://my-netdata.io/">Netdata</a> is a good choice and review its pros and cons.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2018-03-22-netdata-simple-server-monitoring.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2018-01-21-default-is-king.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg"
+          style=""
+          title="Photo by Dmitri Popov on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2018-01-21-default-is-king.html">Default is king</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2018-01-21">Jan 21, 2018</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/quick-thoughts.html">Quick thoughts</a>, <a href="/blog/tags/ux.html">UX</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>In general, people do not customize their tools or environment. They tend to work with whatever was the initial setup. In this post I will explore the consequences of this phenomenon, which even extends beyond the world of software.</p>
+
+            <div class="post-read-more"><a href="/blog/2018-01-21-default-is-king.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2017&#x2F;john-hanusek-466113-unsplash-e9ba0dd9.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2017&#x2F;john-hanusek-466113-unsplash-e9ba0dd9.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html">Why Ruby app servers break on macOS High Sierra and what can be done about it</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2017-10-13">Oct 13, 2017</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p>People who have upgraded to macOS High Sierra and who are using a preforking app server such as Puma or Unicorn (with the right settings), may have noticed this error:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>objc[81924]: +[__NSPlaceholderDictionary initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+</code></pre></div>
+<p>This cryptic error is triggered under the following conditions:</p>
+
+<ol>
+  <li>You are using Unicorn with <code>preload_app</code>, or Puma in cluster mode, or iodine in prefork mode, or Passenger in smart spawning mode.</li>
+  <li>And you are using MRI.</li>
+  <li>And your application uses a gem that is either directly or indirectly linked to the macOS Foundation framework.</li>
+</ol>
+
+<p>This error is caused by changes in how <code>fork()</code> behaves in High Sierra. This article covers:</p>
+
+<ul>
+  <li>What is this and why did Apple change it?</li>
+  <li>How are the Puma, Unicorn and <a href="https://www.phusionpassenger.com/">Passenger</a> authors responding to this?</li>
+  <li>What can you do about it, and do you need to do anything at all?</li>
+  <li>What should the wider Ruby ecosystem do?</li>
+</ul>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+    <article class="post part-of-preview">
+        <header class="post-header part-of-preview">
+            <a href="/blog/2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html" aria-hidden="true" class="post-banner preview">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            <h2 class="title"><a href="/blog/2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html">Understanding your benchmarks and easy tips for fixing them</a></h2>
+            <div class="meta-container">
+                <div class="meta-main-area">
+                    <ul class="meta-list">
+                        <li class="meta-item">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                        </li>
+                        <li class="meta-item">
+                            <time datetime="2017-07-13">Jul 13, 2017</time>
+                        </li>
+                        <li class="meta-item">
+                            <a href="/blog/tags/benchmarking.html">Benchmarking</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        <div class="post-content post-content-preview part-of-preview">
+            <p><em>Update August 9: urikanegun has kindly contributed <a href="https://techracho.bpsinc.jp/hachi8833/2017_08_07/43658">a Japanese translation</a> of this article.</em></p>
+
+<p>Developers love speed, so developers love benchmarks. Benchmarks on programming language performance, app server performance, JavaScript engine performance, etc. have always attracted a lot of attention. However, there are lots of caveats involved in running a good benchmark. One of those caveats is <em>benchmark stability</em>: if you run a benchmark multiple times then the timings usually differ a bit. A a lot of people have the tendency to hand-wave this caveat by just shutting down all apps, rerunning the benchmark a few times and averaging the results. Is that truly good enough?</p>
+
+<p>Lately, I have been researching the topic of benchmark stability because I am interested in creating reliable benchmarks that are reproducible by third parties, so that they can verify benchmark results by themselves — e.g. allowing users of my software to verify that my benchmarks are reliable. Such research has led me to <a href="https://haypo.github.io/">Victor Stinner</a>, a Python core developer who has been focusing on improving Python 3 performance for several years.</p>
+
+<p><strong></strong></p>
+            <div class="post-read-more"><a href="/blog/2017-07-13-understanding-your-benchmarks-and-easy-tips-for-fixing-them.html" class="outline-button orange">Read more &raquo;</a></div>
+        </div>
+    </article>
+
+        </main>
+
+                <div class="post-paginator">
+        <div class="older">
+                <a href="/page/6/" class="button orange">&laquo; Older posts</a>
+        </div>
+        <div class="position">
+            Page 5 of 6
+        </div>
+        <div class="newer">
+                <a href="/page/4/" class="button orange">Newer posts &raquo;</a>
+        </div>
+    </div>
+
+
+        <aside class="about-me-panel-container after-post-previews">
+            <div class="about-me-panel after-post-previews">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </div>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">You are reading</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

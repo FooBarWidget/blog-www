@@ -1,0 +1,765 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>A better way to reason about software testing terms &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Existing software testing terms are confusing because they are not well-defined. Here&#x27;s a better way of reasoning about them to help you write better tests.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="A better way to reason about software testing terms">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2020-02-07-a-better-way-to-reason-about-software-testing-terms.html">
+    <meta property="og:description" content="Existing software testing terms are confusing because they are not well-defined. Here&#x27;s a better way of reasoning about them to help you write better tests.">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2020/test-terminology-guide-71e972c3.jpg">
+
+        <style>
+        .post-content .testing-terminology.screen-desktop {
+            font-size: 90%;
+        }
+
+        @media (max-width: 631px) {
+            .post-content .testing-terminology.screen-desktop {
+                display: none;
+            }
+        }
+
+        .post-content .testing-terminology .name,
+        .post-content .testing-terminology .size,
+        .post-content .testing-terminology .approach {
+            line-height: 1.3;
+        }
+
+        .table.testing-terminology thead th {
+            vertical-align: top;
+        }
+
+        .testing-terminology .name ul,
+        .testing-terminology .size ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .post-content .testing-terminology p:last-child,
+        .testing-terminology .name li:last-child,
+        .testing-terminology .size li:last-child {
+            margin-bottom: 0;
+        }
+
+
+        .post-content .testing-terminology.screen-mobile {
+            display: none;
+        }
+
+        @media (max-width: 631px) {
+            .post-content .testing-terminology.screen-mobile {
+                display: block;
+            }
+        }
+
+        .post-content .testing-terminology h3 {
+            font-size: 1.5rem;
+        }
+
+        .testing-terminology h3 + h3 {
+            margin-top: 0;
+        }
+
+
+        .post-content .test-features {
+            font-size: 90%;
+        }
+
+        @media (max-width: 631px) {
+            .post-content .table td {
+                padding: 0.4rem;
+            }
+        }
+
+        .test-features .disallowed {
+            background: #ff8987;
+        }
+
+        .test-features .warning {
+            background: #ffeb9d;
+        }
+
+        .test-features .allowed {
+            background: #d3ffd3;
+        }
+
+        .test-features th:not(.label),
+        .test-features td:not(.label) {
+            text-align: center;
+        }
+    </style>
+
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2020-02-07-a-better-way-to-reason-about-software-testing-terms.html">A better way to reason about software testing terms</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2020-02-07" itemprop="datePublished">Feb  7, 2020</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/testing.html">Testing</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2020-02-07-a-better-way-to-reason-about-software-testing-terms.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2020&#x2F;test-terminology-guide-71e972c3.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2020&#x2F;test-terminology-guide-71e972c3.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-02-07-a-better-way-to-reason-about-software-testing-terms.html&amp;t=A%20better%20way%20to%20reason%20about%20software%20testing%20terms"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-02-07-a-better-way-to-reason-about-software-testing-terms.html&amp;text=A%20better%20way%20to%20reason%20about%20software%20testing%20terms%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>I was recently in a discussion between developers about improving the test coverage of a major software project. They needed guidance about what kind of tests to write, and how to write them.</p>
+
+<p>The discussion quickly became confusing: the topic was too large, too general, and it turns out that there wasn't even a well-defined shared vocabulary for testing concepts! The latter turns out to be a wider problem in the software development community: <a href="https://martinfowler.com/articles/practical-test-pyramid.html#TheConfusionAboutTestingTerminology">it simply doesn't <em>have</em> well-defined testing terms</a>!</p>
+
+<p>In this post, I'd like to provide some guidance w.r.t. this matter. I'll discuss:</p>
+
+<ul>
+  <li>An overview of the most common testing terms.</li>
+  <li>A new way of reasoning about testing concepts: reiterating what actually matters, and categorizing tests based on "size" and "approach".</li>
+  <li>How the existing testing terminology fits in this new model.</li>
+</ul>
+
+<p><strong></strong></p>
+
+<h2 id="towards-a-well-defined-testing-terminology">Towards a well-defined testing terminology</h2>
+
+<p>Most literature on software testing focus on terms like "unit test", "component test", "integration test", etc. I think this focus is a mistake because these terms are not well-defined. Their definitions depend on context and subjective matters.</p>
+
+<p>For example: <a href="https://martinfowler.com/articles/practical-test-pyramid.html#WhatsAUnit">what's a unit?</a> How is it different from components? Can there be multiple levels of units and components? (hint: yes) What if you test two components together but the interaction with the second one is trivial, does that still count as an integration test?</p>
+
+<p>The vagueness distracts us from the <strong>things that matter</strong>:</p>
+
+<ul>
+  <li>The <em>goals</em> of the tests. What do we want to test, and why?</li>
+  <li>The <em>technical quality</em> of the tests. Are the tests stable (absence of random failures)? Are the tests fast?</li>
+</ul>
+
+<p>So I take a different approach, one that focuses on the tests' <em>behavior</em>, <em>runtime characteristics</em>, and whether the goal is to build the thing right or to build the right thing. These concepts are much more objective and thus are easier to reason about.</p>
+
+<h2 id="test-sizes--the-test-pyramid">Test sizes &amp; the test pyramid</h2>
+
+<p>I put tests in one of three broad categories: small, medium and large. These are organized in a "test pyramid", like so:</p>
+
+<figure>
+    <a href="/images/2020/test-pyramid-c9f7a8bc.png"><img src="/images/2020/test-pyramid-c9f7a8bc.png" alt="The test pyramid" class="img-largecover" /></a>
+</figure>
+
+<p>How do you measure a test's size? By looking at its behavior:</p>
+
+<table class="table table-bordered test-features">
+    <thead class="thead-light">
+        <tr>
+            <th class="label">Feature</th>
+            <th>Small</th>
+            <th>Medium</th>
+            <th>Large</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="label">Network access</td>
+            <td class="disallowed">✗</td>
+            <td class="warning">localhost only</td>
+            <td class="allowed">✔︎</td>
+        </tr>
+        <tr>
+            <td class="label">Database access</td>
+            <td class="disallowed">✗</td>
+            <td class="allowed">✔︎</td>
+            <td class="allowed">✔︎</td>
+        </tr>
+        <tr>
+            <td class="label">File system access</td>
+            <td class="disallowed">✗</td>
+            <td class="allowed">✔︎</td>
+            <td class="allowed">✔︎</td>
+        </tr>
+        <tr>
+            <td class="label">External systems access</td>
+            <td class="disallowed">✗</td>
+            <td class="warning">discouraged</td>
+            <td class="allowed">✔︎</td>
+        </tr>
+        <tr>
+            <td class="label">Concurrency</td>
+            <td class="disallowed">✗</td>
+            <td class="allowed">✔︎</td>
+            <td class="allowed">✔︎</td>
+        </tr>
+        <tr>
+            <td class="label">Sleep statements</td>
+            <td class="disallowed">✗</td>
+            <td class="allowed">✔︎</td>
+            <td class="allowed">✔︎</td>
+        </tr>
+        <tr>
+            <td class="label">Time limit</td>
+            <td>60s</td>
+            <td>300s</td>
+            <td>&gt; 900s</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>The test pyramid is well-known concept from testing literature, described by e.g. ThoughtWorks' <a href="https://martinfowler.com/articles/practical-test-pyramid.html#TheTestPyramid">Practical Test Pyramid</a>. But whereas they organize the pyramid based on fuzzy concepts such as "unit tests", "service tests" and "UI tests", I organize the pyramid based on size.</p>
+
+<p>The idea of organizing based on size came from Google. See <a href="https://testing.googleblog.com/2010/12/test-sizes.html">Simon Stewart</a>, <a href="https://mike-bland.com/2011/11/01/small-medium-large.html">Mike Bland</a> and <a href="http://www.informit.com/articles/article.aspx">James A. Whittaker</a>.</p>
+
+<h2 id="why-a-test-pyramid">Why a test pyramid?</h2>
+
+<p>By combining the test pyramid concept with the idea of organizing tests based on size, we gain a powerful insight: the reason <strong>why</strong> the pyramid recommends having predominantly small tests.</p>
+
+<p>Sure, the pyramid states that small tests are usually faster and more stable, but that in itself is a vague statement. The size definition table explains the reason behind that. Things like network access, concurrency, etc. are inherently brittle because they introduce many more failure modes. They also make tests slower because most of those things introduce additional overhead compared to simple local computing.</p>
+
+<p>The brittleness of larger tests is the biggest problem. They increase the amount of false positives – test suite failures that don't indicate an actual problem in your software, but rather a problem in the platform or an external component. When you are focused on delivering, the last thing you need is more distractions.</p>
+
+<h2 id="test-approaches">Test approaches</h2>
+
+<p>Tests can also be categorized as follows. This categorization is orthogonal to the size dimension.</p>
+
+<ol>
+  <li><strong>TDD approach</strong> (test-driven development): to build the <em>thing right</em>.</li>
+  <li><strong>BDD approach</strong> (behavior-driven development): to build the <em>right thing</em>.</li>
+</ol>
+
+<p>The TDD approach is the one usually taken by developers. You write code and tests as part of your development process, and you take the practice of writing tests and writing testible code seriously.</p>
+
+<p>But just doing TDD doesn't necessarily ensure that you're building the thing that stakeholders asked for. That's where BDD comes in:</p>
+
+<ul>
+  <li>BDD focuses on domain knowledge and stakeholder collaboration.</li>
+  <li>BDD focuses on testing whether software behaves according to specification. Often times, the test names correspond to items in the requirements document.</li>
+</ul>
+
+<p>TDD is generally related to technical tests such as "test whether the bubblesort algorithm works", while BDD is generally related to stakeholder/requirements-oriented tests such as "if a bank account withdrawal happens in a foreign country, then the transaction should be flagged for fraud investigation".</p>
+
+<p>The idea of categorizing tests this way came from <a href="https://devonburriss.me/anatomy-of-automated-testing/">Devon Buriss' blog post on the anatomy of test suites</a>. He also has a post on <a href="https://devonburriss.me/acceptance-tests/">how to write good acceptance tests</a>.</p>
+
+<h2 id="relationship-to-existing-software-testing-terms">Relationship to existing software testing terms</h2>
+
+<p>In order to deepen our understanding, let's review the existing software testing terms and see how they relate to the "test size" and "approach" concepts I described above.</p>
+
+<table class="testing-terminology table table-bordered screen-desktop">
+    <thead class="thead-light">
+        <tr>
+            <th>Term</th>
+            <th>Usual size</th>
+            <th>Approach</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="name">Unit test</td>
+            <td class="size">
+                <ul>
+                    <li>Small</li>
+                    <li>Maybe medium</li>
+                </ul>
+            </td>
+            <td class="approach">TDD</td>
+            <td>
+                Tests a small, fundamental part of a program: a class, a function, a logically related set of functions, etc.
+            </td>
+        </tr>
+        <tr>
+            <td class="name">
+                <ul>
+                    <li><a href="https://www.softwaretestinghelp.com/what-is-component-testing-or-module-testing/">Component test</a></li>
+                    <li>Module test</li>
+                </ul>
+            </td>
+            <td class="size">Any</td>
+            <td class="approach">Any</td>
+            <td>
+                Probably the most useless term. A "component" or "module" could mean anything within the context of one program. Could be synonymous with unit test, service test or program test.
+            </td>
+        </tr>
+        <tr>
+            <td class="name">
+                <ul>
+                    <li><a href="https://www.mountaingoatsoftware.com/blog/the-forgotten-layer-of-the-test-automation-pyramid">Service test</a></li>
+                    <li>Program test</li>
+                </ul>
+            </td>
+            <td class="size">Any</td>
+            <td class="approach">Any</td>
+            <td>
+                Tests a program's functionality and behavior as a whole. This could be a small test (e.g. spawning the program with some arguments and checking its output). It could be a large test (e.g. an end-to-end, broad-stack UI test).
+            </td>
+        </tr>
+        <tr>
+            <td class="name">
+                <ul>
+                    <li><a href="https://www.martinfowler.com/bliki/BroadStackTest.html">Broad-stack test</a></li>
+                    <li>Integration test</li>
+                    <li>End-to-end test</li>
+                    <li>System test</li>
+                </ul>
+            </td>
+            <td class="size">Large</td>
+            <td class="approach">Any</td>
+            <td>
+                <p>
+                    Tests whether the broader system as a whole, e.g. multiple microservices, work well together.
+                </p>
+                <p>
+                    You don't necessarily run everything in such a test: maybe you only test one microservice and one immediate dependency service, while mocking everything else.
+                </p>
+                <p>
+                    The term "end-to-end" leans more towards testing everything.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="name">
+                <ul>
+                    <li>Contract test</li>
+                    <li>Interface test</li>
+                </ul>
+            </td>
+            <td class="size">
+                <ul>
+                    <li>Small</li>
+                    <li>Medium</li>
+                </ul>
+            </td>
+            <td class="approach">TDD</td>
+            <td>
+                An alternative to broad-stack testing. Instead of testing the program together with external systems, mock external systems away, and test whether the program's communication patterns with external systems are as expected.
+            </td>
+        </tr>
+        <tr>
+            <td class="name">UI test</td>
+            <td class="size">Any</td>
+            <td class="approach">Any</td>
+            <td>
+                When implemented by clicking around in the UI (e.g. Selenium) then it's usually a large test that touches the whole stack. But it's totally possible (and preferred) to test the UI in isolation, i.e. as a small test (unit test).
+            </td>
+        </tr>
+        <tr>
+            <td class="name">
+                <ul>
+                    <li>Acceptance test</li>
+                    <li>Functional test</li>
+                </ul>
+            </td>
+            <td class="size">Any</td>
+            <td class="approach">BDD</td>
+            <td>
+                Tests a feature, a part of the requirements document.
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="testing-terminology screen-mobile">
+    <div>
+        <h3>Unit test</h3>
+        <ul>
+            <li>Usual size: small, maybe medium</li>
+            <li>Approach: TDD</li>
+        </ul>
+        <p>
+            Tests a small, fundamental part of a program: a class, a function, a logically related set of functions, etc.
+        </p>
+    </div>
+    <div>
+        <h3><a href="https://www.softwaretestinghelp.com/what-is-component-testing-or-module-testing/">Component test</a></h3>
+        <h3>Module test</h3>
+        <ul>
+            <li>Usual size: any</li>
+            <li>Approach: any</li>
+        </ul>
+        <p>
+            Probably the most useless term. A "component" or "module" could mean anything within the context of one program. Could be synonymous with unit test, service test or program test.
+        </p>
+    </div>
+    <div>
+        <h3><a href="https://www.mountaingoatsoftware.com/blog/the-forgotten-layer-of-the-test-automation-pyramid">Service test</a></h3>
+        <h3>Program test</h3>
+        <ul>
+            <li>Usual size: any</li>
+            <li>Approach: any</li>
+        </ul>
+        <p>
+            Tests a program's functionality and behavior as a whole. This could be a small test (e.g. spawning the program with some arguments and checking its output). It could be a large test (e.g. an end-to-end, broad-stack UI test).
+        </p>
+    </div>
+    <div>
+        <h3><a href="https://www.martinfowler.com/bh3ki/BroadStackTest.html">Broad-stack test</a></h3>
+        <h3>Integration test</h3>
+        <h3>End-to-end test</h3>
+        <h3>System test</h3>
+        <ul>
+            <li>Usual size: large</li>
+            <li>Approach: any</li>
+        </ul>
+        <p>
+            Tests whether the broader system as a whole, e.g. multiple microservices, work well together.
+        </p>
+        <p>
+            You don't necessarily run everything in such a test: maybe you only test one microservice and one immediate dependency service, while mocking everything else.
+        </p>
+        <p>
+            The term "end-to-end" leans more towards testing everything.
+        </p>
+    </div>
+    <div>
+        <h3>Contract test</h3>
+        <h3>Interface test</h3>
+        <ul>
+            <li>Usual size: small, medium</li>
+            <li>Approach: TDD</li>
+        </ul>
+        <p>
+            An alternative to broad-stack testing. Instead of testing the program together with external systems, mock external systems away, and test whether the program's communication patterns with external systems are as expected.
+        </p>
+    </div>
+    <div>
+        <h3>UI test</h3>
+        <ul>
+            <li>Usual size: any</li>
+            <li>Approach: any</li>
+        </ul>
+        <p>
+            When implemented by clicking around in the UI (e.g. Selenium) then it's usually a large test that touches the whole stack. But it's totally possible (and preferred) to test the UI in isolation, i.e. as a small test (unit test).
+        </p>
+    </div>
+    <div>
+        <h3>Acceptance test</h3>
+        <h3>Functional test</h3>
+        <ul>
+            <li>Usual size: any</li>
+            <li>Approach: BDD</li>
+        </ul>
+        <p>
+            Tests a feature, a part of the requirements document.
+        </p>
+    </div>
+</div>
+
+<h2 id="summary">Summary</h2>
+
+<p>Existing software testing terms like "unit test", "component test", "integration test", etc. are too ill-defined to allow proper discussions. Thus, this post proposes a new way of reasoning about testing terms. We categorize tests along two dimensions:</p>
+
+<ul>
+  <li>The <em>size</em> dimension measures the <em>technical quality</em> of the tests: their potential to be stable and fast.</li>
+  <li>The <em>approach</em> dimension represents (a part of) the goal of the test: whether to build the thing right, or to build the right thing.</li>
+</ul>
+
+<p>The existing software testing terms have been explained in the context of the above categorization system in order to make more sense of them.</p>
+
+<p>The test pyramid tells us that it's a good idea to write predominantly small tests.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I hope this post has helped you make more sense of software testing terms and to focus on the things that matter: the goals and the technical quality of the tests.</p>
+
+<p>Although I've put forth some definitions here to help you, at the end of the day it's more important that <em>your team</em> has a common agreement on what things mean and how to reason about things. Please feel free to modify my proposal to your liking.</p>
+
+<p>In a future blog post, I'd like to give more recommendations w.r.t. how to write a good test suite. Please stay tuned.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-02-07-a-better-way-to-reason-about-software-testing-terms.html&amp;t=A%20better%20way%20to%20reason%20about%20software%20testing%20terms"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2020-02-07-a-better-way-to-reason-about-software-testing-terms.html&amp;text=A%20better%20way%20to%20reason%20about%20software%20testing%20terms%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

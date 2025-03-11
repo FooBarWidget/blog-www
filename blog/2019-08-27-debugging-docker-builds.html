@@ -1,0 +1,469 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Debugging Docker builds &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Learn how a Docker build works, and how to inspect the environment that the build steps were being run in.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Debugging Docker builds">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2019-08-27-debugging-docker-builds.html">
+    <meta property="og:description" content="Learn how a Docker build works, and how to inspect the environment that the build steps were being run in.">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2019-08-27-debugging-docker-builds.html">Debugging Docker builds</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2019-08-27" itemprop="datePublished">Aug 27, 2019</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/docker.html">Docker</a>, <a href="/blog/tags/debugging.html">Debugging</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2019-08-27-debugging-docker-builds.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;dmitri-popov-367732-unsplash-ba228fc4.jpg"
+          style=""
+          title="Photo by Dmitri Popov on Unsplash"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-08-27-debugging-docker-builds.html&amp;t=Debugging%20Docker%20builds"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-08-27-debugging-docker-builds.html&amp;text=Debugging%20Docker%20builds%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>One of the projects I'm working on has a CI/CD pipeline that builds Docker images. The Dockerfile runs <code>yarn install</code>, then <code>yarn build</code>. The latter runs the TypeScript compiler <code>tsc</code>. Everything was working fine, but one day the build failed with the following error:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>tsc: command not found
+</code></pre></div>
+<p>But TypeScript is still part of package.json. Nobody touched package.json or yarn.lock recently. Nobody could reproduce the problem locally with Docker: it only happened in the CI/CD pipeline. What is going on? We needed to <strong>debug</strong> the Docker build on the CI/CD server.</p>
+
+<p><strong></strong></p>
+
+<h2 id="how-docker-build-works">How Docker build works</h2>
+
+<p><code>docker build</code> works by running each Dockerfile step in a container. At the end of each step, that container is committed to a new image. The first step's container is created from the image specified in <code>FROM</code>. Subsequent steps' containers are created from the image produced by the previous step.</p>
+
+<p>For example take a look at the following <code>docker build</code> session:</p>
+
+<figure>
+  <img src="/images/2019/docker-build-no-cache-8c01b53f.png" alt="A docker build session without cache hits" />
+</figure>
+
+<p>(1) means that step 4 is being run in a container with ID 6d1e7bc3e824.</p>
+
+<p>(2) means that at the end of step 4, the container was committed to an image with ID b5184c19fdf0.</p>
+
+<h3 id="caching">Caching</h3>
+
+<p><code>docker build</code> supports <a href="https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#leverage-build-cache">caching</a>. If the same build step had already run successfully in the past, then that step will be skipped (no container will be spawned), and the image produced last time will be selected.</p>
+
+<p>If a certain step does not hit the cache, then all subsequent steps won't hit the cache either.</p>
+
+<p>Here's an example of what happens if we re-run the <code>docker build</code> shown in the previous section.</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>Sending build context to Docker daemon  7.168kB
+Step 1/6 : FROM node:10.15.1-alpine
+ ---&gt; fe6ff768f798
+Step 2/6 : WORKDIR /app
+ ---&gt; Using cache
+ ---&gt; d9b21154b260
+Step 3/6 : COPY package.json yarn.lock /app/
+ ---&gt; Using cache
+ ---&gt; da8e5d5d9c3e
+Step 4/6 : RUN yarn install --frozen-lockfile
+ ---&gt; Using cache
+ ---&gt; b5184c19fdf0
+Step 5/6 : COPY hello.ts /app/
+ ---&gt; Using cache
+ ---&gt; 6cc3ceaed6db
+Step 6/6 : RUN yarn run tsc hello.ts &amp;&amp; node hello.js
+ ---&gt; Using cache
+ ---&gt; 70eeee8d9ca6
+Successfully built 70eeee8d9ca6
+</code></pre></div>
+<p>As you can see, there are no container IDs in the above output.</p>
+
+<h2 id="inspecting-the-contents-of-a-step">Inspecting the contents of a step</h2>
+
+<p>Image that one day, your CI build fails like this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>Sending build context to Docker daemon  7.168kB
+Step 1/6 : FROM node:10.15.1-alpine
+ ---&gt; fe6ff768f798
+Step 2/6 : WORKDIR /app
+ ---&gt; Using cache
+ ---&gt; d9b21154b260
+Step 3/6 : COPY package.json yarn.lock /app/
+ ---&gt; Using cache
+ ---&gt; f72815b0addf
+Step 4/6 : RUN yarn install --frozen-lockfile
+ ---&gt; Using cache
+ ---&gt; 9ac88c8d0b9d
+Step 5/6 : COPY hello.ts /app/
+ ---&gt; Using cache
+ ---&gt; 27132fdd7a27
+Step 6/6 : RUN yarn run tsc hello.ts &amp;&amp; node hello.js
+ ---&gt; Running in 20f3e5cebec5
+yarn run v1.13.0
+$ tsc hello.ts
+tsc: command not found
+error Command failed with exit code 127.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+The command '/bin/sh -c yarn run tsc hello.ts &amp;&amp; node hello.js' returned a non-zero code: 1
+</code></pre></div>
+<p>And yet you cannot reproduce this locally. Perhaps we can find out the cause of this issue by inspecting the environment in which <code>yarn run tsc hello.ts</code> is run. To do this, we should login to the CI server and start a shell in the container that executed step 6.</p>
+
+<p>We can see in the output that the step ran in container 20f3e5cebec5. That step failed, so it didn't produce an image. The container has already exited, so we can't directly start a shell in that container. So we should <em>commit</em> the container to a temporary image, and then start a shell in that temporary image.</p>
+
+<p>On the CI server, we run:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>ci-server /ci-workspace$ docker commit 20f3e5cebec5 tempimagename
+ci-server /ci-workspace$ docker run -ti --rm tempimagename sh
+container /app$ _
+</code></pre></div>
+<p>We entered the container! Let's see whether we can reproduce the problem there:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>container /app$ yarn run tsc hello.ts
+yarn run v1.13.0
+$ tsc hello.ts
+tsc: not found
+error Command failed with exit code 127.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+</code></pre></div>
+<p>Yes we can. But why would tsc not be found when <code>yarn install</code> was run earlier? Let's inspect <code>node_modules</code>:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>container /app$ ls node_modules
+ls: node_modules: No such file or directory
+</code></pre></div>
+<p>Uh oh, node_modules isn't there. Maybe we can find a clue if we inspect the environment in which <code>yarn install</code> was run. We saw in the <code>docker build</code> output that step 4 matched cached image 27132fdd7a27. So let's exit the previous container and start a shell in image 27132fdd7a27:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>ci-server /ci-workspace$ docker run -ti --rm 27132fdd7a27 sh
+container /app$ ls node_modules
+ls: node_modules: No such file or directory
+</code></pre></div>
+<p>node_modules isn't there either!</p>
+
+<h2 id="analyzing-the-problem">Analyzing the problem</h2>
+
+<p>Based on the observed state, I suspect that when <code>yarn install</code> was run, it actually failed, but did not report an error. It didn't produce a node_modules directory, but <code>docker build</code> thought the step succeeded, and so it cached the (corrupt) result of the step. This explains why the CI build kept failing and why it couldn't be reproduced locally.</p>
+
+<p>The problem was solved by clearing the Docker cache on the CI server. This was done by removing all Docker images:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker rmi <span class="nt">-f</span> <span class="si">$(</span>docker images <span class="nt">-aq</span><span class="si">)</span>
+</code></pre></div>
+<p>Why Yarn didn't report an error is still a mystery. Maybe we'll find out one day.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>We can debug a <code>docker build</code> by inspecting the environment that the build steps were being run in.</p>
+
+<p>If a step produced an image or matched a cached image, then launch a shell container from that image directly:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker run <span class="nt">-ti</span> <span class="nt">--rm</span> &lt;IMAGE ID&gt; sh
+</code></pre></div>
+<p>If a step didn't produce an image (e.g. it failed), then commit that step's container to an image and launch a shell container from that temporary image:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>docker commit &lt;CONTAINER ID&gt; tempimagename
+docker run <span class="nt">-ti</span> <span class="nt">--rm</span> tempimagename sh
+</code></pre></div>
+<p>Good luck debugging!</p>
+
+<p><a href="https://www.reddit.com/r/docker/comments/cx0jbe/debugging_docker_builds/">Discuss this on Reddit</a></p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-08-27-debugging-docker-builds.html&amp;t=Debugging%20Docker%20builds"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-08-27-debugging-docker-builds.html&amp;text=Debugging%20Docker%20builds%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

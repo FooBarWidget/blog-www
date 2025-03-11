@@ -1,0 +1,556 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Why Ruby app servers break on macOS High Sierra and what can be done about it &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="People who have upgraded to macOS High Sierra and who are using a preforking app server such as Puma or Unicorn (with the right settings), may have noticed this error:
+
+objc[81924]: +[__NSPlaceholderDictionary initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+
+This cryptic error is triggered under the following conditions:
+
+
+  You are using Unicorn with preload_app, or Puma in cluster mode, or iodine in prefork mode, or Passenger in smart spawning mode.
+  And you are using MRI.
+  And your application uses a gem that is either directly or indirectly linked to the macOS Foundation framework.
+
+
+This error is caused by changes in how fork() behaves in High Sierra. This article covers:
+
+
+  What is this and why did Apple change it?
+  How are the Puma, Unicorn and Passenger authors responding to this?
+  What can you do about it, and do you need to do anything at all?
+  What should the wider Ruby ecosystem do?
+
+
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Why Ruby app servers break on macOS High Sierra and what can be done about it">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html">
+    <meta property="og:description" content="People who have upgraded to macOS High Sierra and who are using a preforking app server such as Puma or Unicorn (with the right settings), may have noticed this error:
+
+objc[81924]: +[__NSPlaceholderDictionary initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+
+This cryptic error is triggered under the following conditions:
+
+
+  You are using Unicorn with preload_app, or Puma in cluster mode, or iodine in prefork mode, or Passenger in smart spawning mode.
+  And you are using MRI.
+  And your application uses a gem that is either directly or indirectly linked to the macOS Foundation framework.
+
+
+This error is caused by changes in how fork() behaves in High Sierra. This article covers:
+
+
+  What is this and why did Apple change it?
+  How are the Puma, Unicorn and Passenger authors responding to this?
+  What can you do about it, and do you need to do anything at all?
+  What should the wider Ruby ecosystem do?
+
+
+">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2017/john-hanusek-466113-unsplash-e9ba0dd9.jpg">
+        <link rel="canonical" href="https://blog.phusion.nl/2017/10/13/why-ruby-app-servers-break-on-macos-high-sierra-and-what-can-be-done-about-it/">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html">Why Ruby app servers break on macOS High Sierra and what can be done about it</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2017-10-13" itemprop="datePublished">Oct 13, 2017</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/ruby.html">Ruby</a>, <a href="/blog/tags/macos.html">macOS</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2017&#x2F;john-hanusek-466113-unsplash-e9ba0dd9.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2017&#x2F;john-hanusek-466113-unsplash-e9ba0dd9.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html&amp;t=Why%20Ruby%20app%20servers%20break%20on%20macOS%20High%20Sierra%20and%20what%20can%20be%20done%20about%20it"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html&amp;text=Why%20Ruby%20app%20servers%20break%20on%20macOS%20High%20Sierra%20and%20what%20can%20be%20done%20about%20it%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>People who have upgraded to macOS High Sierra and who are using a preforking app server such as Puma or Unicorn (with the right settings), may have noticed this error:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>objc[81924]: +[__NSPlaceholderDictionary initialize] may have been in progress in another thread when fork() was called. We cannot safely call it or ignore it in the fork() child process. Crashing instead. Set a breakpoint on objc_initializeAfterForkError to debug.
+</code></pre></div>
+<p>This cryptic error is triggered under the following conditions:</p>
+
+<ol>
+  <li>You are using Unicorn with <code>preload_app</code>, or Puma in cluster mode, or iodine in prefork mode, or Passenger in smart spawning mode.</li>
+  <li>And you are using MRI.</li>
+  <li>And your application uses a gem that is either directly or indirectly linked to the macOS Foundation framework.</li>
+</ol>
+
+<p>This error is caused by changes in how <code>fork()</code> behaves in High Sierra. This article covers:</p>
+
+<ul>
+  <li>What is this and why did Apple change it?</li>
+  <li>How are the Puma, Unicorn and <a href="https://www.phusionpassenger.com/">Passenger</a> authors responding to this?</li>
+  <li>What can you do about it, and do you need to do anything at all?</li>
+  <li>What should the wider Ruby ecosystem do?</li>
+</ul>
+
+<p><strong></strong></p>
+
+<h2 id="what-is-forking">What is forking?</h2>
+
+<p>Puma, Unicorn and Passenger all implement a feature known as preforking. In Puma it's called the cluster mode, in Unicorn it's called <code>preload_app</code> and in Passenger it's called <a href="https://www.phusionpassenger.com/library/indepth/ruby/spawn_methods/">smart spawning</a>. This feature works like this:</p>
+
+<ol>
+  <li>The app server loads the application code and gem code inside its own process memory.</li>
+  <li>The app server tells the OS to make multiple exact, virtual copies of itself. This is called <a href="https://linux.die.net/man/2/fork">forking</a>, and the copies are called <em>child processes</em>.</li>
+  <li>The copies, not the original, are used to process requests.</li>
+</ol>
+
+<p>Forking is faster and uses less memory than simply starting multiple instances of the app server. First, forking a process is nearly instant. Compare this to starting another app server instance, which can take multiple seconds.</p>
+
+<p>Second, modern operating systems implement something called <em>virtual memory</em>. They don't really copy the original process's memory immediately. Instead they make a <em>copy-on-write</em> copy: the copy is virtual, and the actual memory is only copied the moment the original process or the child processes tries to modify that memory. What's more, only the modified memory region is copied, not the entire memory space.</p>
+
+<figure>
+  <img src="https://blog.phusion.nl/content/images/2017/10/smart_spawning-45966b9d.png" />
+  <figcaption>Preforking implementation in Passenger: <a href="https://www.phusionpassenger.com/library/indepth/ruby/spawn_methods/">smart spawning</a>. All processes, as well as the preloader, share the same application code and web framework code.
+ </figcaption>
+</figure>
+
+<p>Lots of software use this signature Unix technique. Apache and Nginx for example use forking extensively. And before Unix and Linux had good multithreading support, Unix software tended to implement concurrency by forking instead of spawning threads.</p>
+
+<p><img src="https://blog.phusion.nl/content/images/2017/10/danger.jpg" class="img-fullwidth" aria-hidden="true" /></p>
+
+<h2 id="forking-can-be-dangerous">Forking can be dangerous</h2>
+
+<p>Forking has one danger. It is fundamentally at odds with multithreading because of the following properties:</p>
+
+<ol>
+  <li>When you fork a process, only the thread that called <code>fork()</code> will remain. All other threads disappear.</li>
+  <li>At the moment a process forks, the other threads may be in arbitrary inconsistent states.</li>
+</ol>
+
+<p>The second property is especially dangerous. In general, you cannot assume anything at all about the application's state after forking a multithreaded application, so almost everything you do is dangerous. Any code that directly or indirectly reads or modifies memory can crash or freeze.</p>
+
+<p>Consider the following typical example, which we have reproduced multiple times during the development of Passenger:</p>
+
+<ol>
+  <li>An application spawns a thread X. This thread is allocating a memory buffer. The memory allocator locks a global mutex.</li>
+  <li>While thread X is allocating a memory buffer and also has a lock on the global mutex, the application's main thread forks.</li>
+  <li>The child process also allocates some memory. But the memory allocation mutex is locked, and X is gone, so it will never be unlocked. The child process deadlocks forever.</li>
+</ol>
+
+<p>The child cannot simply unlock that mutex either, because the fact that the mutex is still locked means that the heap is in an inconsistent state.</p>
+
+<h2 id="bitten-by-apples-good-intentions">Bitten by Apple's good intentions</h2>
+
+<p>Ironically, the Objective-C error mentioned at the beginning of this article is caused by the fact that Apple tried to <em>add</em> support for forking in their Objective-C libraries.</p>
+
+<p>What <em>can</em> you safely do after you've forked a multithreaded application? You can execute <a href="https://docs.oracle.com/cd/E19455-01/806-5257/gen-26/index.html">async-signal-safe code</a>. This is like thread-safe code, but with stronger guarantees. You can't rely on mutexes to define critical sections: the biggest critical section you can count on is one CPU instruction.</p>
+
+<p>Apple's Objective-C libraries have historically not supported any kind of async-signal-safety. If you try to call Objective-C libraries after forking then it would work most of the time, but when it fails it probably fails catastrophically.</p>
+
+<p>In High Sierra, Apple has <a href="http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html">defined some rules on what is allowed and not allowed after forking</a>, and they have also added async-signal-safety to a limited number of APIs. They have also started enforcing rules. Here is what happens if you call a disallowed function after forking:</p>
+
+<ul>
+  <li>
+    <p>Before High Sierra: appearing to work most of the time, occasionally failing catastrophically.</p>
+
+    <p>Most of the time, you're lucky and no other threads are doing important stuff. The application will appear to work fine. There may still be corrupted state somewhere, but you don't notice it — at least not immediately.</p>
+
+    <p>If you're unlucky then the application crashes or freezes in mysterious ways. In theory it can even accidentally wipe your hard drive.</p>
+  </li>
+  <li>
+    <p>Since High Sierra: Apple makes the application crash immediately.</p>
+  </li>
+</ul>
+
+<p>Takeaway: <strong>the problem has always been there, even before High Sierra and even on Linux</strong>. It's just that High Sierra has chosen to fail fast instead of silently allowing corruption.</p>
+
+<h2 id="how-app-servers-trigger-the-error">How app servers trigger the error</h2>
+
+<p>Ruby, Puma, Unicorn and Passenger don't have any direct dependencies on Apple's Objective-C libraries. But one of the gems you use may have such a dependency, either directly or indirectly. <a href="https://github.com/puma/puma/issues/1421#issuecomment-332620981">Jessica Stokes cites an example</a> with the <code>pg</code> gem:</p>
+
+<blockquote>
+  <p>[The application is] loading <code>pg</code> which has a native extension linked against Postgres’ libpq.5 which in turn is linked against Kerberos.framework and LDAP.framework.</p>
+</blockquote>
+
+<p>So here's an example trace:</p>
+
+<ol>
+  <li>User starts app server in preforking mode.</li>
+  <li>Ruby loads gem bundle.</li>
+  <li>App server forks.</li>
+  <li>App calls a gem function, which (maybe through multiple layers) calls <code>NSPlaceholderDictionary.initialize</code>.</li>
+  <li>One of the rules that Apple defined is that you may not call Foundation class initializers after forking. This function crashes the process immediately.</li>
+</ol>
+
+<h2 id="responses-from-app-server-authors">Responses from app server authors</h2>
+
+<p>This issue has spawned a long discussion <a href="https://github.com/puma/puma/issues/1421">on the Puma issue tracker</a> and <a href="https://www.reddit.com/r/ruby/comments/72qxjv/kernelfork_broken_in_macos_1013_high_sierra_puma/">on Reddit /r/ruby</a>. <a href="https://github.com/ticky">Jessica Stokes</a>, <a href="https://github.com/mistydemeo">Misty De Meo</a> and <a href="https://github.com/boazsegev">Boaz Segev</a> have done a lot of the initial work involved with figuring out the root cause of the problem, as well as finding workarounds (which we will cover later in this article).</p>
+
+<p>It is clear the app servers are not the root cause of the issue, and that app servers cannot really <em>solve</em> the issue.</p>
+
+<p>A major part of the discussion revolved around where a workaround belongs. Should app servers invoke the workaround, because they are the ones implementing preforking? Or should the workaround be included in Ruby, because it should provide a consistent environment across all operating systems? Or should users activate the workaround manually? As of 2017 October 13, the general consensus in that thread is that the workaround should be included in Ruby. While participants have also identified reasons why the Ruby core team may not want to include the workaround, it wouldn't hurt to try to convince them.</p>
+
+<p>On October 12, Jessica <a href="https://bugs.ruby-lang.org/issues/14009">opened an issue report</a> on the Ruby bug tracker in an effort to convince the Ruby core team to include the workaround. I am also actively participating in this issue report because I too think that a workaround belongs in Ruby.</p>
+
+<h3 id="puma-and-iodine-no-decision-so-far">Puma and iodine: no decision so far</h3>
+
+<p>The Puma and iodine authors have not made a decision so far on what to do with the workarounds.</p>
+
+<h3 id="unicorn-chosen-to-take-no-action">Unicorn: chosen to take no action</h3>
+
+<p>The Unicorn author, Eric Wong, has <a href="https://bogomips.org/unicorn-public/20170804191023.GA28511@dcvr/T/">chosen not to take action on this issue</a> on the grounds that he has no access to macOS.</p>
+
+<h3 id="passenger-workaround-included">Passenger: workaround included</h3>
+
+<p>Passenger's philosophy is to put user experience at the forefront. We believe that writing and managing apps should be easy, hassle-free and productive, and that software should serve users. Therefore we have chosen to include the workaround in the next Passenger version (5.1.11*), so that everything Just Works(tm) as much as possible.</p>
+
+<h2 id="how-to-make-your-app-server-work-activating-the-workaround-manually">How to make your app server work: activating the workaround manually</h2>
+
+<p>So if you are not using Passenger then you will have to manually activate a workaround to suppress the error message. Set the following environment variable before starting Puma, Unicorn or iodine:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+</code></pre></div>
+<p>If you are using Passenger, upgrade to 5.1.11, which will activate a workaround automatically.</p>
+
+<p>Activating this workaround effectively returns macOS to pre-High Sierra behavior.</p>
+
+<ul>
+  <li>Note: that 5.1.9 and 5.1.10 will be skipped. We'll announce in the near future why that is so.</li>
+</ul>
+
+<p><img src="https://blog.phusion.nl/wp-content/uploads/2015/01/hope1.jpg" class="img-fullwidth" aria-hidden="true" /></p>
+
+<h2 id="towards-a-real-solution-cooperation-from-gem-authors-required">Towards a real solution: cooperation from gem authors required</h2>
+
+<p>The workaround does not really solve the problem. The fundamental problem – that forking is at odds with multithreading – is still there, even before High Sierra, and even on Linux. The workaround merely disables a safety check, and users are just lucky that they don't run into bad situations <em>most</em> of the time.</p>
+
+<p>To <em>guarantee</em> that forking is safe, the application must not be running any threads at the point of fork (or the other threads must only be executing async-signal-safe code). MRI can guarantee this about its own code to some degree, but third party native libraries may spawn their own threads. So any gems that the user pulls in must not spawn threads until the app server has forked.</p>
+
+<p>I propose the following to authors of gems with native extensions: all such gems should ensure that no threads are spawned during <code>require</code> time. Instead, they should ensure that threads are only spawned after calling an explicit initialization method. That way, users can configure the app server in such a way that threads are only initialized after forking, while preserving the advantages of copy-on-write preforking.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Ruby app servers use the preforking technique to improve speed and efficiency, but this technique is not without its dangers. In particular, it is fundamentally at odds with multithreading, no matter which operating system is used (it's not a macOS-specific problem). High Sierra introduced some sanity checks to prevent some of the pitfalls related to forking, which is why you may run into errors when using Ruby app servers on High Sierra.</p>
+
+<p>When using Puma, Unicorn or iodine, you have to activate a workaround manually, but when using Passenger you simply have to upgrade to 5.1.11 and everything will be taken care of for you automatically.</p>
+
+<p>To truly solve the problem, cooperation from the wider Ruby ecosystem is required. But until then, the status quo seems to be good enough in most situations, even though it's only because of luck of the draw.</p>
+
+<h3 id="checkout-these-references-and-related-stuff">Checkout these references and related stuff</h3>
+
+<p>Please consider reading the references below to deepen your understanding about this issue.</p>
+
+<p>Happy developing!</p>
+
+<ul>
+  <li><a href="https://github.com/puma/puma/issues/1421">Puma issue #1421</a> — a discussion by Puma developers and various gem authors about the nature of this issue and potential solutions.</li>
+  <li><a href="https://www.reddit.com/r/ruby/comments/72qxjv/kernelfork_broken_in_macos_1013_high_sierra_puma/">Reddit discussion thread about this issue</a></li>
+  <li><a href="https://bugs.ruby-lang.org/issues/14009">Ruby bug tracker discussion thread about this issue</a></li>
+  <li><a href="https://linux.die.net/man/2/fork">Linux manual page: fork() system call</a></li>
+  <li><a href="https://www.safaribooksonline.com/library/view/web-performance-tuning/1565923790/apbs08.html">The Preforking Model</a> — Web Performance Tuning by Patrick Killelea</li>
+  <li><a href="https://www.phusionpassenger.com/library/indepth/ruby/spawn_methods/">Spawning methods explained</a> — Passenger Library</li>
+  <li><a href="http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html">Objective-C and fork() in macOS 10.13</a></li>
+  <li><a href="https://docs.oracle.com/cd/E19455-01/806-5257/gen-26/index.html">Signal Handlers and Async-Signal Safety</a> — Solaris Multithreaded Programming Guide</li>
+</ul>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html&amp;t=Why%20Ruby%20app%20servers%20break%20on%20macOS%20High%20Sierra%20and%20what%20can%20be%20done%20about%20it"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2017-10-13-why-ruby-app-servers-break-on-macos-high-sierra.html&amp;text=Why%20Ruby%20app%20servers%20break%20on%20macOS%20High%20Sierra%20and%20what%20can%20be%20done%20about%20it%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

@@ -1,0 +1,590 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>How Passenger 6 Generic Language Support is implemented &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="At Phusion, we recently unveiled an important feature in Passenger 6: generic language support. We also held a coding livestream and Q&amp;A session on November 1st. Here’s wa recording of the livestream, as well as a overview and table of contents.
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="How Passenger 6 Generic Language Support is implemented">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-11-06-how-passenger-6-generic-language-support-is-implemented.html">
+    <meta property="og:description" content="At Phusion, we recently unveiled an important feature in Passenger 6: generic language support. We also held a coding livestream and Q&amp;A session on November 1st. Here’s wa recording of the livestream, as well as a overview and table of contents.
+">
+            <meta property="og:image" content="https://www.joyfulbikeshedding.comhttps://blog.phusion.nl/content/images/2018/11/gls2.jpg">
+        <link rel="canonical" href="https://blog.phusion.nl/2018/11/06/how-passenger-6-generic-language-support-is-implemented/">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-11-06-how-passenger-6-generic-language-support-is-implemented.html">How Passenger 6 Generic Language Support is implemented</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-11-06" itemprop="datePublished">Nov  6, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/passenger.html">Passenger</a>, <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/screencasts.html">Screencasts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-11-06-how-passenger-6-generic-language-support-is-implemented.html&amp;t=How%20Passenger%206%20Generic%20Language%20Support%20is%20implemented"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-11-06-how-passenger-6-generic-language-support-is-implemented.html&amp;text=How%20Passenger%206%20Generic%20Language%20Support%20is%20implemented%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>At Phusion, we recently <a href="https://github.com/phusion/passenger/issues/2135">unveiled</a> an important feature in version 6 of the <a href="https://www.phusionpassenger.com">Passenger application server</a>. Passenger 5 supports Ruby, Python and Node.js, but v6 will support <em>all</em> programming languages. We call this effort <strong>generic language support</strong>, or "GLS" for short.</p>
+
+<figure>
+   <img src="https://blog.phusion.nl/content/images/2018/11/gls2.jpg" />
+   <figcaption>Artwork for Passenger 6, to be released.</figcaption>
+</figure>
+
+<p>We held a <strong>coding livestream and Q&amp;A session</strong> on November 1st. The session didn't only show the feature being implemented, but it also explained Passenger's code and architecture. Questions such as the following were answered:</p>
+
+<ul>
+  <li>What does the code that's being written, actually do?</li>
+  <li>How does it fit in the architecture?</li>
+  <li>What are caveats (e.g. security) to look out for?</li>
+  <li>What patterns does Passenger use to ensure high performance?</li>
+  <li>How do certain C++ language features compare to other languages like Ruby, JavaScript, Java, etc.?</li>
+</ul>
+
+<p>Today, we are publishing its recording, presentation files and diagrams. Scroll down in this blog post and you will find a <strong>table of contents</strong>, as well as a highlights review for the recording.</p>
+
+<div class="embed-responsive embed-responsive-16by9"><iframe src="https://www.youtube.com/embed/QyMQSYdctv0" class="embed-responsive-item" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" style="margin-top: 40px;"></iframe></div>
+<p style="text-align: center"><i>(see table of contents below)</i></p>
+
+<p>What do you think of GLS? How would you use it? <a href="https://github.com/phusion/passenger/issues/2135">Join the discussion on Github</a>, <a href="https://news.ycombinator.com/submitlink?u=https://blog.phusion.nl/2018/11/06/how-passenger-6-generic-language-support-is-implemented/&amp;t=How%20Passenger%206%20Generic%20Language%20Support%20is%20implemented">discuss on Hacker News</a> or <a href="https://twitter.com/phusion_nl">send us a Tweet</a>!</p>
+
+<h2 id="introductory-presentation">1. Introductory presentation</h2>
+
+<p>The video begins with an introductory presentation (until 15:58) which covers:</p>
+
+<ol>
+  <li>Motivation and goal</li>
+  <li>Passenger architecture 101</li>
+  <li>The implementation plan</li>
+</ol>
+
+<p>You can also find the presentation on <a href="https://www.slideshare.net/HongliLai/passenger-6-generic-language-support-presentation/HongliLai/passenger-6-generic-language-support-presentation">Slideshare</a>.</p>
+
+<h3 id="motivation-and-goal">1.1. Motivation and goal</h3>
+
+<ul>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1m14s"><strong>Why GLS — 1:14</strong></a></p>
+
+    <p>Why did we embark on this journey? What do we want to achieve?</p>
+
+    <p>See also: section 1 ("Why GLS?") of <a href="https://github.com/phusion/passenger/issues/2135">the Github issue</a>.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2m05s"><strong>UX goal — 2:05</strong></a></p>
+
+    <p>Describes the UX are we trying to implement.</p>
+
+    <p>See also: section 3 ("User experience") of <a href="https://github.com/phusion/passenger/issues/2135">the Github issue</a>.</p>
+  </li>
+</ul>
+
+<h3 id="passenger-architecture-101">1.2. Passenger architecture 101</h3>
+
+<ul>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=3m37s"><strong>Overview — 3:37</strong></a></p>
+
+    <p>High-level Passenger architecture overview. Shows which high-level components Passenger consists of.</p>
+
+    <p><a href="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Code-architecture-overview.svg"><img src="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Code-architecture-overview.svg" class="img-thumbnail" /></a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=5m58s"><strong>Passenger architecture 101: agent — 5:58</strong></a></p>
+
+    <p>Deep-dives into the Passenger agent and its internal components: Watchdog, Core and more.</p>
+
+    <p><a href="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Agent.svg"><img src="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Agent.svg" class="img-thumbnail" /></a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=6m35s"><strong>Passenger architecture 101: core — 6:35</strong></a></p>
+
+    <p>Deep-dives into the Passenger Core and explains the responsibilities of its internal components and how they interact with each other: Controller, ApplicationPool, SpawningKit and more.</p>
+
+    <p>Same diagram as above applies.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=8m27s"><strong>Passenger architecture 101: request handling interaction flow — 8:27</strong></a></p>
+
+    <p>Explains when Passenger processes a request, which components a request flows through and how they interact with each other.</p>
+
+    <p><a href="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Request-handling-flow--simplified-.svg"><img src="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Request-handling-flow--simplified-.svg" class="img-thumbnail" /></a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=10m25s"><strong>Implementation plan: existing spawn flow (auto-supported apps) — 10:25</strong></a></p>
+
+    <p>Turns out a lot of the groundwork for GLS had already been laid in Passenger 5.3.0! The remaining work to be done consists of activating this groundwork.</p>
+
+    <p>But what is the groundwork that we need to make use of? In order to understand that, we need to compare it with how the current spawn flow works, i.e. how Ruby, Python and Node.js apps are spawned. These apps are also called "auto-supported" apps because, unlike the generic option, they work automatically, and don't require configuration in Passenger.</p>
+
+    <p><a href="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Spawn-flow_-auto-supported-app--simplified-.svg"><img src="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Spawn-flow_-auto-supported-app--simplified-.svg" class="img-thumbnail" /></a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=12m29s"><strong>Implementation plan: generic spawn flow — 12:29</strong></a></p>
+
+    <p>Explains how the GLS groundwork — the "generic spawn flow" — works.</p>
+
+    <p><a href="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Spawn-flow_-generic-app--simplified-.svg"><img src="https://blog.phusion.nl/content/images/2018/11/Passenger-architecture---Spawn-flow_-generic-app--simplified-.svg" class="img-thumbnail" /></a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=13m50s"><strong>Implementation plan: concrete steps — 13:50</strong></a></p>
+
+    <p><a href="https://blog.phusion.nl/content/images/2018/11/GLS-implementation-plan.jpg"><img src="https://blog.phusion.nl/content/images/2018/11/GLS-implementation-plan.jpg" class="img-thumbnail" /></a></p>
+  </li>
+</ul>
+
+<h2 id="coding-session">2. Coding session</h2>
+
+<p>The coding session starts at <a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=15m58s">15:58</a> and consists roughly of these parts:</p>
+
+<ol>
+  <li>Apache integration mode (plus some shared code)</li>
+  <li>Nginx integration mode</li>
+  <li>Standalone mode</li>
+  <li>Core Controller, ApplicationPool and SpawningKit</li>
+  <li>Single-app mode (for Standalone mode + builtin engine)</li>
+  <li>Compile and test</li>
+</ol>
+
+<h3 id="apache-integration-mode">2.1. Apache integration mode</h3>
+
+<ul>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=16m10s"><strong>Apache integration mode: configuration system — 16:10</strong></a></p>
+
+    <p>Demonstrates how to add a new Apache config option. This is much more painful than one might think. Because Apache's module system is written in C, adding a new config option requires a ton of boilerplate code — especially so if you want to keep the codebase clean and maintainable, e.g. by doing proper separation of concerns between components.</p>
+
+    <p>In order to fight boilerplate, and increase development velocity, we introduce a <strong>Ruby-based code generation system</strong> (which generates C/C++ code) that we wrote for the Passenger codebase.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=24m10s"><strong>Apache integration mode: application type autodetection — 24:10</strong></a></p>
+
+    <p>The integration mode layer is the first component in the interaction sequence that needs to know what kind of app is associated with a request. With GLS, a new type of application (namely the "generic" category) has been introduced. Here we code the required modifications in the Apache integration layer.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=32m50s"><strong>Apache integration mode: passing request to Core Controller — 32:50</strong></a></p>
+
+    <p>The Apache module must somehow pass the application type information to the Core Controller. Here we show what modifications need to be made.</p>
+
+    <p>Special points of interest:</p>
+
+    <ul>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=34m15s">Secure headers (34:15)</a> — The Apache module communicates with the Core Controller via HTTP. Secure headers is a mechanism we invented for passing private Apache &lt;-&gt; Core Controller information. This data cannot be tampered with by HTTP clients.</li>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=35m44s">StaticString (35:44)</a> — A lightweight data structure is used throughout the Passenger codebase to ensure a <a href="https://www.rubyraptor.org/how-we-made-raptor-up-to-4x-faster-than-unicorn-and-up-to-2x-faster-than-puma-torquebox/#zero_copy">zero-copy architecture</a>. A comparison to how string management works in other languages is explored.</li>
+    </ul>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=41m17s"><strong>Shared application type autodetector core: AppTypeDetector — 41:17</strong></a></p>
+
+    <p>The core logic for autodetecting application types actually lives in its own class (the AppTypeDetector), that's reused across multiple integration modes. The Apache integration layer "merely" makes use of this class. This part of the video shows the modifications that need to be made in this class.</p>
+
+    <p>Special points of interest:</p>
+
+    <ul>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=46m50s">C++ header guards vs files/modules in other languages (46:50)</a></li>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=50m00s">Discussion on security concerns w.r.t. reading arbitrary files in the Passenger Core (50:00)</a> — In particular, symlink and FIFO attacks, and possible mitigations, are discussed.</li>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h03m40s">Patterns for guaranteed resource cleanup (1:03:40)</a> — C++ Resource Acquisition Is Initialization (RAII) compared to constructs from other languages (typically try-finally/begin-ensure)</li>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h00m15s">More security concerns: slurping &amp; size limits (1:00:15)</a></li>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h07m20s">More security concerns: preventing leaking file contents via error messages and logs	(1:07:20)</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="nginx-integration-mode">2.2. Nginx integration mode</h3>
+
+<ul>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h13m05s"><strong>Nginx integration mode: configuration system — 1:13:05</strong></a></p>
+
+    <p>Just like in the Apache integration mode, writing Nginx module configuration is riddled with boilerplate. Here, too, we've invented a code generation system to combat that problem.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h16m00s"><strong>Nginx integration mode: application type autodetection — 01:16:00</strong></a></p>
+
+    <p>Here we modify the Nginx module's content handler to allow it to detect generic apps.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h22m09s"><strong>Nginx integration mode: passing request to Core Controller — 1:22:09</strong></a></p>
+
+    <p>Just like in the Apache integration mode, we pass the necessary information to the Core Controller via an HTTP protocol.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h28m10s"><strong>AppTypeDetector C bindings — 1:28:10</strong></a></p>
+
+    <p>The AppTypeDetector class — which contains the core logic for detecting application types and which is shared between multiple integration modes — is written in C++. However Nginx modules must be written in C. Here we write a C binding so that the Nginx module can make use of the AppTypeDetector C++ class.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h31m40s"><strong>Nginx integration mode: passing request to Core Controller (cont'd) — 1:31:40</strong></a></p>
+
+    <p>Continue passing the necessary information to the Core Controller via an HTTP protocol.</p>
+  </li>
+</ul>
+
+<h3 id="standalone-mode">2.3. Standalone mode</h3>
+
+<p>At [position 1:35:02 in the video], we modify Passenger Standalone with the necessary changes. This mostly consists of adding the necessary configuration options.</p>
+
+<p>Recall that Passenger Standalone (when using the default 'nginx' engine) just runs Passenger+Nginx under the hood. So this part demonstrates how to edit the internal Nginx config template.</p>
+
+<p>This part also shows — when Passenger is used with the 'builtin' engine) — how to modify the Passenger Core CLI arguments in order to receive the new config options.</p>
+
+<h3 id="core-controller-applicationpool-and-spawningkit">2.4. Core Controller, ApplicationPool and SpawningKit</h3>
+
+<p>With all the necessary changes made in the integration mode components, it's time to modify more fundamental parts of Passenger.</p>
+
+<ul>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h44m32s"><strong>Core controller: processing info from web server / performing our own autodetection — 1:44:32</strong></a></p>
+
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=8m27s">Recall</a> that Nginx and Apache pass the request the Core Controller. The Core Controller must process that info somehow, so that's what we will implement in this part of the video.</p>
+
+    <p>Special points of interest:</p>
+
+    <ul>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h48m35s">Pool options caching (1:48:35)</a> — How we cache config option values for performance.</li>
+      <li><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h51m10s">Secure headers and how they are represented (1:51:10)</a></li>
+      <li>[Linked strings (1:52:30)] — A <a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h52m30s">special data structure</a>(https://www.rubyraptor.org/pointer-tagging-linked-string-hash-tables-turbocaching-and-other-raptor-optimizations/#linked_strings) for reducing memory usage and ensuring zero-copy architecture.</li>
+    </ul>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=1h59m28s"><strong>SpawningKit configuration — 1:59:28</strong></a></p>
+
+    <p>One caveat will be discussed: <a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h01m45s">temporary C++ strings and the dangers of dangling pointers (2:01:45)</a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h05m17s"><strong>User switching rules modifications — 2:05:17</strong></a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h09m15s"><strong>Terminate application process when no longer needed — 2:09:15</strong></a></p>
+  </li>
+</ul>
+
+<h3 id="single-app-mode">2.5. Single-app mode</h3>
+
+<p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h10m16s">At position 2:10:16 of the video</a>, we describe the single-app mode, which is activated when Passenger Standalone is configured to use the 'builtin' engine.</p>
+
+<p>Special points of interest:</p>
+
+<ul>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h10m50s">The ConfigKit framework (2:10:50)</a></p>
+
+    <p>An <a href="https://github.com/phusion/passenger/blob/stable-5.3/src/cxx_supportlib/ConfigKit/README.md">internal framework</a> for per-component configuration &amp; schema composition.</p>
+
+    <p>Passenger is architected as a collection of loosely-coupled components. Each component is designed to be as simple as possible, and could be relatively easily extracted to be used outside of the Passenger codebase. Complex behavior is obtained by composing multiple components.</p>
+
+    <p>The configuration options supported in Passenger is thus a composition of the configuration options supported by each component. ConfigKit makes composing configuration options possible and robust, and introduces typechecking, compositional translation and validation.</p>
+
+    <p>If you've used something like React, then you may know the pains of drilling-down props. This is also one of the problems ConfigKit addresses, though in a totally different way than e.g. Redux.</p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h24m55s">The single-app-mode initialization function &amp; initial autodetection (2:24:55)</a></p>
+  </li>
+</ul>
+
+<h3 id="compile-and-test">2.6. Compile and test</h3>
+
+<p>Finally, at <a href="https://www.youtube.com/watch?v=QyMQSYdctv0&amp;t=2h34m55s">position 02:34:55 of the video</a> we compile Passenger and test the feature.</p>
+
+<h2 id="join-the-discussion">Join the discussion</h2>
+
+<p>What do you think of GLS? How would you use it? <a href="https://github.com/phusion/passenger/issues/2135">Join the discussion on Github</a>, <a href="https://news.ycombinator.com/submitlink?u=https://blog.phusion.nl/2018/11/06/how-passenger-6-generic-language-support-is-implemented/&amp;t=How%20Passenger%206%20Generic%20Language%20Support%20is%20implemented">discuss on Hacker News</a> or <a href="https://twitter.com/phusion_nl">send us a Tweet</a>!</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-11-06-how-passenger-6-generic-language-support-is-implemented.html&amp;t=How%20Passenger%206%20Generic%20Language%20Support%20is%20implemented"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-11-06-how-passenger-6-generic-language-support-is-implemented.html&amp;text=How%20Passenger%206%20Generic%20Language%20Support%20is%20implemented%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

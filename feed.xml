@@ -1,0 +1,1366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Hongli Lai</title>
+  <subtitle>On Coding, Startups &amp; Life</subtitle>
+  <id>https://www.joyfulbikeshedding.com/blog</id>
+  <link href="https://www.joyfulbikeshedding.com/blog"/>
+  <link href="https://www.joyfulbikeshedding.com/feed.xml" rel="self"/>
+  <updated>2025-03-07T00:00:00+00:00</updated>
+  <author>
+    <name>Hongli Lai</name>
+  </author>
+  <entry>
+    <title>EBS StorageClass with VolumeBindingMode Immediate is incompatible with pod topology pinning</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2025-03-07-ebs-storageclass-with-volumebindingmode-immediate-is-incompatible-with-pod-topology-pinning.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2025-03-07-ebs-storageclass-with-volumebindingmode-immediate-is-incompatible-with-pod-topology-pinning.html</id>
+    <published>2025-03-07T00:00:00+00:00</published>
+    <updated>2025-03-11T09:31:03+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;We ran into a weird pod scheduling error on Amazon Elastic Kubernetes Service (EKS). Some pods, which scheduled just fine in the past, now stay in Pending with the following event:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Failed to schedule pod, incompatible with nodepool "default",
+daemonset...&lt;/p&gt;
+&lt;/blockquote&gt;</summary>
+    <content type="html">&lt;p&gt;We ran into a weird pod scheduling error on Amazon Elastic Kubernetes Service (EKS). Some pods, which scheduled just fine in the past, now stay in Pending with the following event:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Failed to schedule pod, incompatible with nodepool "default",
+daemonset overhead={"cpu": "300m", "memory": "2096Mi", "pods": "7"},
+incompatible requirements, key nodepool, nodepool In [static] not in nodepool In [default];
+key topology.kubernetes.io/zone, topology.kubernetes.1o/zone DoesNotExist not in topology.kubernetes.io/zone In [eu-west-la eu-west-1b eu-west-1c];
+incompatible with nodepool "static", daemonset overhead={"cpu": "300m", "memory": "2096Mi", "pods": "7"},
+incompatible requirements, key topology.kubernetes.io/zone, topology.kubernetes.io/zone DoesNotExist not in topology.kubernetes.io/zone In [eu-west-la eu-west-1b eu-west-1c]&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This error is definitely related to the fact that the pod tries to pin to a specific availability zone. Removing the node selector makes the problem go away.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight yaml"&gt;&lt;code&gt;&lt;span class="na"&gt;nodeSelector&lt;/span&gt;&lt;span class="pi"&gt;:&lt;/span&gt;
+  &lt;span class="na"&gt;topology.kubernetes.io/zone&lt;/span&gt;&lt;span class="pi"&gt;:&lt;/span&gt; &lt;span class="s"&gt;eu-west-1c&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The error event is very unreadable and does not hint at all at what the cause is. Luckily, an &lt;a href="https://github.com/aws/karpenter-provider-aws/issues/4192#issuecomment-1620232578"&gt;Internet search result&lt;/a&gt; for this error nudged us into the right direction:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;You're trying to mount EBS volumes from three different zones. We add a zonal requirement to the pod for each one, and the intersection of those is the empty set that is represented as topology.kubernetes.io/zone DoesNotExist.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Upon double-checking the pod's volumes, we found a PersistentVolumeClaim that's bound to an EBS PersistentVolume in eu-west-1a. That's why the pod cannot be scheduled! EBS volumes can only be attached by pods living in the same availability zone.&lt;/p&gt;
+
+&lt;p&gt;But why did this problem suddenly occur? It turns out to be related to a recent EBS StorageClass change we rolled out: we changed the VolumeBindingMode from WaitForFirstConsumer to Immediate, so that that PersistentVolumeClaims always create a PersistentVolume even when no pod claims them yet. We did this in order to fix a problem with Velero: Velero would partially fail backups if it encounters PersistentVolumeClaims that are not yet bound to a PersistentVolume.&lt;/p&gt;
+
+&lt;p&gt;With VolumeBindingMode=Immediately, the PersistentVolume is immediately created in a random availability zone, which may not match the availability zone that the pod is pinned to. We conclude that for EBS StorageClasses, using VolumeBindingMode Immediate is inherently incompatible with pod topology pinning.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Causes of major page faults</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2025-02-10-causes-of-major-page-faults.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2025-02-10-causes-of-major-page-faults.html</id>
+    <published>2025-02-10T00:00:00+00:00</published>
+    <updated>2025-03-11T09:31:03+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;There's a common Prometheus alert called "NodeMemoryMajorPagesFaults". It's &lt;a href="https://github.com/prometheus/node_exporter/blob/v1.8.2/docs/node-mixin/alerts/alerts.libsonnet#L347"&gt;part of the Node Exporter's node-mixin project&lt;/a&gt; and also &lt;a href="https://github.com/prometheus-community/helm-charts/blob/prometheus-node-exporter-4.43.1/charts/kube-prometheus-stack/templates/prometheus/rules-1.14/node-exporter.yaml#L652"&gt;included in the kube-prometheus-stack default alert rules&lt;/a&gt;.&lt;/p&gt;
+
+&lt;picture&gt;&lt;img src="/images/2025/node-memory-major-page-faults-alert-49d1e9fd.png" alt="NodeMemoryMajorPageFaults alert" style="box-shadow: 0px 0px 4px #bbb"&gt;&lt;/picture&gt;
+
+&lt;p&gt;But what does this alert mean, and what do you do about it? This article helps you form a good mental model and provides practical guidance.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;There's a common Prometheus alert called "NodeMemoryMajorPagesFaults". It's &lt;a href="https://github.com/prometheus/node_exporter/blob/v1.8.2/docs/node-mixin/alerts/alerts.libsonnet#L347"&gt;part of the Node Exporter's node-mixin project&lt;/a&gt; and also &lt;a href="https://github.com/prometheus-community/helm-charts/blob/prometheus-node-exporter-4.43.1/charts/kube-prometheus-stack/templates/prometheus/rules-1.14/node-exporter.yaml#L652"&gt;included in the kube-prometheus-stack default alert rules&lt;/a&gt;.&lt;/p&gt;
+
+&lt;picture&gt;&lt;img src="/images/2025/node-memory-major-page-faults-alert-49d1e9fd.png" alt="NodeMemoryMajorPageFaults alert" style="box-shadow: 0px 0px 4px #bbb" /&gt;&lt;/picture&gt;
+
+&lt;p&gt;But what does this alert mean, and what do you do about it? This article helps you form a good mental model and provides practical guidance.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id="what-are-major-page-faults-anyway"&gt;What are major page faults anyway?&lt;/h2&gt;
+
+&lt;p&gt;"Major page fault" means that an application is &lt;em&gt;using the memory management system&lt;/em&gt; to either read data from disk, or to swap in memory.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Despite the ominous name, it doesn't mean that the system is encountering errors. However, since it indicates heavy disk reads, it &lt;em&gt;could&lt;/em&gt; still indicate that something is wrong.&lt;/li&gt;
+  &lt;li&gt;The part "using the memory management system" is key: major page faults are a separate I/O pathway from the normal one.&lt;/li&gt;
+  &lt;li&gt;The part about "reading data" is also important: major page faults are strictly about &lt;em&gt;reading&lt;/em&gt; data.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A NodeMemoryMajorPageFaults alert should thus be interpreted as "there is heavy disk read activity, either reading from file or from swap".&lt;/p&gt;
+
+&lt;h3 id="virtual-memory"&gt;Virtual memory&lt;/h3&gt;
+
+&lt;p&gt;To understand why major page faults are called this way and what they actually do, we have to first understand &lt;em&gt;virtual memory&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;When an application uses memory, one might think that the application uses a part of your physical RAM.&lt;/p&gt;
+
+&lt;picture&gt;&lt;img src="/images/2025/real-memory-concept.drawio-2ce02d3f.svg" alt="Concept showing that an application uses a part of physical RAM" /&gt;&lt;/picture&gt;
+
+&lt;p&gt;But on modern operating systems, applications do not access the physical RAM directly. Instead, they access a virtual representation of RAM — virtual memory. This virtual memory is "infinite" in size (256 TB on x86_64), and is also called the &lt;em&gt;address space&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Virtual memory is organized in chunks called "pages". A page might be backed by a piece of the physical RAM, but also pieces of other things, like a swap disk or a file. Obviously your real RAM is not as big as the address space. The fact that a page can be swapped to disk is one of the reasons that a large address space is possible.&lt;/p&gt;
+
+&lt;picture&gt;&lt;img src="/images/2025/virtual-memory-concept.drawio-a2950c56.svg" alt="Concept depicting virtual memory: each page is backed by RAM, swap or file" /&gt;&lt;/picture&gt;
+
+&lt;p&gt;Having parts of virtual memory be backed by a file is also called "memory mapping", or "mmap" in short.&lt;/p&gt;
+
+&lt;p&gt;When an application reads from a page that's not backed by RAM, the CPU complains and raises a "major page fault" event. This triggers the operating system kernel, which then fetches the data from swap or a file.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;"Minor page faults" exist too, but that's out of the scope of this article.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This fetching isn't done on every access: such data is &lt;em&gt;cached&lt;/em&gt; in RAM. The kernel calls this storage location the "page cache". This cache can be evicted when the system is low on RAM.&lt;/p&gt;
+
+&lt;h2 id="who-is-producing-major-page-faults"&gt;Who is producing major page faults?&lt;/h2&gt;
+
+&lt;p&gt;The Prometheus alert doesn't tell you which process caused major page faults. How can you find out?&lt;/p&gt;
+
+&lt;p&gt;Through some preliminary Internet searches I've found that &lt;a href="https://manpages.ubuntu.com/manpages/noble/man5/proc_pid_stat.5.html"&gt;/proc/$PID/stat&lt;/a&gt; has a "majflt" field that shows the number of major page faults produced so far by this process. So we &lt;em&gt;could&lt;/em&gt; write a shell script that parses /proc/*/stat, waits for a period of time, then parses those files again, and compares the results to find the offending process. But this is rather cumbersome.&lt;/p&gt;
+
+&lt;p&gt;Major page faults involve I/O, so maybe they'd show up in &lt;a href="https://www.tecmint.com/iotop-monitor-linux-disk-io-activity-per-process/"&gt;iotop&lt;/a&gt;. However, since they use a special I/O pathway, it's unclear whether they'd actually appear in iotop. We have to verify this.&lt;/p&gt;
+
+&lt;p&gt;And finally, even if we've managed to identify the offending process, how can we find the offending file? Or if it's caused by swapping, how can we see that?&lt;/p&gt;
+
+&lt;p&gt;Before continuing the research, we need a way to reproduce major page faults.&lt;/p&gt;
+
+&lt;h3 id="reproducing-file-backed-major-page-faults"&gt;Reproducing file-backed major page faults&lt;/h3&gt;
+
+&lt;p&gt;We write a C program which:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Maps a file into memory.&lt;/li&gt;
+  &lt;li&gt;In an infinite loop:
+    &lt;ol&gt;
+      &lt;li&gt;Sequentially read all parts the file-backed memory address, on a page-by-page basis.&lt;/li&gt;
+      &lt;li&gt;Tell the kernel that it's free to evict the page cache for this file.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Step 2.2 is important. Reading the file-backed memory addresses will result in all that data being cached in RAM. Once cached, reading from those addresses will no longer produce major page faults.&lt;/p&gt;
+
+&lt;p&gt;Telling the kernel to evict the page cache requires two actions:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;The application must mark the memory address as "unused". This is done with the &lt;a href="https://man7.org/linux/man-pages/man2/madvise.2.html"&gt;madvise(MADV_DONTNEED)&lt;/a&gt; call. However, this is only a hint, and during testing I've found that the Linux kernel does not actually evict the page cache. That's where action 2 comes in.&lt;/li&gt;
+  &lt;li&gt;Tell the kernel to evict its page cache by running &lt;code&gt;echo 1 &amp;gt; /proc/sys/vm/drop_caches&lt;/code&gt;. Note that this only works if &lt;code&gt;madvise(MADV_DONTNEED)&lt;/code&gt; was called.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Source code of the C program:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight cpp"&gt;&lt;code&gt;&lt;span class="c1"&gt;// Save as filemajorpagefaults.c&lt;/span&gt;
+&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;sys/mman.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;sys/stat.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;fcntl.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[])&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argc&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Usage: %s &amp;lt;file-to-map&amp;gt;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+        &lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Open a file in read-only mode.&lt;/span&gt;
+    &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;O_RDONLY&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;perror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"open"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Obtain the file size.&lt;/span&gt;
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="nc"&gt;stat&lt;/span&gt; &lt;span class="n"&gt;st&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fstat&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;st&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;perror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"fstat"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;close&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;filesize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;st&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;st_size&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filesize&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Error: File size is zero.&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;close&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Memory–map the file.&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;map&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mmap&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;filesize&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;PROT_READ&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;MAP_SHARED&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;map&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;MAP_FAILED&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;perror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"mmap"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;close&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;pagesize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getpagesize&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Infinite loop: drop pages and then access the mapping to force a major fault.&lt;/span&gt;
+    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;// Access the mapping. This read will trigger a page fault&lt;/span&gt;
+        &lt;span class="c1"&gt;// if the page is not in cache.&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;filesize&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;pagesize&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="k"&gt;volatile&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;map&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// Use the value to avoid compiler optimizations.&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+
+        &lt;span class="c1"&gt;// Advise the OS that the pages are no longer needed.&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;madvise&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;map&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;filesize&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;MADV_DONTNEED&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;!=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="n"&gt;perror&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"madvise"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="n"&gt;exit&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We create a large file (let's say 512 MB), then we compile and run the program:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;dd &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/dev/zero &lt;span class="nv"&gt;of&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;block &lt;span class="nv"&gt;bs&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1M &lt;span class="nv"&gt;count&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;512
+cc &lt;span class="nt"&gt;-Wall&lt;/span&gt; filemajorpagefaults.c &lt;span class="nt"&gt;-o&lt;/span&gt; filemajorpagefaults
+./filemajorpagefaults block
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In another terminal, we continuously tell the kernel to evict the page cache:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="k"&gt;while &lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;do &lt;/span&gt;&lt;span class="nb"&gt;echo &lt;/span&gt;1 &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; /proc/sys/vm/drop_caches&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="k"&gt;done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now that the simulation and the page cache eviction loop are running, let's verify that the program actually generates major page faults. According to &lt;a href="https://manpages.ubuntu.com/manpages/noble/man5/proc_pid_stat.5.html"&gt;the /proc/$PID/stat man page&lt;/a&gt;, majflt is field number 12, so:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;cat&lt;/span&gt; /proc/&lt;span class="si"&gt;$(&lt;/span&gt;pidof filemajorpagefaults&lt;span class="si"&gt;)&lt;/span&gt;/stat | &lt;span class="nb"&gt;awk&lt;/span&gt; &lt;span class="s1"&gt;'{ print $12 }'&lt;/span&gt;
+&lt;span class="c"&gt;# =&amp;gt; prints: 53&lt;/span&gt;
+&lt;span class="nb"&gt;sleep &lt;/span&gt;60
+&lt;span class="nb"&gt;cat&lt;/span&gt; /proc/&lt;span class="si"&gt;$(&lt;/span&gt;pidof filemajorpagefaults&lt;span class="si"&gt;)&lt;/span&gt;/stat | &lt;span class="nb"&gt;awk&lt;/span&gt; &lt;span class="s1"&gt;'{ print $12 }'&lt;/span&gt;
+&lt;span class="c"&gt;# =&amp;gt; prints: 450&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The counter goes up. Success: we've reproduced file-backed major page faults!&lt;/p&gt;
+
+&lt;h3 id="reproducing-swap-backed-major-page-faults"&gt;Reproducing swap-backed major page faults&lt;/h3&gt;
+
+&lt;p&gt;We write a C program that:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Allocates more memory than we have RAM.&lt;/li&gt;
+  &lt;li&gt;In an infinite loop, sequentially read every page in the allocated memory range.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Because not all parts of the allocated memory fit in RAM, this should result in constant swapping.&lt;/p&gt;
+
+&lt;p&gt;Source code:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight cpp"&gt;&lt;code&gt;&lt;span class="c1"&gt;// Save as swapmajorpagefaults.c&lt;/span&gt;
+&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;string.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;
+&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;main&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;argc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[])&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argc&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Usage: %s &amp;lt;size in MB&amp;gt;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Convert the command-line argument to a long integer.&lt;/span&gt;
+    &lt;span class="kt"&gt;long&lt;/span&gt; &lt;span class="n"&gt;mb&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;atol&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;mb&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Invalid size provided: %s&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;argv&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Calculate total size in bytes.&lt;/span&gt;
+    &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;totalsize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;mb&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;1024&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;1024&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Allocate the memory.&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;malloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;totalsize&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;fprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;stderr&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"Memory allocation failed&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;EXIT_FAILURE&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Initialize the memory: force the kernel to actually allocate it.&lt;/span&gt;
+    &lt;span class="n"&gt;memset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;totalsize&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Get the system's page size.&lt;/span&gt;
+    &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;pagesize&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;getpagesize&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// Infinite loop: sequentially read a byte from every page.&lt;/span&gt;
+    &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;totalsize&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;offset&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;pagesize&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="c1"&gt;// The volatile keyword forces the compiler to actually perform the read.&lt;/span&gt;
+            &lt;span class="k"&gt;volatile&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;buffer&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;offset&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+            &lt;span class="c1"&gt;// Optionally, do something with 'value' to prevent further optimization.&lt;/span&gt;
+            &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Before running the program, let's check the system's memory usage:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:            7751        1075        5661          15        1303        6675
+Swap:              0           0           0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The system has 7551 MB RAM, no swap. We create a 1.5 GB swap file and enable it:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;dd if=/dev/zero of=block bs=1M count=1536
+chmod 600 block
+mkswap block
+sudo swapon block
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We then compile and run the program:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;cc &lt;span class="nt"&gt;-Wall&lt;/span&gt; swapmajorpagefaults.c &lt;span class="nt"&gt;-o&lt;/span&gt; swapmajorpagefaults
+./swapmajorpagefaults 7751
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;After some time, we confirm that the system is swapping:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ free -m
+               total        used        free      shared  buff/cache   available
+Mem:            7751        7648         163           0         151         102
+Swap:           1535        1140         395
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We also confirm that the program generates major page faults:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;cat&lt;/span&gt; /proc/&lt;span class="si"&gt;$(&lt;/span&gt;pidof swapmajorpagefaults&lt;span class="si"&gt;)&lt;/span&gt;/stat | &lt;span class="nb"&gt;awk&lt;/span&gt; &lt;span class="s1"&gt;'{ print $12 }'&lt;/span&gt;
+&lt;span class="c"&gt;# =&amp;gt; prints: 803&lt;/span&gt;
+&lt;span class="nb"&gt;sleep &lt;/span&gt;5
+&lt;span class="nb"&gt;cat&lt;/span&gt; /proc/&lt;span class="si"&gt;$(&lt;/span&gt;pidof swapmajorpagefaults&lt;span class="si"&gt;)&lt;/span&gt;/stat | &lt;span class="nb"&gt;awk&lt;/span&gt; &lt;span class="s1"&gt;'{ print $12 }'&lt;/span&gt;
+&lt;span class="c"&gt;# =&amp;gt; prints: 18838&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;h3 id="does-iotop-show-major-page-faults"&gt;Does iotop show major page faults?&lt;/h3&gt;
+
+&lt;p&gt;When filemajorpagefaults and the associated page cache eviction loop are running, we see that there's a lot of disk read activity. So, &lt;strong&gt;yes, iotop &lt;em&gt;does&lt;/em&gt; show file-backed major page faults.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;One thing of note: by default, iotop sorts processes by disk write, so it doesn't show the majorpagefaults simulator on top. To see it, I had to press the left arrow key to sort by disk read.&lt;/p&gt;
+
+&lt;picture&gt;&lt;img src="/images/2025/iotop-filemajorpagefaults-3933eb50.png" alt="iotop showing the filemajorpagefaults simulator producing a lot of disk read activity" /&gt;&lt;/picture&gt;
+
+&lt;p&gt;When swapmajorpagefaults is running, we also see that there's a lot of disk read activity. So, &lt;strong&gt;yes, iotop &lt;em&gt;also&lt;/em&gt; shows swap-backed major page faults.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;picture&gt;&lt;img src="/images/2025/iotop-swapmajorpagefaults-94fd1ab8.png" alt="iotop showing the swapmajorpagefaults simulator producing a lot of disk read activity" /&gt;&lt;/picture&gt;
+
+&lt;h3 id="identifying-exact-major-page-fault-source"&gt;Identifying exact major page fault source&lt;/h3&gt;
+
+&lt;p&gt;Since iotop allows us to identify the offending process, how do we know whether it's caused by file access or by swapping? And if it's caused by file access, how do we know which file? Here's a possible methodology:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Find out the &lt;em&gt;virtual memory address&lt;/em&gt; at which the major page fault occurred.&lt;/li&gt;
+  &lt;li&gt;Look in /proc/$PID/maps to see whether that address maps to a file. If not, then it's swap.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For finding out the major page fault memory address, here are some methods:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Using the &lt;a href="https://perfwiki.github.io/"&gt;perf&lt;/a&gt; whole-system profiler.&lt;/li&gt;
+  &lt;li&gt;Using &lt;a href="2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html.md"&gt;eBPF tracing&lt;/a&gt; (&lt;a href="https://github.com/bpftrace/bpftrace"&gt;bpftrace&lt;/a&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Both tools make use of kernel tracing events under the hood. &lt;code&gt;perf&lt;/code&gt; is more limited in its user interface and supports fewer kinds of tracing events, but that also makes it relatively easy to use. &lt;code&gt;bpftrace&lt;/code&gt; is more flexible and complicated, allowing you to write arbitrary tracing logic.&lt;/p&gt;
+
+&lt;p&gt;They also differ in where they perform the tracing. &lt;code&gt;perf&lt;/code&gt; performs most of its logic outside the kernel (in userspace), while &lt;code&gt;bpftrace&lt;/code&gt; uploads an eBPF program to the kernel and runs it there. The latter is what allows &lt;code&gt;bpftrace&lt;/code&gt; to be more flexible.&lt;/p&gt;
+
+&lt;p&gt;Some of my production systems run on &lt;a href="https://aws.amazon.com/bottlerocket/"&gt;AWS BottleRocket&lt;/a&gt;. Its kernel is very locked down, so it doesn't have a convenient tracing event that &lt;code&gt;perf&lt;/code&gt; can use. Instead, I have to use more cumbersome events that require more logic to extract the data that I want. That is only possible using &lt;code&gt;bpftrace&lt;/code&gt;. So I will cover using both tools.&lt;/p&gt;
+
+&lt;h4 id="inspecting-file-backed-major-page-faults-with-perf"&gt;Inspecting file-backed major page faults with &lt;code&gt;perf&lt;/code&gt;&lt;/h4&gt;
+
+&lt;p&gt;We start by installing Perf:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# Debian/Ubuntu:&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;apt &lt;span class="nb"&gt;install &lt;/span&gt;linux-tools-common linux-tools-generic
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;We run &lt;code&gt;perf list&lt;/code&gt; to see what kind of tracing events we can use:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ perf list
+List of pre-defined events (to be used in -e or -M):
+
+  ...
+  major-faults                                       [Software event]
+  ...
+  page-faults OR faults                              [Software event]
+  ...
+  exceptions:page_fault_user                         [Tracepoint event]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;There are several candidates which seem useful. Let's try "page-faults" first. We run filemajorpagefaults and the associated page cache eviction loop, then we run &lt;code&gt;perf record&lt;/code&gt; to start recording events:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nb"&gt;sudo &lt;/span&gt;perf record &lt;span class="nt"&gt;-e&lt;/span&gt; page-faults &lt;span class="nt"&gt;-p&lt;/span&gt; &lt;span class="si"&gt;$(&lt;/span&gt;pidof filemajorpagefaults&lt;span class="si"&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;After a few seconds, we press Ctrl-C to stop the recording. We then inspect the recorded events with &lt;code&gt;perf script&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo perf script
+ filemajorpagefa   52415 237518.889179:    1 page-faults:   6535fd11440a main+0x1c1 (/home/hongli/filemajorpagefaults)
+ filemajorpagefa   52415 237519.122898:    1 page-faults:   6535fd11440a main+0x1c1 (/home/hongli/filemajorpagefaults)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;In the output we see a bunch of things:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The program name ("filemajorpagefa", truncated)&lt;/li&gt;
+  &lt;li&gt;The PID (52415)&lt;/li&gt;
+  &lt;li&gt;A timestamp (237518.889179)&lt;/li&gt;
+  &lt;li&gt;The event name (page-faults)&lt;/li&gt;
+  &lt;li&gt;A virtual memory address (0x6535fd11440a)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Now, let's check /proc/$PID/maps. Here's a snippet:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;6535fd114000-6535fd115000 r-xp 00001000 08:01 256489  /home/hongli/filemajorpagefaults
+...
+71f48d800000-71f4ad800000 r--s 00000000 08:01 257163  /home/hongli/block
+71f4ad800000-71f4ad828000 r--p 00000000 08:01 150182  /usr/lib/x86_64-linux-gnu/libc.so.6
+
+^-- start    ^-- end      ^-- permissions             ^-- filename (optional)
+    addr         addr
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;ul&gt;
+  &lt;li&gt;Column 1 (6535fd114000-6535fd115000) is an address range.&lt;/li&gt;
+  &lt;li&gt;Column 2 (r-xp) is the permissions on that address range, e.g., whether it's read-write or read-only.&lt;/li&gt;
+  &lt;li&gt;Column 6 (/home/hongli/filemajorpagefaults) whether this range maps to a file.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We expected the memory address reported by &lt;code&gt;perf&lt;/code&gt; (0x6535fd11440a) to map to /home/hongli/block, but we see that it actually maps to /home/hongli/filemajorpagefaults! Furthermore, this address range is executable ("x"), which means that it contains code. So 0x6535fd11440a is not the address at which the page fault occurred, but the address at which the CPU was executing instructions (instruction pointer)!&lt;/p&gt;
+
+&lt;p&gt;Upon inspecting the &lt;code&gt;perf record&lt;/code&gt; and &lt;code&gt;perf script&lt;/code&gt; man pages and performing additional Internet searches, it seems that the &lt;code&gt;page-faults&lt;/code&gt; event is incapable of recording the memory access address.&lt;/p&gt;
+
+&lt;p&gt;Running the test again with the &lt;code&gt;major-faults&lt;/code&gt; event yields the same result.&lt;/p&gt;
+
+&lt;p&gt;Might we fare better with &lt;code&gt;exceptions:page_fault_user&lt;/code&gt;?&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="nb"&gt;sudo &lt;/span&gt;perf record &lt;span class="nt"&gt;-e&lt;/span&gt; exceptions:page_fault_user &lt;span class="nt"&gt;-p&lt;/span&gt; &lt;span class="si"&gt;$(&lt;/span&gt;pidof filemajorpagefaults&lt;span class="si"&gt;)&lt;/span&gt;
+&amp;lt;pressed Ctrl-C after a few seconds&amp;gt;
+&lt;span class="o"&gt;[&lt;/span&gt; perf record: Woken up 1 &lt;span class="nb"&gt;times &lt;/span&gt;to write data &lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="o"&gt;[&lt;/span&gt; perf record: Captured and wrote 0.010 MB perf.data &lt;span class="o"&gt;(&lt;/span&gt;32 samples&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;]&lt;/span&gt;
+
+&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="nb"&gt;sudo &lt;/span&gt;perf script
+ filemajorpagefa   52415 &lt;span class="o"&gt;[&lt;/span&gt;002] 238352.611105: exceptions:page_fault_user: &lt;span class="nv"&gt;address&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0x71f4acc00000 &lt;span class="nv"&gt;ip&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0x6535fd11440a &lt;span class="nv"&gt;error_code&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0x4
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Success: there's now an &lt;code&gt;address&lt;/code&gt; field in addition to an &lt;code&gt;ip&lt;/code&gt; (instruction pointer) field! Looking in /proc/$PID/maps, 0x71f4acc00000 indeed belongs to the range mapped to /home/hongli/block!&lt;/p&gt;
+
+&lt;h4 id="inspecting-swap-backed-major-page-faults-with-perf"&gt;Inspecting swap-backed major page faults with &lt;code&gt;perf&lt;/code&gt;&lt;/h4&gt;
+
+&lt;p&gt;Let's see how things look like when major page faults are caused by swapping. With swapmajorpagefaults running, we start recording page faults:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo perf record -e exceptions:page_fault_user -p $(pidof swapmajorpagefaults)
+&amp;lt;pressed Ctrl-C after a few seconds&amp;gt;
+[ perf record: Woken up 7 times to write data ]
+[ perf record: Captured and wrote 2.048 MB perf.data (24276 samples) ]
+
+$ sudo perf script
+ swapmajorpagefa   66634 [002] 293739.435811: exceptions:page_fault_user: address=0x7303e3871000 ip=0x7305213993ba error_code=0x6
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Let's look for 0x7303e3871000 in /proc/66634/maps:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;73033ca00000-730521101000 rw-p 00000000 00:00 0
+
+^-- start    ^-- end      ^-- permissions             ^-- filename (optional)
+    addr         addr
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;This address range has no filename. This means that it belongs to "normal" memory and is not backed by a file. Any major page faults occurring here is due to swapping.&lt;/p&gt;
+
+&lt;h4 id="inspecting-major-page-faults-with-bpftrace"&gt;Inspecting major page faults with &lt;code&gt;bpftrace&lt;/code&gt;&lt;/h4&gt;
+
+&lt;p&gt;Recall the reason I'm showing how to use bpftrace: on BottleRocket I can't use the &lt;code&gt;exceptions:page_fault_user&lt;/code&gt; event. There are other events, but they can only be used by bpftrace.&lt;/p&gt;
+
+&lt;p&gt;What events can we use? One candidate I was able to find, is &lt;code&gt;kprobe:handle_mm_fault&lt;/code&gt;. This corresponds to the &lt;a href="https://github.com/torvalds/linux/blob/v6.1/mm/memory.c#L5187"&gt;handle_mm_fault&lt;/a&gt; function in the Linux kernel. According to &lt;a href="https://www.amazon.com/Understanding-Linux-Virtual-Memory-Manager/dp/0131453483"&gt;Understanding the Linux Virtual Memory Manager&lt;/a&gt; by Mel Gorman, &lt;code&gt;handle_mm_fault&lt;/code&gt; is the function where page fault handling starts (&lt;a href="https://www.kernel.org/doc/gorman/html/understand/understand007.html"&gt;chapter 4.6.1 Handling a Page Fault&lt;/a&gt;). This function is architecture-independent (calls architecture-specific parts internally) and its functionality and function signature are relatively stable over time.&lt;/p&gt;
+
+&lt;p&gt;According to the &lt;a href="https://github.com/torvalds/linux/blob/master/mm/memory.c#L6166"&gt;code&lt;/a&gt;, there is an &lt;code&gt;address&lt;/code&gt; parameter that identifies the page fault address. But we also want to distinguish between major and minor page faults. This distinction is not passed to &lt;code&gt;handle_mm_fault&lt;/code&gt;. Instead, its return value tells us whether the page fault was a major one. From the book:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The possible return values for handle_mm_fault() are VM_FAULT_MINOR, VM_FAULT_MAJOR, VM_FAULT_SIGBUS and VM_FAULT_OOM.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In bpftrace we don't have access to constants (which only exist during C compile time). So we have to look for the integer value for &lt;code&gt;VM_FAULT_MAJOR&lt;/code&gt;. After a search, we find its definition in the C header &lt;a href="https://github.com/torvalds/linux/blob/v6.1/include/linux/mm_types.h#L870"&gt;mm_types.h&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight cpp"&gt;&lt;code&gt;&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="n"&gt;vm_fault_reason&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="p"&gt;...&lt;/span&gt;
+    &lt;span class="n"&gt;VM_FAULT_MAJOR&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;__force&lt;/span&gt; &lt;span class="n"&gt;vm_fault_t&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="mh"&gt;0x000004&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="p"&gt;...&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;So the value is 4.&lt;/p&gt;
+
+&lt;p&gt;With this knowledge, we can start designing a bpftrace script. We want to:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Attach to the &lt;code&gt;kprobe:handle_mm_fault&lt;/code&gt; event and extract the &lt;code&gt;address&lt;/code&gt; argument.&lt;/li&gt;
+  &lt;li&gt;Attach to the &lt;code&gt;kretprobe:handle_mm_fault&lt;/code&gt; event (which is fired when the function returns) and check whether the returned bitmask contains &lt;code&gt;VM_FAULT_MAJOR&lt;/code&gt;. If so, then log the address.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Source:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight perl"&gt;&lt;code&gt;&lt;span class="sr"&gt;//&lt;/span&gt; &lt;span class="nv"&gt;Save&lt;/span&gt; &lt;span class="nv"&gt;as&lt;/span&gt; &lt;span class="nv"&gt;handle_mm_fault&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="nv"&gt;bpftrace&lt;/span&gt;
+
+&lt;span class="sr"&gt;//&lt;/span&gt; &lt;span class="nv"&gt;Change&lt;/span&gt; &lt;span class="mi"&gt;581572&lt;/span&gt; &lt;span class="nv"&gt;to&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;page&lt;/span&gt; &lt;span class="nv"&gt;fault&lt;/span&gt; &lt;span class="nv"&gt;simulator&lt;/span&gt;&lt;span class="p"&gt;'&lt;/span&gt;&lt;span class="s1"&gt;s actual PID.
+kprobe:handle_mm_fault /pid == 581572/
+{
+    // Save the faulting address (arg1, or 2nd parameter) to a map, keyed by thread ID.
+    // We&lt;/span&gt;&lt;span class="p"&gt;'&lt;/span&gt;&lt;span class="nv"&gt;ll&lt;/span&gt; &lt;span class="k"&gt;use&lt;/span&gt; &lt;span class="nv"&gt;it&lt;/span&gt; &lt;span class="nv"&gt;later&lt;/span&gt; &lt;span class="nv"&gt;when&lt;/span&gt; &lt;span class="nv"&gt;handle_mm_fault&lt;/span&gt; &lt;span class="nv"&gt;returns&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;in&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;kretprobe&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+    &lt;span class="nv"&gt;@fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;arg1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="sr"&gt;//&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="nv"&gt;is&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;value&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="nv"&gt;VM_FAULT_MAJOR&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+&lt;span class="nv"&gt;kretprobe:handle_mm_fault&lt;/span&gt; &lt;span class="sr"&gt;/(@fault[tid] &amp;amp;&amp;amp; (retval &amp;amp; 4))/&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="sr"&gt;//&lt;/span&gt; &lt;span class="nv"&gt;If&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;value&lt;/span&gt; &lt;span class="nv"&gt;has&lt;/span&gt; &lt;span class="nv"&gt;VM_FAULT_MAJOR&lt;/span&gt; &lt;span class="nv"&gt;set&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="nv"&gt;the&lt;/span&gt; &lt;span class="nv"&gt;faulting&lt;/span&gt; &lt;span class="nv"&gt;address&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;
+    &lt;span class="nb"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;("&lt;/span&gt;&lt;span class="s2"&gt;major page fault at 0x%lx&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="p"&gt;",&lt;/span&gt; &lt;span class="nv"&gt;@fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="nb"&gt;delete&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;@fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="nv"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now let's install bpftrace:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# Debian/Ubuntu&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;apt &lt;span class="nb"&gt;install &lt;/span&gt;bpftrace
+
+&lt;span class="c"&gt;# AWS BottleRocket (in admin container) and Amazon Linux&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;yum &lt;span class="nb"&gt;install &lt;/span&gt;bpftrace
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;With a major page fault simulator running (either filemajorpagefaults or swapmajorpagefaults), we run bpftrace:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# bpftrace handle_mm_fault.bpftrace
+Attaching 2 probes...
+major page fault at 0xffff87b39000
+major page fault at 0xffff8e029000
+major page fault at 0xffff81859000
+...
+(press Ctrl-C)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Now that we have a bunch of addresses, let's search for them in /proc/581572/maps:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;ffff6f3d9000-ffff8f3d9000 r--s 00000000 103:10 35875842   /block
+
+^-- start    ^-- end      ^-- permissions                 ^-- filename (optional)
+    addr         addr
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Success! We've verified that the major page fault is related to the file &lt;code&gt;/block&lt;/code&gt;!&lt;/p&gt;
+
+&lt;p&gt;Or, if the &lt;code&gt;/proc/$PID/maps&lt;/code&gt; entry contains no filename or if the filename is "[heap]", then that means it's a normal memory range with no file backing. Any major page faults are then caused by swapping.&lt;/p&gt;
+
+&lt;h3 id="conclusion"&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Major page faults means that there's heavy disk read activity, either from a file or from swap. We've developed a method for investigating the source of major page faults.&lt;/p&gt;
+
+&lt;p&gt;First, identify the offending process by looking in &lt;code&gt;iotop&lt;/code&gt; and sorting by disk read (pressing the left arrow key).&lt;/p&gt;
+
+&lt;p&gt;To determine whether the page faults are due to file access or swapping:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Use &lt;a href="https://perfwiki.github.io/"&gt;perf&lt;/a&gt; or &lt;a href="https://github.com/bpftrace/bpftrace"&gt;bpftrace&lt;/a&gt; to identify the memory addresses at which page faults.&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;p&gt;&lt;code&gt;perf&lt;/code&gt; is suitable for most systems. To install it:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# Debian/Ubuntu:&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;apt &lt;span class="nb"&gt;install &lt;/span&gt;linux-tools-common linux-tools-generic
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+        &lt;p&gt;Start tracing on the exceptions:page_fault_user event, and run it for a few seconds:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;$ sudo perf record -e exceptions:page_fault_user -p &amp;lt;PID&amp;gt;
+&amp;lt;pressed Ctrl-C after a few seconds&amp;gt;
+[ perf record: Woken up 7 times to write data ]
+[ perf record: Captured and wrote 2.048 MB perf.data (24276 samples) ]
+
+$ sudo perf script
+swapmajorpagefa   66634 [002] 293739.435811: exceptions:page_fault_user: address=0x7303e3871000 ip=0x7305213993ba error_code=0x6
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+        &lt;p&gt;The &lt;code&gt;addres=...&lt;/code&gt; column tells you the memory address at which the page fault occurred.&lt;/p&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;p&gt;&lt;code&gt;bpftrace&lt;/code&gt; is suitable for AWS BottleRocket. To install it:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;&lt;span class="c"&gt;# Debian/Ubuntu&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;apt &lt;span class="nb"&gt;install &lt;/span&gt;bpftrace
+
+&lt;span class="c"&gt;# AWS BottleRocket (in admin container) and Amazon Linux&lt;/span&gt;
+&lt;span class="nb"&gt;sudo &lt;/span&gt;yum &lt;span class="nb"&gt;install &lt;/span&gt;bpftrace
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+        &lt;p&gt;Save the following bpftrace script. Make sure you change the PID 581572 on line 3 to the actual PID you want to inspect.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight cpp"&gt;&lt;code&gt;&lt;span class="c1"&gt;// Save as handle_mm_fault.bpftrace&lt;/span&gt;
+
+&lt;span class="n"&gt;kprobe&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="n"&gt;handle_mm_fault&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;pid&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;581572&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// Save the faulting address (arg1, or 2nd parameter) keyed by thread ID.&lt;/span&gt;
+    &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;arg1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="c1"&gt;// 4 is the value for VM_FAULT_MAJOR.&lt;/span&gt;
+&lt;span class="nl"&gt;kretprobe:&lt;/span&gt;&lt;span class="n"&gt;handle_mm_fault&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;retval&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;
+&lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// If the return value has VM_FAULT_MAJOR set, print the faulting address.&lt;/span&gt;
+    &lt;span class="n"&gt;printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"major page fault at 0x%lx&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="k"&gt;delete&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="err"&gt;@&lt;/span&gt;&lt;span class="n"&gt;fault&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;tid&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+        &lt;p&gt;Run the trace:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;# bpftrace handle_mm_fault.bpftrace
+Attaching 2 probes...
+major page fault at 0xffff87b39000
+major page fault at 0xffff8e029000
+major page fault at 0xffff81859000
+...
+(press Ctrl-C)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Look up the address in &lt;code&gt;/proc/$PID/maps&lt;/code&gt;. It contains entries in this format:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight plaintext"&gt;&lt;code&gt;71f48d800000-71f4ad800000 r--s 00000000 08:01 257163  /home/hongli/block
+
+^-- start    ^-- end      ^-- permissions             ^-- filename (optional)
+ addr         addr
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Column 1 (71f48d800000-71f4ad800000) is the address range in hexadecimal.&lt;/li&gt;
+      &lt;li&gt;Column 2 (r–s) is the permissions on that address range, e.g., whether it's read-write or read-only.&lt;/li&gt;
+      &lt;li&gt;Column 6 (/home/hongli/block) is an optional filename.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;If there's no filename or if the filename is "[heap]", then it means the major page faults are caused by swapping.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Cure Docker volume permission pains with MatchHostFsOwner</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2023-04-20-cure-docker-volume-permission-pains-with-matchhostfsowner.html</id>
+    <published>2023-04-20T00:00:00+00:00</published>
+    <updated>2025-03-11T09:31:03+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;Run a container with a host directory mount, and it either leaves root-owned files behind or it runs into "permission denied" errors. Welcome to the dreadful &lt;a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html"&gt;container host filesystem owner matching problem&lt;/a&gt;. These issues &lt;a href="https://www.reddit.com/r/docker/comments/hjsipd/permission_denied_with_volumes/"&gt;confuse&lt;/a&gt; &lt;a href="https://medium.com/@nielssj/docker-volumes-and-file-system-permissions-772c1aee23ca"&gt;and&lt;/a&gt; &lt;a href="https://mydeveloperplanet.com/2022/10/19/docker-files-and-volumes-permission-denied/"&gt;irritate&lt;/a&gt; &lt;a href="https://blog.gougousis.net/file-permissions-the-painful-side-of-docker/"&gt;people&lt;/a&gt;, and they happen because apps in the container run as a different user than the host user.&lt;/p&gt;
+
+&lt;p&gt;There are &lt;a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html#solution-strategies-overiew"&gt;various strategies to solve this issue&lt;/a&gt;, but they are all non-trivial (requiring complex logic) and/or have significant caveats (e.g., requiring privileged containers). Here's where my new tool &lt;a href="https://github.com/FooBarWidget/matchhostfsowner"&gt;MatchHostFsOwner&lt;/a&gt; comes in.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;Run a container with a host directory mount, and it either leaves root-owned files behind or it runs into "permission denied" errors. Welcome to the dreadful &lt;a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html"&gt;container host filesystem owner matching problem&lt;/a&gt;. These issues &lt;a href="https://www.reddit.com/r/docker/comments/hjsipd/permission_denied_with_volumes/"&gt;confuse&lt;/a&gt; &lt;a href="https://medium.com/@nielssj/docker-volumes-and-file-system-permissions-772c1aee23ca"&gt;and&lt;/a&gt; &lt;a href="https://mydeveloperplanet.com/2022/10/19/docker-files-and-volumes-permission-denied/"&gt;irritate&lt;/a&gt; &lt;a href="https://blog.gougousis.net/file-permissions-the-painful-side-of-docker/"&gt;people&lt;/a&gt;, and they happen because apps in the container run as a different user than the host user.&lt;/p&gt;
+
+&lt;p&gt;There are &lt;a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html#solution-strategies-overiew"&gt;various strategies to solve this issue&lt;/a&gt;, but they are all non-trivial (requiring complex logic) and/or have significant caveats (e.g., requiring privileged containers). Here's where my new tool &lt;a href="https://github.com/FooBarWidget/matchhostfsowner"&gt;MatchHostFsOwner&lt;/a&gt; comes in.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id="how-does-matchhostfsowner-solve-container-file-permission-pains"&gt;How does MatchHostFsOwner solve container file permission pains?&lt;/h2&gt;
+
+&lt;p&gt;MatchHostFsOwner implements &lt;a href="/blog/2021-03-15-docker-and-the-host-filesystem-owner-matching-problem.html#strategy-1-matching-the-containers-uidgid-with-the-hosts"&gt;solution strategy number 1&lt;/a&gt;. It ensures that the container runs as the same user (UID/GID) as the host's user. In short, it:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;modifies a user account inside the container so that the account's UID/GID matches that of the host user.&lt;/li&gt;
+  &lt;li&gt;executes the actual container command as the aforementioned user account (instead of, e.g., letting it execute as root).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This strategy is easier said than done, and the article documents the many caveats involved with this strategy. Fortunately, MatchHostFsOwner is here to help because it addresses all these caveats, so you don't have to.&lt;/p&gt;
+
+&lt;h2 id="using-matchhostfsowner"&gt;Using MatchHostFsOwner&lt;/h2&gt;
+
+&lt;p&gt;Here are some core concepts to understand:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;It's an entrypoint&lt;/strong&gt; — Install MatchHostFsOwner as the container entrypoint program. It &lt;a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#combining-other-entrypoint-programs-with-matchhostfsowner"&gt;should be the first program to run in the container&lt;/a&gt;. When it runs, it modifies the container's environment, then executes the next command with the proper UID/GID.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;It requires host user input&lt;/strong&gt; — when starting a container, the host user must tell MatchHostFsOwner what the host user's UID/GID is. How the user passes this information depends on what tool the user uses to start the container (e.g., Docker CLI, Docker Compose, Kubernetes, etc).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;It requires an extra user account in the container&lt;/strong&gt; — MatchHostFsOwner tries to execute the next command under a user account in the container whose UID equals the host user's UID. If no such account exists (which is common), then MatchHostFsOwner will take a specific account and modify its UID/GID to match that of the host user.&lt;/p&gt;
+
+    &lt;p&gt;The account MatchHostFsOwner will take and modify is called the &lt;strong&gt;"app account"&lt;/strong&gt;. MatchHostFsOwner won't create this account for you — you have to supply it. It won't always be used, but often it will.&lt;/p&gt;
+
+    &lt;p&gt;By default, MatchHostFsOwner assumes that the app account is named &lt;code&gt;app&lt;/code&gt;. But this is &lt;a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#custom-usergroup-account-name"&gt;customizable&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;It requires root privileges&lt;/strong&gt; — MatchHostFsOwner itself requires root privileges to modify the container's environment. It drops these privileges later before executing the next command.&lt;/p&gt;
+
+    &lt;p&gt;How exactly MatchHostFsOwner is granted root privileges depends on how one is supposed to start the container. This brings us to the two &lt;em&gt;usage modes&lt;/em&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="usage-mode-1-start-container-without-root-privileges"&gt;Usage mode 1: start container without root privileges&lt;/h2&gt;
+
+&lt;p&gt;This mode is most suitable for starting the container without root privileges. For example:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;When your Dockerfile sets a default user account using &lt;code&gt;USER&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;When your container is supposed to be started with &lt;code&gt;docker run --user&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;When your Kubernetes spec makes use of securityContext's &lt;code&gt;runAsUser&lt;/code&gt;/&lt;code&gt;runAsGroup&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In this mode, you must grant MatchHostFsOwner the setuid root bit. MatchHostFsOwner drops its setuid root bit as soon as possible after it has done its work.&lt;/p&gt;
+
+&lt;p&gt;This mode has some limitations:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The container cannot be started a second time (e.g., using docker stop and then docker start). Upon starting the container for the second time, MatchHostFsOwner no longer has the setuid root bit, so it won't be able to do its job. Thus, mode 1 is only useful for ephemeral containers.&lt;/li&gt;
+  &lt;li&gt;Incompatible with Docker Compose because it may start the container a second time.&lt;/li&gt;
+  &lt;li&gt;Requires that the container filesystem in which MatchHostFsOwner is located, to be writable. Because MatchHostFsOwner must be able to drop the setuid root bit. Thus, you cannot run the container in read-only mode (e.g., &lt;code&gt;docker run --read-only&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id="usage-mode-1-in-action"&gt;Usage mode 1 in action&lt;/h3&gt;
+
+&lt;p&gt;Begin by preparing the container.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Create an account in your container for running your app. It doesn't matter what you name it (it's &lt;a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#custom-usergroup-account-name"&gt;customizable&lt;/a&gt;), but let's call it "app" in this demo because MatchHostFsOwner assumes by default that that's the name. Set this account up as the default account for the container.&lt;/li&gt;
+  &lt;li&gt;Place the MatchHostFsOwner executable in a root-owned directory (e.g., &lt;code&gt;/sbin&lt;/code&gt;) and ensure that the executable is owned by root, and has the setuid root bit.&lt;/li&gt;
+  &lt;li&gt;Set up the MatchHostFsOwner executable as the container entrypoint.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For example:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight docker"&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; ubuntu:22.04&lt;/span&gt;
+
+&lt;span class="c"&gt;# Install MatchHostFsOwner. Replace X.X.X with an actual version.&lt;/span&gt;
+&lt;span class="c"&gt;# See https://github.com/FooBarWidget/matchhostfsowner/releases&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt;&lt;span class="s"&gt; https://github.com/FooBarWidget/matchhostfsowner/releases/download/vX.X.X/matchhostfsowner-X.X.X-x86_64-linux.gz /sbin/matchhostfsowner.gz&lt;/span&gt;
+&lt;span class="k"&gt;RUN &lt;/span&gt;&lt;span class="nb"&gt;gunzip&lt;/span&gt; /sbin/matchhostfsowner.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\
+&lt;/span&gt;  &lt;span class="nb"&gt;chown &lt;/span&gt;root: /sbin/matchhostfsowner &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\
+&lt;/span&gt;  &lt;span class="nb"&gt;chmod&lt;/span&gt; +x,+s /sbin/matchhostfsowner
+&lt;span class="k"&gt;RUN &lt;/span&gt;addgroup &lt;span class="nt"&gt;--gid&lt;/span&gt; 9999 app &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\
+&lt;/span&gt;  adduser &lt;span class="nt"&gt;--uid&lt;/span&gt; 9999 &lt;span class="nt"&gt;--gid&lt;/span&gt; 9999 &lt;span class="nt"&gt;--disabled-password&lt;/span&gt; &lt;span class="nt"&gt;--gecos&lt;/span&gt; App app
+&lt;span class="c"&gt;## Or, on RHEL-based images:&lt;/span&gt;
+&lt;span class="c"&gt;# RUN groupadd --gid 9999 app &amp;amp;&amp;amp; \&lt;/span&gt;
+&lt;span class="c"&gt;#   useradd --uid 9999 --gid 9999 app&lt;/span&gt;
+&lt;span class="c"&gt;## Or, on Alpine-based images:&lt;/span&gt;
+&lt;span class="c"&gt;# RUN addgroup -g 9999 app &amp;amp;&amp;amp; \&lt;/span&gt;
+&lt;span class="c"&gt;#   adduser -G app -u 9999 -D app&lt;/span&gt;
+&lt;span class="k"&gt;USER&lt;/span&gt;&lt;span class="s"&gt; app&lt;/span&gt;
+
+&lt;span class="k"&gt;ENTRYPOINT&lt;/span&gt;&lt;span class="s"&gt; ["/sbin/matchhostfsowner"]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;docker build &lt;span class="nb"&gt;.&lt;/span&gt; &lt;span class="nt"&gt;-t&lt;/span&gt; my-example-image
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, start the container using a user and group ID that matches the host user's. For example, using the Docker CLI. (See &lt;a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#kubernetes"&gt;the documentation&lt;/a&gt; for a Kubernetes-based example.)&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;docker run &lt;span class="nt"&gt;--user&lt;/span&gt; &lt;span class="s2"&gt;"&lt;/span&gt;&lt;span class="si"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;id&lt;/span&gt; &lt;span class="nt"&gt;-u&lt;/span&gt;&lt;span class="si"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;:&lt;/span&gt;&lt;span class="si"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;id&lt;/span&gt; &lt;span class="nt"&gt;-g&lt;/span&gt;&lt;span class="si"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt; my-example-image &lt;span class="nb"&gt;id&lt;/span&gt; &lt;span class="nt"&gt;-a&lt;/span&gt;
+&lt;span class="c"&gt;# Output (assuming host UID/GID is 501/20):&lt;/span&gt;
+&lt;span class="c"&gt;# uid=501(app) gid=20(app) groups=20(app)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Success! Here's what happened under the hood:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;MatchHostFsOwner (the entrypoint) runs before the container command (&lt;code&gt;id -a&lt;/code&gt;) does.&lt;/li&gt;
+  &lt;li&gt;MatchHostFsOwner sees the container is running as UID/GID 501/20. So it modifies the "app" account's UID/GID to 501/20. It can do that because it has setuid root privileges.&lt;/li&gt;
+  &lt;li&gt;MatchHostFsOwner drops its setuid root privileges, then executes the command &lt;code&gt;id -a&lt;/code&gt; under the container's "app" account.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="usage-mode-2-start-container-with-root-privileges"&gt;Usage mode 2: start container with root privileges&lt;/h2&gt;
+
+&lt;p&gt;In this mode, MatchHostFsOwner obtains root privileges through the fact that one starts the container with root privileges. No setuid root privileges required. MatchHostFsOwner drops its root privileges as soon as possible after it has done its work.&lt;/p&gt;
+
+&lt;p&gt;This mode is most suitable if any of the following is applicable:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;You're using Docker Compose.&lt;/li&gt;
+  &lt;li&gt;The container could be started a second time, as happens with, e.g., Docker Compose.&lt;/li&gt;
+  &lt;li&gt;The container filesystem in which MatchHostFsOwner is located is read-only.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id="usage-mode-2-in-action"&gt;Usage mode 2 in action&lt;/h3&gt;
+
+&lt;p&gt;Begin by preparing the container:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Create an account in your container for running your app. It doesn't matter what you name it (it's &lt;a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md#custom-usergroup-account-name"&gt;customizable&lt;/a&gt;), but let's call it "app" in this demo because MatchHostFsOwner assumes by default that that's the name. Set this account up as the default account for the container.&lt;/li&gt;
+  &lt;li&gt;Place the MatchHostFsOwner executable in a root-owned directory (e.g., &lt;code&gt;/sbin&lt;/code&gt;) and ensure that the executable is owned by root.&lt;/li&gt;
+  &lt;li&gt;Set up the MatchHostFsOwner executable as the container entrypoint.&lt;/li&gt;
+  &lt;li&gt;Don't set a default user account with &lt;code&gt;USER&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight docker"&gt;&lt;code&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; ubuntu:22.04&lt;/span&gt;
+
+&lt;span class="c"&gt;# Install MatchHostFsOwner. Replace X.X.X with an actual version.&lt;/span&gt;
+&lt;span class="c"&gt;# See https://github.com/FooBarWidget/matchhostfsowner/releases&lt;/span&gt;
+&lt;span class="k"&gt;ADD&lt;/span&gt;&lt;span class="s"&gt; https://github.com/FooBarWidget/matchhostfsowner/releases/download/vX.X.X/matchhostfsowner-X.X.X-x86_64-linux.gz /sbin/matchhostfsowner.gz&lt;/span&gt;
+&lt;span class="k"&gt;RUN &lt;/span&gt;&lt;span class="nb"&gt;gunzip&lt;/span&gt; /sbin/matchhostfsowner.gz &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\
+&lt;/span&gt;  &lt;span class="nb"&gt;chown &lt;/span&gt;root: /sbin/matchhostfsowner &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\
+&lt;/span&gt;  &lt;span class="nb"&gt;chmod&lt;/span&gt; +x /sbin/matchhostfsowner
+&lt;span class="k"&gt;RUN &lt;/span&gt;addgroup &lt;span class="nt"&gt;--gid&lt;/span&gt; 9999 app &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="se"&gt;\
+&lt;/span&gt;  adduser &lt;span class="nt"&gt;--uid&lt;/span&gt; 9999 &lt;span class="nt"&gt;--gid&lt;/span&gt; 9999 &lt;span class="nt"&gt;--disabled-password&lt;/span&gt; &lt;span class="nt"&gt;--gecos&lt;/span&gt; App app
+&lt;span class="c"&gt;## Or, on RHEL-based images:&lt;/span&gt;
+&lt;span class="c"&gt;# RUN groupadd --gid 9999 app &amp;amp;&amp;amp; \&lt;/span&gt;
+&lt;span class="c"&gt;#   useradd --uid 9999 --gid 9999 app&lt;/span&gt;
+&lt;span class="c"&gt;## Or, on Alpine-based images:&lt;/span&gt;
+&lt;span class="c"&gt;# RUN addgroup -g 9999 app &amp;amp;&amp;amp; \&lt;/span&gt;
+&lt;span class="c"&gt;#   adduser -G app -u 9999 -D app&lt;/span&gt;
+
+&lt;span class="k"&gt;ENTRYPOINT&lt;/span&gt;&lt;span class="s"&gt; ["/sbin/matchhostfsowner"]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;docker build &lt;span class="nb"&gt;.&lt;/span&gt; &lt;span class="nt"&gt;-t&lt;/span&gt; my-example-image
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Next, start the container while setting the environment variables &lt;code&gt;MHF_HOST_UID&lt;/code&gt; and &lt;code&gt;MHF_HOST_GID&lt;/code&gt; to the host user's UID/GID like this:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight shell"&gt;&lt;code&gt;docker run &lt;span class="nt"&gt;-e&lt;/span&gt; &lt;span class="s2"&gt;"MHF_HOST_UID=&lt;/span&gt;&lt;span class="si"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;id&lt;/span&gt; &lt;span class="nt"&gt;-u&lt;/span&gt;&lt;span class="si"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt; &lt;span class="nt"&gt;-e&lt;/span&gt; &lt;span class="s2"&gt;"MHF_HOST_GID=&lt;/span&gt;&lt;span class="si"&gt;$(&lt;/span&gt;&lt;span class="nb"&gt;id&lt;/span&gt; &lt;span class="nt"&gt;-g&lt;/span&gt;&lt;span class="si"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;"&lt;/span&gt; my-example-image &lt;span class="nb"&gt;id&lt;/span&gt; &lt;span class="nt"&gt;-a&lt;/span&gt;
+&lt;span class="c"&gt;# Output (assuming host UID/GID is 501/20):&lt;/span&gt;
+&lt;span class="c"&gt;# uid=501(app) gid=20(app) groups=20(app)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Here's what happened under the hood:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;MatchHostFsOwner (the entrypoint) runs before the container command (&lt;code&gt;id -a&lt;/code&gt;) does.&lt;/li&gt;
+  &lt;li&gt;MatchHostFsOwner sees that &lt;code&gt;MHF_HOST_UID&lt;/code&gt;/&lt;code&gt;MHF_HOST_GID&lt;/code&gt; is set to 501/20. So it modifies the "app" account's UID/GID to 501/20.&lt;/li&gt;
+  &lt;li&gt;MatchHostFsOwner drops its root privileges, then executes the command &lt;code&gt;id -a&lt;/code&gt; under the container's "app" account.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure&gt;
+  &lt;a href="https://github.com/FooBarWidget/matchhostfsowner"&gt;&lt;img src="/images/2023/matchhostfsowner-mascot-small-8c393772.jpg" alt="MatchHostFsOwner mascot: dog with glasess" /&gt;&lt;/a&gt;
+  &lt;figcaption&gt;MatchHostFsOwner project mascot&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;MatchHostFsOwner is an excellent way to solve Docker volume permission problems (more precisely: the container host filesystem owner matching problem). Please have a look at its &lt;a href="https://github.com/FooBarWidget/matchhostfsowner"&gt;source code&lt;/a&gt; (it's written in Rust!) and check out &lt;a href="https://github.com/FooBarWidget/matchhostfsowner/blob/main/README.md"&gt;its documentation&lt;/a&gt; for customization, advanced usage, and troubleshooting instructions.&lt;/p&gt;
+
+&lt;p&gt;Stay cured!&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Ubuntu 22.04 support for Fullstaq Ruby is here</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2022-04-30-ubuntu-22-04-support-for-fullstaq-ruby-is-here.html</id>
+    <published>2022-04-30T00:00:00+00:00</published>
+    <updated>2025-03-11T09:31:03+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;Ubuntu 22.04 was released a couple of days ago. Fullstaq Ruby now provides packages for this distribution!&lt;/p&gt;
+</summary>
+    <content type="html">&lt;blockquote&gt;
+  &lt;p&gt;&lt;a href="https://fullstaqruby.org"&gt;Fullstaq Ruby&lt;/a&gt; distributes server-optimized Ruby binaries. &lt;a href="https://github.com/fullstaq-ruby/server-edition/blob/main/README.md#installation"&gt;Install&lt;/a&gt; the latest Ruby versions with APT/YUM instead of compiling. Easily keep Ruby &lt;a href="https://github.com/fullstaq-ruby/server-edition/blob/main/README.md#minor-version-packages-a-great-way-to-keep-ruby-security-patched"&gt;security patched&lt;/a&gt; via auto-tiny version updates. Combat memory bloat (&lt;a href="https://dev.to/evilmartians/fullstaq-ruby-first-impressions-and-how-to-migrate-your-docker-kubernetes-ruby-apps-today-4fm7"&gt;save as much as 50%&lt;/a&gt;) with &lt;a href="https://github.com/fullstaq-ruby/server-edition/blob/main/README.md#key-features"&gt;memory allocator improvements&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Ubuntu 22.04 was released a couple of days ago. Fullstaq Ruby now provides packages for this distribution! Here's the corresponding pull request: #96.&lt;/p&gt;
+
+&lt;p&gt;Note that we only provide Ruby 3.1 packages for Ubuntu 22.04. This is because Ubuntu 22.04 ships with OpenSSL v3, and only Ruby 3.1 is compatible with that OpenSSL version.&lt;/p&gt;
+
+&lt;p&gt;Want to install or upgrade? Check &lt;a href="https://github.com/fullstaq-ruby/server-edition/blob/master/README.md#installation"&gt;the installation instructions&lt;/a&gt;, or run &lt;code&gt;apt upgrade&lt;/code&gt;/&lt;code&gt;yum update&lt;/code&gt;.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Ruby gem: distributed locking on Google Cloud</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2021-09-14-ruby-gem-distributed-locking-on-google-cloud.html</id>
+    <published>2021-09-14T00:00:00+00:00</published>
+    <updated>2025-03-11T09:31:03+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;I previously designed a robust &lt;a href="2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html.md"&gt;distributed locking algorithm based on Google Cloud&lt;/a&gt;. Now I'm releasing a Ruby implementation of this algorithm: &lt;a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby"&gt;distributed-lock-google-cloud-storage-ruby&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;To use this, add to your Gemfile:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;gem&lt;/span&gt; &lt;span class="s1"&gt;'distributed-lock-google-cloud-storage'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;I previously designed a robust &lt;a href="2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html.md"&gt;distributed locking algorithm based on Google Cloud&lt;/a&gt;. Now I'm releasing a Ruby implementation of this algorithm: &lt;a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby"&gt;distributed-lock-google-cloud-storage-ruby&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;To use this, add to your Gemfile:&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="n"&gt;gem&lt;/span&gt; &lt;span class="s1"&gt;'distributed-lock-google-cloud-storage'&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;&lt;em&gt;&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Its typical usage is as follows. Initialize a Lock instance. It must be backed by a Google Cloud Storage bucket and object. Then do your work within a &lt;code&gt;#synchronize&lt;/code&gt; block.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Important:&lt;/strong&gt; If your work is a long-running operation, then also be sure to call &lt;code&gt;#check_health!&lt;/code&gt; &lt;em&gt;periodically&lt;/em&gt; to check whether the lock is still healthy. This call throws an exception if it's not healthy. Learn more in &lt;a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby/blob/main/README.md#long-running-operations-lock-refreshing-and-lock-health-checking"&gt;Long-running operations, lock refreshing and lock health checking&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class="highlight"&gt;&lt;pre class="highlight ruby"&gt;&lt;code&gt;&lt;span class="nb"&gt;require&lt;/span&gt; &lt;span class="s1"&gt;'distributed-lock-google-cloud-storage'&lt;/span&gt;
+
+&lt;span class="n"&gt;lock&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="no"&gt;DistributedLock&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;GoogleCloudStorage&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="no"&gt;Lock&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+  &lt;span class="ss"&gt;bucket_name: &lt;/span&gt;&lt;span class="s1"&gt;'your bucket name'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="ss"&gt;path: &lt;/span&gt;&lt;span class="s1"&gt;'locks/mywork'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;lock&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;synchronize&lt;/span&gt; &lt;span class="k"&gt;do&lt;/span&gt;
+  &lt;span class="n"&gt;do_some_work&lt;/span&gt;
+
+  &lt;span class="c1"&gt;# IMPORTANT: _periodically_ call this!&lt;/span&gt;
+  &lt;span class="n"&gt;lock&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;check_health!&lt;/span&gt;
+
+  &lt;span class="n"&gt;do_more_work&lt;/span&gt;
+&lt;span class="k"&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;To learn more about this gem, please check out &lt;a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby/blob/main/README.md"&gt;its README&lt;/a&gt; and its &lt;a href="https://foobarwidget.github.io/distributed-lock-google-cloud-storage-ruby/DistributedLock/GoogleCloudStorage/Lock.html"&gt;full API docs&lt;/a&gt;.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>A robust distributed locking algorithm based on Google Cloud Storage</title>
+    <link rel="alternate" href="https://www.joyfulbikeshedding.com/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html"/>
+    <id>https://www.joyfulbikeshedding.com/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html</id>
+    <published>2021-05-19T00:00:00+00:00</published>
+    <updated>2025-03-11T09:31:03+00:00</updated>
+    <author>
+      <name>Hongli Lai</name>
+    </author>
+    <summary type="html">&lt;p&gt;Many workloads nowadays involve many systems that operate concurrently. This ranges from microservice fleets to workflow orchestration to CI/CD pipelines. Sometimes it's important to coordinate these systems so that concurrent operations don't step on each other. One way to do that is by using &lt;em&gt;distributed locks&lt;/em&gt; that work across multiple systems.&lt;/p&gt;
+
+&lt;p&gt;Distributed locks used to require complex algorithms or complex-to-operate infrastructure, making them expensive both in terms of costs as well as in upkeep. With the emergence of fully managed and serverless cloud systems, this reality has changed.&lt;/p&gt;
+
+&lt;p&gt;In this post I'll look into a distributed locking algorithm based on Google Cloud. I'll discuss several existing implementations and suggest algorithmic improvements in terms of performance and robustness.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;</summary>
+    <content type="html">&lt;p&gt;Many workloads nowadays involve many systems that operate concurrently. This ranges from microservice fleets to workflow orchestration to CI/CD pipelines. Sometimes it's important to coordinate these systems so that concurrent operations don't step on each other. One way to do that is by using &lt;em&gt;distributed locks&lt;/em&gt; that work across multiple systems.&lt;/p&gt;
+
+&lt;p&gt;Distributed locks used to require complex algorithms or complex-to-operate infrastructure, making them expensive both in terms of costs as well as in upkeep. With the emergence of fully managed and serverless cloud systems, this reality has changed.&lt;/p&gt;
+
+&lt;p&gt;In this post I'll look into a distributed locking algorithm based on Google Cloud. I'll discuss several existing implementations and suggest algorithmic improvements in terms of performance and robustness.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Update&lt;/strong&gt;: there is now a &lt;a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby"&gt;Ruby implementation&lt;/a&gt; of this algorithm!&lt;/p&gt;
+
+&lt;h2 id="use-cases-for-distributed-locks"&gt;Use cases for distributed locks&lt;/h2&gt;
+
+&lt;p&gt;Distributed locks are useful in any situation in which multiple systems may operate on the same state concurrently. Concurrent modifications may corrupt the state, so one needs a mechanism to ensure that only one system can modify the state at the same time.&lt;/p&gt;
+
+&lt;p&gt;A good example is Terraform. When you store the Terraform state in the cloud, and you run multiple Terraform instances concurrently, then Terraform guarantees that only one Terraform instance can modify the infrastructure concurrently. This is done through a distributed lock. In contrast to a regular (local system) lock, a distributed lock works across multiple systems. So even if you run two Terraform instances on two different machines, then Terraform still protects you from concurrent modifications.&lt;/p&gt;
+
+&lt;p&gt;More generally, distributed locks are useful for &lt;strong&gt;ad-hoc system/cloud automation scripts and CI/CD pipelines&lt;/strong&gt;. Sometimes you want your script or pipeline to perform non-trivial modifications that take many steps. It can easily happen that multiple instances of the script or pipeline are run. When that happens, you don't want those multiple instances to perform the modification at the same time, because that can corrupt things. You can use a distributed lock to make concurrent runs safe.&lt;/p&gt;
+
+&lt;p&gt;Here's a concrete example involving a CI/CD pipeline. &lt;a href="https://fullstaqruby.org"&gt;Fullstaq Ruby&lt;/a&gt; had an APT and YUM repository hosted on &lt;a href="https://bintray.com/"&gt;Bintray&lt;/a&gt;. A few months ago, Bintray announced that they will shutdown in the near future, so &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition/blob/main/dev-handbook/apt-yum-repo.md"&gt;we had to migrate to a different solution&lt;/a&gt;. We chose to self-host our APT and YUM repository on a cloud object store.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;img src="/images/2021/distributed-lock-arch-9433f803.svg" alt="" /&gt;
+  &lt;figcaption&gt;The Fullstaq Ruby package publishing pipeline uses a distributed lock to guarantee concurrency-safety. Learn more: &lt;a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition/blob/main/dev-handbook/apt-yum-repo.md"&gt;Fullstaq Ruby's APT and YUM repository setup&lt;/a&gt;&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;APT and YUM repositories consist of a bunch of .deb and .rpm packages, plus a bunch of metadata. Package updates are published through Fullstaq Ruby's CI/CD system. This CI/CD system directly modifies multiple files on the cloud object store. We want this publication process to be &lt;strong&gt;concurrency-safe&lt;/strong&gt; because if we commit too quickly then multiple CD/CD runs may occur at the same time. The easiest way to achieve this is by using a distributed lock, so that only one CI/CD pipeline may operate on the cloud object bucket concurrently.&lt;/p&gt;
+
+&lt;h2 id="why-building-on-google-cloud-storage"&gt;Why building on Google Cloud Storage?&lt;/h2&gt;
+
+&lt;p&gt;Distributed locks used to be hard to implement. In the past they required complicated &lt;a href="https://en.wikipedia.org/wiki/Consensus_(computer_science)"&gt;consensus protocols&lt;/a&gt; such as &lt;a href="https://en.wikipedia.org/wiki/Paxos_(computer_science)"&gt;Paxos&lt;/a&gt; or &lt;a href="https://en.wikipedia.org/wiki/Raft_(algorithm)"&gt;Raft&lt;/a&gt;, as well as the hassle of hosting yet another service. See &lt;a href="https://en.wikipedia.org/wiki/Distributed_lock_manager"&gt;Distributed lock manager&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In a more recent past, people started implementing distributed locks on top of other distributed systems, such as transactional databases and Redis. This significantly reduced the complexity of algorithms. But operational complexity was still significant. A big issue is that these systems aren't "serverless": operating and maintaining a database instance or a Redis instance is not cheap. It's not cheap in terms of effort. It's also not cheap in terms of costs: you pay for a database/Redis instance based on its uptime, not based on how many operations you perform.&lt;/p&gt;
+
+&lt;p&gt;Luckily, there are many cloud systems nowadays which not only provide the building blocks necessary to build a distributed lock, but are also fully managed and serverless. Google Cloud Storage is a great system to build a distributed lock on. It's cheap, it's popular, it's highly available and it's maintenance-free. You only pay for the amount of operations you perform on it.&lt;/p&gt;
+
+&lt;h2 id="basic-challenges-of-distributed-locking"&gt;Basic challenges of distributed locking&lt;/h2&gt;
+
+&lt;p&gt;One of the problems that distributed locking algorithms need to solve, is the fact that participants in the algorithm need to &lt;strong&gt;communicate&lt;/strong&gt; with each other. Distributed systems may run in different networks that aren't directly connected.&lt;/p&gt;
+
+&lt;p&gt;Another problem is that of &lt;strong&gt;concurrency control&lt;/strong&gt;. This is made difficult by communication lag. If two participants request ownership of a lock simultaneously, then we want both of them to agree on a single outcome even though it takes time for each participant to hear the other.&lt;/p&gt;
+
+&lt;p&gt;Finally, there is the problem of &lt;strong&gt;state consistency&lt;/strong&gt;. When you write to a storage system, then next time you read from that system you want to read what you just wrote. This is called &lt;em&gt;strong consistency&lt;/em&gt;. Some storage systems are &lt;em&gt;eventually consistent&lt;/em&gt;, which means that it takes a while before you read what you just wrote. Storage systems that are eventually consistent are not suitable for implementing distributed locks.&lt;/p&gt;
+
+&lt;p&gt;This is why we leverage Google Cloud Storage as both a communication channel, and as a "referee". Everyone can connect to Cloud Storage, and access control is simple and well-understood. Cloud Storage &lt;a href="https://cloud.google.com/storage/docs/consistency"&gt;is also a strongly consistent system&lt;/a&gt; and has &lt;a href="https://cloud.google.com/storage/docs/generations-preconditions"&gt;concurrency control features&lt;/a&gt;. This latter allows Cloud Storage to make a single, final decision in case two participants want to take ownership of the lock simultaneously.&lt;/p&gt;
+
+&lt;h2 id="building-blocks-generation-numbers-and-atomic-operations"&gt;Building blocks: generation numbers and atomic operations&lt;/h2&gt;
+
+&lt;p&gt;Every Cloud Storage object has two separate &lt;a href="https://cloud.google.com/storage/docs/generations-preconditions#_Generations"&gt;generation numbers&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The normal generation number changes every time the object's data is modified.&lt;/li&gt;
+  &lt;li&gt;The metageneration number changes every time the object's metadata is modified.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When you perform a modification operation, you can use the &lt;a href="https://cloud.google.com/storage/docs/xml-api/reference-headers#xgoogifgenerationmatch"&gt;x-goog-if-generation-match&lt;/a&gt;/&lt;a href="https://cloud.google.com/storage/docs/xml-api/reference-headers#xgoogifmetagenerationmatch"&gt;x-goog-if-metageneration-match&lt;/a&gt; headers in the Cloud Storage API to say: "only perform this operation if the generation/metageneration equals this value". Cloud Storage guarantees that this effect is atomic and free of race conditions. These headers are called &lt;strong&gt;precondition headers&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;The special value 0 for x-goog-if-generation-match means "only perform this operation if the object does not exist".&lt;/p&gt;
+
+&lt;p&gt;This feature — the ability to specify preconditions to operations — is key to concurrency control.&lt;/p&gt;
+
+&lt;h2 id="existing-implementations"&gt;Existing implementations&lt;/h2&gt;
+
+&lt;p&gt;Several implementations of a distributed lock based on Google Cloud Storage already exist. A prominent one is &lt;a href="https://github.com/mco-gh/gcslock"&gt;gcslock&lt;/a&gt; by &lt;a href="https://mco.dev/"&gt;Marc Cohen&lt;/a&gt;, who works at Google. Gcslock leverages the &lt;a href="https://cloud.google.com/storage/docs/xml-api/reference-headers#xgoogifgenerationmatch"&gt;x-goog-if-generation-match&lt;/a&gt; header, as described in the previous section. Its algorithm is simple, as we'll discuss in the next section.&lt;/p&gt;
+
+&lt;p&gt;Most other implementations, such as &lt;a href="https://github.com/thinkingmachines/gcs-mutex-lock"&gt;gcs-mutex-lock&lt;/a&gt; and &lt;a href="https://github.com/XaF/gcslock-ruby"&gt;gcslock-ruby&lt;/a&gt;, use the gcslock algorithm though with minor adaptations.&lt;/p&gt;
+
+&lt;p&gt;I've been able to find one implementation that's significantly different and more advanced: HashiCorp Vault's leader election algorithm. Though it's not functionally meant to be used as a lock, technically it boils down to a lock. We'll discuss this algorithm in a later section.&lt;/p&gt;
+
+&lt;h2 id="gcslock-a-basic-locking-algorithm"&gt;Gcslock: a basic locking algorithm&lt;/h2&gt;
+
+&lt;p&gt;The gcslock algorithm is as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Taking the lock means creating an object with &lt;code&gt;x-goog-if-generation-match: 0&lt;/code&gt;.
+    &lt;ul&gt;
+      &lt;li&gt;The content of the object does not matter.&lt;/li&gt;
+      &lt;li&gt;If creation is successful, then it means we've taken the lock.&lt;/li&gt;
+      &lt;li&gt;If creation fails with a 412 Precondition Failed error, then it means the object already exists. This means the lock was already taken. We retry later. The retry sleep time increases exponentially every time taking the lock fails.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Releasing the lock means deleting the object.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This algorithm is very simple. It is also relatively high-latency because Cloud Storage's response time is measured in tens to hundreds of milliseconds, and because it utilizes retries with exponential backoff. Relative high latency may or may not be a problem depending on your use case. It's probably fine for most batch operations, but it's probably unacceptable for applications that require pseudo-realtime responsiveness.&lt;/p&gt;
+
+&lt;p&gt;There are bigger issues though:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Prone to crashes&lt;/strong&gt;. If a process crashes while having taken the lock, then the lock becomes stuck forever until an administrator manually deletes the lock.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Hard to find out who the owner is&lt;/strong&gt;. There is no administration about who owns the mutex. The only way to find out who owns the lock is by querying the processes.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Unbounded backoff&lt;/strong&gt;. The exponential backoff has no upper limit. If the lock is taken for a long time (e.g. because a process crashed during a lock) then the exponential backoff will grow unbounded. This means that an administrator may need to restart all sorts of processes, after having deleted a stale lock.&lt;/p&gt;
+
+    &lt;p&gt;&lt;a href="https://github.com/thinkingmachines/gcs-mutex-lock"&gt;gcs-mutex-lock&lt;/a&gt; and &lt;a href="https://github.com/XaF/gcslock-ruby"&gt;gcslock-ruby&lt;/a&gt; address this by setting an upper bound to the exponential backoff.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Retry contention&lt;/strong&gt;. If multiple processes start taking the lock at the same time, then they all back off at the same rate. This means that they end up retrying at the same time. This causes spikes in API requests towards Google Cloud Storage. This can cause network contention issues.&lt;/p&gt;
+
+    &lt;p&gt;&lt;a href="https://github.com/thinkingmachines/gcs-mutex-lock"&gt;gcs-mutex-lock&lt;/a&gt; addresses this by allowing adding jitter to the backoff time.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Unintended releases&lt;/strong&gt;. A lock release request may be delayed by the network. Imagine the following scenario:&lt;/p&gt;
+
+    &lt;ol&gt;
+      &lt;li&gt;An administrator thinks the lock is stale, and deletes it.&lt;/li&gt;
+      &lt;li&gt;Another process takes the lock.&lt;/li&gt;
+      &lt;li&gt;The original lock release request now arrives, inadvertently releasing the lock.&lt;/li&gt;
+    &lt;/ol&gt;
+
+    &lt;p&gt;This sort of network-delay-based problem is even &lt;a href="https://cloud.google.com/storage/docs/generations-preconditions#special-case"&gt;documented in the Cloud Storage documentation as a potential risk&lt;/a&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="resisting-stuck-locks-via-ttls"&gt;Resisting stuck locks via TTLs&lt;/h2&gt;
+
+&lt;p&gt;One way to avoid stuck locks left behind by crashing processes, is by considering locks to be &lt;strong&gt;stale&lt;/strong&gt; if they are "too old". We can use the timestamps that Cloud Storage manages, which change every time an object is modified.&lt;/p&gt;
+
+&lt;p&gt;What should be considered "too old" really depends on the specific operation. So this should be a configurable parameter, which we call the &lt;strong&gt;time-to-live (TTL)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;What's more, the same TTL value should be agreed upon by all processes. Otherwise we'll risk that a process thinks the lock is stuck even though the owner thinks it isn't. One way to ensure that all processes agree on the same TTL is by configuring them with the same TTL value, but this approach is error-prone. A better way is to store the TTL value into the lock object.&lt;/p&gt;
+
+&lt;p&gt;Here's the updated locking algorithm:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Create the object with &lt;code&gt;x-goog-if-generation-match: 0&lt;/code&gt;.
+    &lt;ul&gt;
+      &lt;li&gt;Store the TTL in a metadata header.&lt;/li&gt;
+      &lt;li&gt;The content of the object does not matter.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;If creation is successful, then it means we've taken the lock.&lt;/li&gt;
+  &lt;li&gt;If creation fails with a 412 Precondition Failed error (meaning the object already exists), then:
+    &lt;ol&gt;
+      &lt;li&gt;Fetch from its metadata the update timestamp, generation number and TTL.&lt;/li&gt;
+      &lt;li&gt;If the update timestamp is older than the TTL, then delete the object, with &lt;code&gt;x-goog-if-generation-match: [generation]&lt;/code&gt;. Specifying this header is important, because if someone else takes the lock concurrently (meaning the lock is no longer stale), then we don't want to delete that.&lt;/li&gt;
+      &lt;li&gt;Retry the locking algorithm after an exponential backoff (potentially with an upper limit and jitter).&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;What's a good value for the TTL?&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Cloud Storage's latency is relatively high, in the order of tens to hundreds of milliseconds. So the TTL should be at least a few seconds.&lt;/li&gt;
+  &lt;li&gt;If you perform Cloud Storage operations via the &lt;code&gt;gsutil&lt;/code&gt; CLI, then you should be aware that gsutil takes a few seconds to start. Thus, the TTL should be at least a few ten seconds.&lt;/li&gt;
+  &lt;li&gt;A distributed lock like this is best suited for batch workloads. Such workloads typically take seconds to tens or even hundreds of seconds. Your TTL should be a safe multiple of the time your operation is expected to take. We'll discuss this further in the next section, "long-running operations".&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As a general rule, I'd say that a safe TTL should be in the order of minutes. It should be at least 1 minute. I think a &lt;strong&gt;good default is 5 minutes&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id="long-running-operations"&gt;Long-running operations&lt;/h2&gt;
+
+&lt;p&gt;If an operation takes longer than the TTL, then another process could take ownership of the lock even though the original owner is still operating. Increasing the TTL addresses this issue somewhat, but this approach has drawbacks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;If the operation's completion time is unknown, then it's impossible to pick a TTL.&lt;/li&gt;
+  &lt;li&gt;A larger TTL means that it takes longer for processes to detect stale locks.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;A better approach is to &lt;strong&gt;refresh&lt;/strong&gt; the object's update timestamp regularly as long as the operation is still in progress. Keep the TTL relatively short, so that if the process crashes then it won't take too much time for others to detect the lock as stale.&lt;/p&gt;
+
+&lt;p&gt;We implement refreshing via a &lt;a href="https://cloud.google.com/storage/docs/json_api/v1/objects/patch"&gt;PATCH object API call&lt;/a&gt;. The exact data to patch doesn't matter: we only care about the fact that Cloud Storage will change the update timestamp.&lt;/p&gt;
+
+&lt;p&gt;We call the time between refreshes the &lt;strong&gt;refresh interval&lt;/strong&gt;. A proper value for the refresh interval depends on the TTL. It must be much shorter than the TTL, otherwise refreshing the lock is pointless. Its value should take into consideration that a refresh operation is subject to network delays, or even local CPU scheduling delays.&lt;/p&gt;
+
+&lt;p&gt;As a general rule, &lt;strong&gt;I recommend a refresh interval that's at most 1/8th of the TTL&lt;/strong&gt;. Given a default TTL of 5 minutes, I recommend a &lt;strong&gt;default refresh interval of ~37 seconds&lt;/strong&gt;. This recommendation takes into consideration that refreshes can fail, which we'll discuss in the next section.&lt;/p&gt;
+
+&lt;h2 id="refresh-failures"&gt;Refresh failures&lt;/h2&gt;
+
+&lt;p&gt;Refreshing the lock can fail. There are two failure categories:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Unexpected state&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;The lock object could have been unexpectedly modified by someone else.&lt;/li&gt;
+      &lt;li&gt;The lock object could be unexpectedly deleted.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Network problems&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;ul&gt;
+      &lt;li&gt;If this means that the refresh operation is arbitrarily delayed by the network, then we can end up refreshing a lock that we don't own. While this is unintended, it won't cause any real problems.&lt;/li&gt;
+      &lt;li&gt;But if this means that the operation failed to reach Cloud Storage, and such failures persist, then the lock can become stale even though the operation is still in progress.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;How should we respond to refresh failures?&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Upon encountering unexpected state, we should abort the operation immediately.&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Upon encountering network problems, there's a chance that the failure is just temporary. So we should retry a couple of times. Only if retrying fails too many times consecutively do we abort the operation.&lt;/p&gt;
+
+    &lt;p&gt;I think &lt;strong&gt;retrying 2 times&lt;/strong&gt; (so 3 tries in total) is reasonable. In order to abort way before the TTL expires, the refresh interval must be shorter than 1/3rd of the TTL.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When we conclude that we should abort the operation, we declare that the lock is in an &lt;em&gt;unhealthy state&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Aborting should happen in a manner that leaves the system in a consistent state. Furthermore, aborting takes time, so it should be initiated way before the TTL expires, and it's also another reason why in the previous section I recommended a refresh interval of 1/8th of the TTL.&lt;/p&gt;
+
+&lt;h2 id="dealing-with-inconsistent-operation-states"&gt;Dealing with inconsistent operation states&lt;/h2&gt;
+
+&lt;p&gt;Aborting the operation could itself fail, for example because of network problems. This may leave the system in an inconsistent state. There are ways to deal with this issue:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Next time a process takes the lock, detect whether the state is inconsistent, and then deal with it somehow, for example by fixing the inconsistency.&lt;/p&gt;
+
+    &lt;p&gt;This means that the operation must be written in such a way that inconcistency &lt;em&gt;can&lt;/em&gt; be detected and fixed. Fixing arbitrary inconsistency is quite hard, so you should carefully design the operation's algorithm to limit &lt;em&gt;how&lt;/em&gt; inconsistent a state can become.&lt;/p&gt;
+
+    &lt;p&gt;This is a difficult topic and is outside the scope of this article. But you could take inspiration from how &lt;a href="https://pages.cs.wisc.edu/~remzi/OSTEP/file-journaling.pdf"&gt;journaling filesystems work&lt;/a&gt; to recover the filesystem state after a crash.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;An easier approach that's sometimes viable, is to consider existing state to be immutable. Your operation makes a copy of the existing state, perform operations on the copy, then atomically (or at least nearly so) declare the copy as the new state.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="detecting-unexpected-releases-or-ownership-changes"&gt;Detecting unexpected releases or ownership changes&lt;/h2&gt;
+
+&lt;p&gt;The lock &lt;em&gt;could&lt;/em&gt; be released, or its ownership &lt;em&gt;could&lt;/em&gt; change, at any time. Either because of a faulty process or because of an unexpected administrator operation. While such things &lt;em&gt;shouldn't&lt;/em&gt; happen, it's still a good idea if we are able to handle them somehow.&lt;/p&gt;
+
+&lt;p&gt;When these things happen, we also say that the lock is in an &lt;em&gt;unhealthy state&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;We make the following changes to the algorithm:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Right after having taken the lock, take note of its generation number.&lt;/li&gt;
+  &lt;li&gt;When refreshing the lock, use the &lt;code&gt;x-goog-if-generation-match: &amp;lt;last known generation number&amp;gt;&lt;/code&gt; header.
+    &lt;ul&gt;
+      &lt;li&gt;If it succeeds, take note of the new generation number.&lt;/li&gt;
+      &lt;li&gt;If it fails because the object does not exist, then it means the lock was deleted. We abort the operation.&lt;/li&gt;
+      &lt;li&gt;If it fails with a 412 Precondition Failed error, then it means the ownership unexpectedly changed. We abort the operation without releasing the lock.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;When releasing the lock, use the &lt;code&gt;x-goog-if-generation-match: &amp;lt;last known generation number&amp;gt;&lt;/code&gt; header, so that we're sure we're releasing the lock we owned and not one that was taken over by another process. We can ignore any 412 Precondition Failed errors.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id="studying-hashicorp-vaults-leader-election-algorithm"&gt;Studying HashiCorp Vault's leader election algorithm&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href="https://www.vaultproject.io/"&gt;HashiCorp Vault&lt;/a&gt; is a secrets management system. Its &lt;a href="https://www.vaultproject.io/docs/concepts/ha"&gt;high availability setup&lt;/a&gt; involves leader election. This is done by taking ownership of a distributed lock. The instance that succeeds in taking ownership is considered the leader.&lt;/p&gt;
+
+&lt;p&gt;The leader election algorithm is implemented in &lt;a href="https://github.com/hashicorp/vault/blob/cba7abc64e4d1cb20129b534e3b1a255fbc18977/physical/gcs/gcs_ha.go"&gt;physical/gcs/gcs_ha.go&lt;/a&gt; and was originally written by &lt;a href="https://twitter.com/sethvargo"&gt;Seth Vargo&lt;/a&gt; at Google. This algorithm was also &lt;a href="https://cloud.google.com/blog/topics/developers-practitioners/implementing-leader-election-google-cloud-storage"&gt;discussed&lt;/a&gt; by &lt;a href="https://twitter.com/ahmetb"&gt;Ahmet Alp Balkan&lt;/a&gt; at the Google Cloud blog.&lt;/p&gt;
+
+&lt;figure&gt;
+  &lt;img src="/images/2021/hashicorp_vault-5d3cb5d7.svg" alt="HashiCorp Vault logo" class="img-xx-smallwidth" /&gt;
+  &lt;figcaption&gt;&lt;a href="https://www.vaultproject.io/"&gt;HashiCorp Vault&lt;/a&gt;'s leader election protocol is actually also a distributed lock! We can draw many interesting lessons from it.&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;Here are the similarities between Vault's algorithm and what we've discussed so far:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Vault utilizes Cloud Storage's precondition headers to find out whether it was successful in taking a lock.&lt;/li&gt;
+  &lt;li&gt;When Vault fails to take a lock, it also retries later until it suceeds.&lt;/li&gt;
+  &lt;li&gt;Vault detects stale locks via a TTL.&lt;/li&gt;
+  &lt;li&gt;Vault refreshes locks regularly. A Vault instance holds on to the lock as long as its willing to be the leader, so we can consider this to be a gigantic long-running operation, making lock refreshing essential.&lt;/li&gt;
+  &lt;li&gt;Vault checks regurlarly whether the lock was unexpectedly released or changed ownership.&lt;/li&gt;
+  &lt;li&gt;When Vault releases the lock, it also uses a precondition header to ensure it doesn't delete a lock that someone else took ownership of concurrently.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Notable differences:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Vault checks whether the lock is stale, &lt;em&gt;before&lt;/em&gt; trying to create the lock object. Whereas we check for staleness &lt;em&gt;after&lt;/em&gt; trying to do so. Checking for staleness afterwards is a more optimistic approach. If the lock is unlikely to be stale, then checking afterwards is faster.&lt;/li&gt;
+  &lt;li&gt;When Vault fails to take the lock, it backs off linearly instead of exponentially.&lt;/li&gt;
+  &lt;li&gt;Instead of checking the generation number, and refreshing the lock by updating its data, Vault operates purely on &lt;a href="https://cloud.google.com/storage/docs/metadata"&gt;object &lt;em&gt;metadata&lt;/em&gt;&lt;/a&gt; because it's less costly to read frequently. This means the algorithm checks the &lt;em&gt;metageneration&lt;/em&gt; number, and refreshes the lock by updating metadata fields.&lt;/li&gt;
+  &lt;li&gt;Vault stores its unique instance identity name in the lock. This way administrators can easily find out who owns the lock.&lt;/li&gt;
+  &lt;li&gt;Vault's TTL is a runtime configuration parameter. Its value is not stored in the object.&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;If Vault's leader election system crashes non-fatally (e.g. it detected an unhealthy lock, aborted, then tried again later from the same Vault instance), and the lock hasn't been taken over by another Vault instance at the same time, then Vault is able to retake the lock instantly.&lt;/p&gt;
+
+    &lt;p&gt;In contrast, our approach so far requires waiting until the lock becomes stale per the TTL.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I think points 3, 4 and 6 are worth learning from.&lt;/p&gt;
+
+&lt;h2 id="instant-recovery-from-stale-locks--thread-safety"&gt;Instant recovery from stale locks &amp;amp; thread-safety&lt;/h2&gt;
+
+&lt;p&gt;HashiCorp Vault's ability to retake the lock instantly after a non-fatal crash is worthy of further discussion. It's a desirable feature, but what are the implications?&lt;/p&gt;
+
+&lt;p&gt;Upon closer inspection, we see that this feature works by assigning an &lt;em&gt;identity&lt;/em&gt; to the lock object. This identity is a random string that's generated during Vault startup. When Vault attempts to take a lock, it checks whether the object already exists and whether its identity equals the Vault instance's own identity. If so, then Vault concludes that it's safe to retake the lock immediately.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;This identity string must be chosen with some care&lt;/strong&gt;, because it affects on the level of mutual exclusion. Vault generates a random identity string that's unique on a per-Vault-instance basis. This results in the lock being multi-process safe, but — perhaps counter-intuitively — not thread-safe!&lt;/p&gt;
+
+&lt;p&gt;We can make the lock object thread-safe by including the thread ID in the identity as well. The tradeoff is that an abandoned lock can only be quickly recovered by the same thread that abandoned it in the first place. All other threads still have to wait for the TTL timeout.&lt;/p&gt;
+
+&lt;p&gt;In the next section we'll put together everything we've discussed and learned so far.&lt;/p&gt;
+
+&lt;h2 id="putting-the-final-algorithm-together"&gt;Putting the final algorithm together&lt;/h2&gt;
+
+&lt;h3 id="taking-the-lock"&gt;Taking the lock&lt;/h3&gt;
+
+&lt;p&gt;Parameters:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Object URL&lt;/li&gt;
+  &lt;li&gt;TTL&lt;/li&gt;
+  &lt;li&gt;An identity that's unique on a per-process basis, and optionally on a per-thread basis as well
+    &lt;ul&gt;
+      &lt;li&gt;Example format: "[process identity]". If thread-safety is desired, append "/[thread identity]".&lt;/li&gt;
+      &lt;li&gt;Interpret the concept "thread" liberally. For example, if your language is single-threaded with cooperative multitasking using coroutines/fibers, then use the coroutine/fiber identity.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Steps:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Create the object at the given URL.
+    &lt;ul&gt;
+      &lt;li&gt;Use the &lt;code&gt;x-goog-if-generation-match: 0&lt;/code&gt; header.&lt;/li&gt;
+      &lt;li&gt;Set Cache-Control: no-store&lt;/li&gt;
+      &lt;li&gt;Set the following metadata values:
+        &lt;ul&gt;
+          &lt;li&gt;Expiration timestamp (based on TTL)&lt;/li&gt;
+          &lt;li&gt;Identity&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Empty contents.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;If creation is successful, then it means we've taken the lock.
+    &lt;ul&gt;
+      &lt;li&gt;Start refreshing the lock in the background.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;If creation fails with a 412 Precondition Failed error (meaning the object already exists), then:
+    &lt;ol&gt;
+      &lt;li&gt;Fetch from the object's metadata:
+        &lt;ul&gt;
+          &lt;li&gt;Update timestamp&lt;/li&gt;
+          &lt;li&gt;Metageneration number&lt;/li&gt;
+          &lt;li&gt;Expiration timestamp&lt;/li&gt;
+          &lt;li&gt;Identity&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;If step 1 fails because the object didn't exist, then restart the algorithm from step 1 immediately.&lt;/li&gt;
+      &lt;li&gt;If the identity equals our own, then delete the object, and immediately restart the algorithm from step 1.
+        &lt;ul&gt;
+          &lt;li&gt;When deleting, use the &lt;code&gt;x-goog-if-metageneration-match: [metageneration]&lt;/code&gt; header.&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;If the update timestamp is older than the expiration timestamp then delete the object.
+        &lt;ul&gt;
+          &lt;li&gt;Use the &lt;code&gt;x-goog-if-metageneration-match: [metageneration]&lt;/code&gt; header.&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Otherwise, restart the algorithm from step 1 after an exponential backoff (potentially with an upper limit and jitter).&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id="releasing-the-lock"&gt;Releasing the lock&lt;/h3&gt;
+
+&lt;p&gt;Parameters:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Object URL&lt;/li&gt;
+  &lt;li&gt;Identity&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Steps:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Stop refreshing the lock in the background.&lt;/li&gt;
+  &lt;li&gt;Delete the lock object at the given URL.
+    &lt;ul&gt;
+      &lt;li&gt;Use the &lt;code&gt;x-goog-if-metageneration-match: [last known metageneration]&lt;/code&gt; header.&lt;/li&gt;
+      &lt;li&gt;Ignore the 412 Precondition Failed error, if any.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id="refreshing-the-lock"&gt;Refreshing the lock&lt;/h3&gt;
+
+&lt;p&gt;Parameters:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Object URL&lt;/li&gt;
+  &lt;li&gt;TTL&lt;/li&gt;
+  &lt;li&gt;Refresh interval&lt;/li&gt;
+  &lt;li&gt;Max number of times the refresh may fail consecutively&lt;/li&gt;
+  &lt;li&gt;Identity&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Every &lt;code&gt;refresh_interval&lt;/code&gt; seconds (until a lock release is requested, or until an unhealthy state is detected):&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Update the object metadata (which also updates the update timestamp).
+    &lt;ul&gt;
+      &lt;li&gt;Use the &lt;code&gt;x-goog-if-metageneration-match: [last known metageneration]&lt;/code&gt; header.&lt;/li&gt;
+      &lt;li&gt;Update the expiration timestamp metadata value, based on the TTL.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;If the operation succeeds, check the response, which contains the latest object metadata.
+    &lt;ol&gt;
+      &lt;li&gt;Take note of the latest metageneration number.&lt;/li&gt;
+      &lt;li&gt;If the identity does not equal our own, then declare that the lock is unhealthy.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+  &lt;li&gt;If the operation fails because the object does not exist or because of a 412 Precondition Failed error, then declare that the lock is unhealthy.&lt;/li&gt;
+  &lt;li&gt;If the operation fails for some other reason, then check whether this is the maximum number of times that we may fail consecutively. If so, then declare that the lock is unhealthy.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id="recommended-default-values"&gt;Recommended default values&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;TTL: 5 minutes&lt;/li&gt;
+  &lt;li&gt;Refresh interval: 37 seconds&lt;/li&gt;
+  &lt;li&gt;Max number of times the refresh may fail consecutively: 3&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id="lock-usage"&gt;Lock usage&lt;/h3&gt;
+
+&lt;p&gt;Steps:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Take the lock&lt;/li&gt;
+  &lt;li&gt;Try:
+    &lt;ul&gt;
+      &lt;li&gt;If applicable:
+        &lt;ul&gt;
+          &lt;li&gt;Check whether state is consistent, and fix it if it isn't&lt;/li&gt;
+          &lt;li&gt;Check whether lock is healthy, abort if not&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;Perform a part of the operation&lt;/li&gt;
+      &lt;li&gt;Check whether lock is healthy, abort if not&lt;/li&gt;
+      &lt;li&gt;…etc…&lt;/li&gt;
+      &lt;li&gt;If applicable: commit the operation's effects as atomically as possible&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Finally:
+    &lt;ul&gt;
+      &lt;li&gt;Release the lock&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id="conclusion"&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Distributed locks are very useful for ad-hoc system/cloud automation scripts and CI/CD pipelines. Or more generally, they're useful in any situation in which multiple systems may operate on the same state concurrently. Concurrent modifications may corrupt the state, so one needs a mechanism to ensure that only one system can modify the state at the same time.&lt;/p&gt;
+
+&lt;p&gt;Google Cloud Storage is a good system to build a distributed lock on, as long as you don't care about latency that much. By leveraging Cloud Storage's capabilities, we can build a robust distributed locking algorithm that's not too complex. What's more: it's cheap to operate, cheap to maintain, and can be used from almost anywhere.&lt;/p&gt;
+
+&lt;p&gt;The distributed locking algorithm proposed by this article builds upon existing algorithms found in other systems, and makes locking more robust.&lt;/p&gt;
+
+&lt;p&gt;Eager to use this algorithm in your next system or pipeline? Check out &lt;a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby"&gt;the Ruby implementation&lt;/a&gt;. In the near future I also plan on releasing implementations in other languages.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

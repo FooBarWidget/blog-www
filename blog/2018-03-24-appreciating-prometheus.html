@@ -1,0 +1,411 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>In appreciation of Prometheus&#x27; engineering &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Even though I rejected Prometheus as a choice in my last blog post about Netdata, I actually appreciate Prometheus&#x27; engineering quality. From its documentation it is apparent that the authors are very experienced on the subject and have thought through things.
+
+This post reviews some of the things that demonstrate that, namely their responses to the push vs pull debacle, the way they limit Prometheus&#x27; scope, the way their alerting system is designed and documented, and the way they treat storage.
+
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="In appreciation of Prometheus&#x27; engineering">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2018-03-24-appreciating-prometheus.html">
+    <meta property="og:description" content="Even though I rejected Prometheus as a choice in my last blog post about Netdata, I actually appreciate Prometheus&#x27; engineering quality. From its documentation it is apparent that the authors are very experienced on the subject and have thought through things.
+
+This post reviews some of the things that demonstrate that, namely their responses to the push vs pull debacle, the way they limit Prometheus&#x27; scope, the way their alerting system is designed and documented, and the way they treat storage.
+
+">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2018-03-24-appreciating-prometheus.html">In appreciation of Prometheus&#x27; engineering</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2018-03-24" itemprop="datePublished">Mar 24, 2018</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/devops.html">DevOps</a>, <a href="/blog/tags/prometheus.html">Prometheus</a>, <a href="/blog/tags/monitoring.html">Monitoring</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2018-03-24-appreciating-prometheus.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;stock-bg&#x2F;freepik-colorful-fac573ed.jpg"
+          style=""
+          title="Background vector created by Freepik"
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-24-appreciating-prometheus.html&amp;t=In%20appreciation%20of%20Prometheus%27%20engineering"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-24-appreciating-prometheus.html&amp;text=In%20appreciation%20of%20Prometheus%27%20engineering%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>Even though I rejected <a href="https://prometheus.io/">Prometheus</a> as a choice in my <a href="/blog/2018-03-22-netdata-simple-server-monitoring.html">last blog post about Netdata</a>, I actually appreciate Prometheus' engineering quality. From its documentation it is apparent that the authors are very experienced on the subject and have thought through things.</p>
+
+<p>This post reviews some of the things that demonstrate that, namely their responses to the push vs pull debacle, the way they limit Prometheus' scope, the way their alerting system is designed and documented, and the way they treat storage.</p>
+
+<p><strong></strong></p>
+
+<h2 id="push-vs-pull-and-the-myth-of-unscalability">Push vs pull and the myth of unscalability</h2>
+
+<p>Prometheus' pull model comes over as a bit unusual at first. Indeed, a Google search reveals that it is one of its most <a href="https://thenewstack.io/exploring-prometheus-use-cases-brian-brazil/">controversial</a> properties. There were myths about Prometheus' pull model being unscalable. However the Prometheus authors do a good job of <a href="https://prometheus.io/blog/2016/07/23/pull-does-not-scale-or-does-it/">dispelling this myth</a>, even for multiple definitions of "unscalable":</p>
+
+<ul>
+  <li>Some people think about how Nagios was unscalable, and that too was a pull system. The Prometheus authors explain why Nagios' scalability problems are caused by something else, namely its subprocess management model.</li>
+  <li>The Prometheus authors assert that no matter who initiates the connection, the payload is much bigger than the connection establishment overhead.</li>
+  <li>Some people think push is better because you can use UDP to avoid congestion. The Prometheus authors assert that the actual work being done, e.g. persisting metrics to disk, is still much bigger than the TCP/IP overhead. They also provide a back of the envelope calculation on how far you can push the pull model: you can monitor about 10000 machines with a single Prometheus server.</li>
+  <li>Some people are confused about Prometheus' scope, and think Prometheus also handles event-based data (more on that later). The authors state that, indeed, for those kinds of data a pull model would be unscalable, but Prometheus doesn't handle that kind of data.</li>
+  <li>
+    <p>Some people are worried about operational scalability, namely that the Prometheus server needs to know about all the targets. The Prometheus authors provide arguments on why knowing the targets is actually a good thing:</p>
+
+    <blockquote>
+      <p>"If your monitoring system doesn't know what the world should look like and which monitored service instances should be there, how would it be able to tell when an instance just never reports in, is down due to an outage, or really is no longer meant to exist?"</p>
+    </blockquote>
+  </li>
+</ul>
+
+<p>Prometheus' authors give <a href="https://prometheus.io/docs/introduction/faq/#why-do-you-pull-rather-than-push?">additional arguments</a> on why they think pull is "slightly better than push". From their FAQ and blog:</p>
+
+<ul>
+  <li>You can run your monitoring on your laptop when developing changes.</li>
+  <li>You can more easily tell if a target is down.</li>
+  <li>You can manually go to a target and inspect its health with a web browser.</li>
+  <li>You can replicate your monitoring by just running another Prometheus server, no need to reconfigure your targets.</li>
+  <li>Push makes it easier to take down the monitoring server by sending too much data.</li>
+</ul>
+
+<h2 id="scope">Scope</h2>
+
+<p>Monitoring is a big topic. It is easy to devolve into a jack-of-all-trades system with many features. Prometheus sets clear boundaries on its scope: it is only for aggregate time series data. The Prometheus authors define other kinds of monitoring data for the sake of defining their own scope:</p>
+
+<ul>
+  <li>Event-based data, where each individual event is reported, e.g. HTTP requests, exceptions.</li>
+  <li>Log data.</li>
+</ul>
+
+<h2 id="storage">Storage</h2>
+
+<p>Prometheus' <a href="https://prometheus.io/docs/prometheus/latest/storage/">storage engine</a> is simple yet well thought through. Its properties are clearly documented.</p>
+
+<p>It is also another example of limiting scope. The authors acknowledge that scalable storage is a very hard problem. Instead of trying to solve that by themselves, e.g. by providing features to replicate, shard and backup storage, they took the following approach:</p>
+
+<ul>
+  <li>They only wrote a <a href="https://prometheus.io/docs/prometheus/latest/storage/">"simple &amp; good enough" solution</a>. This covers the base case and is great for getting started.</li>
+  <li>They allow <a href="https://prometheus.io/docs/prometheus/latest/storage/#remote-storage-integrations">integration with multiple specialized storage solutions</a> if you really need scalability. For example InfluxDB or TimescaleDB.</li>
+</ul>
+
+<h2 id="alerting">Alerting</h2>
+
+<p><a href="https://prometheus.io/docs/alerting/overview/">The documentation about alerting</a> really shows off the Prometheus authors' experience in the department of alerting. They separate their alerting system into two parts:</p>
+
+<ul>
+  <li>The Prometheus server analyzes time series and generates alerts, which are sent to the Alertmanager.</li>
+  <li>The Alertmanager component performs grouping, silencing, inhibition and forwarding alerts to email, Slack, PagerDuty, etc.</li>
+</ul>
+
+<p>The documentation clearly explains what grouping, silencing and inhibition mean, why they are useful, and what they mean to the user. Additionally, the authors have also documented <a href="https://prometheus.io/docs/practices/alerting/">many alerting best practices</a>, with specific advise for different kinds of workloads.</p>
+
+<blockquote>
+  <p>"Aim to have <strong>as few alerts as possible</strong>, by alerting on symptoms that are associated with <strong>end-user pain</strong> rather than trying to catch every possible way that pain could be caused. Alerts should <strong>link to relevant consoles</strong> and make it easy to figure out which component is at fault. Allow for slack in alerting to accommodate small blips."</p>
+</blockquote>
+
+<h2 id="so-prometheus-is-awesome">So Prometheus is awesome</h2>
+
+<p>Now, if only they would have some sort of usable dashboard by default…</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-24-appreciating-prometheus.html&amp;t=In%20appreciation%20of%20Prometheus%27%20engineering"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2018-03-24-appreciating-prometheus.html&amp;text=In%20appreciation%20of%20Prometheus%27%20engineering%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

@@ -1,0 +1,830 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>Full-system dynamic tracing on Linux using eBPF and bpftrace &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="How do you debug an application, library or an entire system with multiple processes? One answer: tracing. An introduction into bpftrace, and an overview of the Linux tracing ecosystem (DTrace, eBPF, uprobes, etc).
+">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="Full-system dynamic tracing on Linux using eBPF and bpftrace">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html">
+    <meta property="og:description" content="How do you debug an application, library or an entire system with multiple processes? One answer: tracing. An introduction into bpftrace, and an overview of the Linux tracing ecosystem (DTrace, eBPF, uprobes, etc).
+">
+        <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2019/linux-tracing-cab6f169.png">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html">Full-system dynamic tracing on Linux using eBPF and bpftrace</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2019-01-31" itemprop="datePublished">Jan 31, 2019</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/linux.html">Linux</a>, <a href="/blog/tags/tracing.html">Tracing</a>, <a href="/blog/tags/operating-systems.html">Operating systems</a>, <a href="/blog/tags/debugging.html">Debugging</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2019&#x2F;usdt-tracepoints-90e8a430.png" type="image&#x2F;png">
+        <img
+          src="&#x2F;images&#x2F;2019&#x2F;usdt-tracepoints-90e8a430.png"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html&amp;t=Full-system%20dynamic%20tracing%20on%20Linux%20using%20eBPF%20and%20bpftrace"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html&amp;text=Full-system%20dynamic%20tracing%20on%20Linux%20using%20eBPF%20and%20bpftrace%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>Linux has two well-known tracing tools:</p>
+
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/Strace">strace</a> allows you to see what system calls are being made.</li>
+  <li><a href="https://en.wikipedia.org/wiki/Ltrace">ltrace</a> allows you to see what dynamic library calls are being made.</li>
+</ul>
+
+<p>Though useful, these tools are limited. What if you want to trace what happens inside a system call or library call? What if you want to do more than just logging calls, e.g. you want to compile statistics on certain behavior? What if you want to trace multiple processes and correlate data from multiple sources?</p>
+
+<p>In 2019, there's finally a decent answer to that on Linux: <a href="https://github.com/iovisor/bpftrace">bpftrace</a>, based on <a href="https://lwn.net/Articles/740157/">eBPF</a> technology. Bpftrace allows you to write small programs that execute whenever an event occurs.</p>
+
+<p>This article shows you how to setup bpftrace and teaches you its basic usage. I'll also give an overview of how the tracing ecosystem looks like (e.g. "what's eBPF?") and how it came to be what it is today.</p>
+
+<p><strong></strong></p>
+
+<p><strong>Table of contents</strong></p>
+
+<!-- MarkdownTOC autolink="true" -->
+
+<ul>
+  <li><a href="#what-is-tracing">What is tracing?</a></li>
+  <li><a href="#dtrace-the-father-of-tracing">DTrace: the father of tracing</a></li>
+  <li><a href="#the-linux-tracing-ecosystem">The Linux tracing ecosystem</a>
+    <ul>
+      <li><a href="#event-sources">Event sources</a></li>
+      <li><a href="#frontends">Frontends</a></li>
+      <li><a href="#ebpf">eBPF</a></li>
+      <li><a href="#the-dark-days-before-ebpf">The dark days before eBPF</a></li>
+    </ul>
+  </li>
+  <li><a href="#installing-bpftrace">Installing bpftrace</a>
+    <ul>
+      <li><a href="#installing-prerequisites">Installing prerequisites</a></li>
+      <li><a href="#main-bpftrace-installation">Main bpftrace installation</a></li>
+    </ul>
+  </li>
+  <li><a href="#one-liner-examples">One-liner examples</a></li>
+  <li><a href="#script-syntax--io-timing-example">Script syntax &amp; I/O timing example</a></li>
+  <li><a href="#usdt-probe-example">USDT probe example</a></li>
+  <li><a href="#glibc-ptmalloc-memory-arena-allocation-example">Glibc ptmalloc memory arena allocation example</a></li>
+  <li><a href="#what-trace-points-are-available-what-should-i-trace">What trace points are available? What should I trace?</a>
+    <ul>
+      <li><a href="#tip-kernel-tracepoint-structure-format">Tip: kernel tracepoint structure format</a></li>
+    </ul>
+  </li>
+  <li><a href="#conclusion">Conclusion</a></li>
+</ul>
+
+<!-- /MarkdownTOC -->
+
+<figure>
+    <a href="/images/2019/linux-tracing-cab6f169.png"><img src="/images/2019/linux-tracing-cab6f169.png" alt="" /></a>
+    <figcaption>How tracing works</figcaption>
+</figure>
+
+<h2 id="what-is-tracing">What is tracing?</h2>
+
+<p>As stated before, bpftrace allows you to write small programs that execute whenever an event occurs.</p>
+
+<ul>
+  <li>What's an event? It could be a system call, a function call, or even something that happens inside such a call. It could also be a timer or hardware event, e.g. "50ms has elapsed since last time", "a page fault occurred", "a context switch occurred" or "a CPU cache miss occurred".</li>
+  <li>What can you do in response to an event? You can log something, compile statistics and execute arbitrary shell commands. You will have access to a variety of context information such as the current PID, stack trace, time, call arguments, return value, etc.</li>
+  <li>What are the use cases? Lots. You can figure out why an app is slow by compiling a list of slowest calls. You can figure out whether (and why) there is a memory leak. I use it to figure out why Ruby is using so much memory.</li>
+</ul>
+
+<p>The great thing about bpftrace is that you don't need to recompile apps. No need to manually add print calls or other debugging code in the target app's source code. There isn't even a need to restart apps. All of this, with low overhead to boot. This makes bpftrace especially useful for debugging production systems, or in other scenarios where compiling is a problem.</p>
+
+<h2 id="dtrace-the-father-of-tracing">DTrace: the father of tracing</h2>
+
+<p>For a long time, the best answer to tracing is <a href="https://en.wikipedia.org/wiki/DTrace">DTrace</a>, a full-system dynamic tracing framework originally developed by Sun Microsystems (the inventors of Java). Just like bpftrace, DTrace allows one to write small programs that execute in response to events. In fact, bpftrace and many key pieces of the ecosystem are heavily contributed to by <a href="http://www.brendangregg.com/">Brendan Gregg</a>, a prominent expert on DTrace who now works at Netflix. Which explains the similarities between DTrace and bpftrace.</p>
+
+<figure>
+    <a href="https://www.slideshare.net/satyajit_t/solaris-dtrace-an-introduction"><img src="/images/2019/dtrace-40c050a3.jpg" alt="DTrace presentation" class="img-thumbnail img-smallwidth" /></a>
+    <figcaption><a href="https://www.slideshare.net/satyajit_t/solaris-dtrace-an-introduction">Solaris DTrace introduction (2009)</a> by S. Tripathi, Sun Microsystems</figcaption>
+</figure>
+
+<p>At some point, Sun open sourced DTrace. Today, DTrace is available in Solaris, FreeBSD, and macOS (though the macOS version is as good as defunct because System Integrity Protection broke many aspects of DTrace).</p>
+
+<p>You saw that right… Linux is absent from that list. It's not an engineering issue but a licensing issue. DTrace was licensed under the CDDL instead of GPL. A <a href="https://github.com/dtrace4linux/linux">port of DTrace to Linux</a> has been available since 2011, but it has never been adopted by the upstream Linux developers. Early 2018, <a href="https://gnu.wildebeest.org/blog/mjw/2018/02/14/dtrace-for-linux-oracle-does-the-right-thing/">Oracle relicensed DTrace under the GPL</a>, but by then it was already far too late.</p>
+
+<h2 id="the-linux-tracing-ecosystem">The Linux tracing ecosystem</h2>
+
+<p>There's no doubt that tracing is very useful, and so the Linux community sought to develop their own solutions. But unlike Solaris, Linux is not governed by a single vendor, and so there was no concentrated effort to develop a full-fledged DTrace alternative. Instead, the Linux tracing ecosystem grew slowly and organically, solving problems piecemeal. Only recently has the ecosystem grown to be a serious competitor to DTrace.</p>
+
+<p>Because of the organic growth, the ecosystem can feel a bit chaotic, consisting of many different components. Luckily, Julia Evans <a href="https://jvns.ca/blog/2017/07/05/linux-tracing-systems/">wrote an overview of the ecosystem</a> (note: 2017, bpftrace did not exist).</p>
+
+<figure>
+    <a href="https://drawings.jvns.ca/drawings/linux-tracing-1.png"><img src="https://drawings.jvns.ca/drawings/linux-tracing-1.png" class="img-thumbnail img-smallwidth" alt="Linux tracing ecosystem" /></a>
+    <figcaption>The Linux tracing ecosystem as described by Julia Evans</figcaption>
+</figure>
+
+<p>Not everything is equally important. Let me summarize what I think are the most important pieces.</p>
+
+<h3 id="event-sources">Event sources</h3>
+
+<p>Event data can come from the kernel or from userspace (apps and libraries). Some of them are automatically available without further upstream developer effort, others require manual annotations.</p>
+
+<figure>
+    <img src="/images/2019/linux-tracing-event-sources-table-da0068cf.png" alt="Overview of the most important Linux tracing event sources" />
+    <figcaption>Overview of the most important Linux tracing event sources</figcaption>
+</figure>
+
+<ul>
+  <li>
+    <p>On the kernel side, <strong>kprobes</strong> is the mechanism that allows tracing any function call inside the kernel. This way you can trace system calls, but also what happens inside system calls (because system call entrypoints call other internal functions). You can also use kprobes to trace non-syscall kernel events, e.g. "buffered data is being flushed to disk", "a TCP packet is being sent over the network" or "a context switch is now occurring".</p>
+
+    <p><strong>Kernel tracepoints</strong> allows tracing custom events that the kernel developers have defined. These events are not on the level of function calls. Kernel developers manually place <code>TRACE_EVENT</code> macros in the kernel code to define such tracepoints.</p>
+
+    <p>There are pros and cons to both. Kprobes work "automatically" because they do not require kernel developers to manually annotate their code, but kprobe events can change arbitrarily from kernel version to version because functions can be added, removed or renamed at any time.</p>
+
+    <p>Kernel tracepoints tend to stay more consistent over time, and can provide useful context information that may not be available in kprobes. With kprobes, one can access function call arguments. But with kernel tracepoints one can access any information the kernel developer decided to manually annotate.</p>
+  </li>
+  <li>
+    <p>On the userspace side, <strong>uprobes</strong> is like kprobes, but works on the userspace level. It's for tracing userspace function calls.</p>
+
+    <p><strong>USDT probes</strong> ("Userland Statically Defined Tracing") are like kernel tracepoints for userspace. App developers have to manually annotate their code with USDT probes.</p>
+
+    <p>An interesting trivia: DTrace has long provided a C API for defining the DTrace-equivalent of USDT probes (through the <code>DTRACE_PROBE</code> macro). The Linux tracing ecosystem developers decided to stay source-compatible with that API, so any <code>DTRACE_PROBE</code> macros are automatically converted to USDT probes!</p>
+  </li>
+</ul>
+
+<p>So in theory, strace can be implemented by using kprobes, and ltrace can be implemented using uprobes. I am unsure whether they already do that or not.</p>
+
+<h3 id="frontends">Frontends</h3>
+
+<p>Frontends are apps that allow users to easily make use of the event sources.</p>
+
+<p>Let's consider how the event sources work. They roughly operate like this:</p>
+
+<ol>
+  <li>The kernel exposes a mechanism – typically some /proc or /sys file that you can write to – to register an intent to trace an event and what should happen when an event occurs.</li>
+  <li>Once registered, the kernel looks up the location in memory of the kernel/userspace function/tracepoint/USDT-probe, and modifies its code so that something else happens.</li>
+  <li>The result of that "something else" can be collected later through some mechanism.</li>
+</ol>
+
+<p>You don't want to do all this by hand! So that's where frontends come in: they do all that stuff for you.</p>
+
+<p>Frontends come in many flavors. In the area of <a href="http://www.brendangregg.com/ebpf.html#frontends">eBPF-based frontends</a>, some are very low-level and require you to intimately understand how to interface with the event sources and how eBPF bytecode works. Others are high-level and easy-to-use, but historically such frontends have had limited flexibility.</p>
+
+<p>And that's why bpftrace – the newest frontend – is my favorite. It is easy <em>and</em> flexible, like DTrace. But it's quite new and so rough around the edges.</p>
+
+<h3 id="ebpf">eBPF</h3>
+
+<p><a href="https://lwn.net/Articles/740157/">eBPF</a> is <a href="https://jvns.ca/blog/2017/04/07/xdp-bpf-tutorial/">the new hotness in Linux tracing land</a> and is what powers bpftrace. So when you trace an event, you want "something" to happen in the kernel. How do you define what "something" is in a flexible way? Why, with a programming language (or, computer-science-equivalently, with some sort of machine code) of course.</p>
+
+<p>But what language, or what machine code? Native machine code is very dangerous, because when run by the kernel you can easily corrupt the kernel, bypass security, etc. Wouldn't it be nice if the language or machine code in question is limited in power (can only access safe portions of memory), and non-turing-complete (guaranteed to halt)?</p>
+
+<figure>
+    <img src="/images/2019/linux-tracing-hack-x86-292f13f5.png" alt="An attacker tells kernel to run some x86 code whenever a TCP packet is sent. The code then emails kernel secrets to the attacker." />
+    <figcaption>We don't want this to happen</figcaption>
+</figure>
+
+<p>Enter eBPF, short for <i>Extended Berkeley Packet Filter</i>. It's a high-performance virtual machine that runs in the kernel with the following properties/limitations:</p>
+
+<ul>
+  <li>All interactions with userspace happen through eBPF "maps" which are key-value stores.</li>
+  <li>There are no loops, so every eBPF program will finish within some bounded execution time.</li>
+</ul>
+
+<p>But wait, "packet filter"? Yep: this was originally developed for filtering network packets. It's a surprisingly similar problem: when a packet is received (an event occurred), you want to perform some sort of administrator-defined action (reject, drop, forward, log, etc). This has to be fast, and so a virtual machine (with optional JIT compilation) was invented. The "extended" part refers to the fact eBPF is an improvement on the original Berkeley Packet Filter, in the sense that it's usable outside a networking context.</p>
+
+<p>So there you go. With bpftrace you define what events to trace, and what should happen in response. Bpftrace compiles your high-level-bpftrace-language program to eBPF bytecode, listens on events and uploads the bytecode to the kernel.</p>
+
+<h3 id="the-dark-days-before-ebpf">The dark days before eBPF</h3>
+
+<p>Before eBPF entered the scene, the solutions were awkward, to say the least. <a href="https://sourceware.org/systemtap/">SystemTap</a> – which is sort-of the "most serious" Linux-land predecessor to bpftrace – compiles SystemTap scripts into C which in turn is compiled into a kernel module. That kernel module is then loaded.</p>
+
+<p>This approach was very fragile and was not well-supported outside of RHEL. I never got it to work well on Ubuntu, which had a tendency to break SystemTap on every kernel upgrade due to changing kernel data structures. It was also slow because on every invocation of SystemTap it had to compile a kernel module. It is also said that SystemTap in the early days <a href="https://news.ycombinator.com/item?id=16377856">easily caused kernel panics</a>.</p>
+
+<h2 id="installing-bpftrace">Installing bpftrace</h2>
+
+<p>Let's get our hands dirty! This tutorial teaches you to use bpftrace on <strong>Ubuntu 18.04</strong>. Newer Ubuntu versions are not recommended because we need to install some software for which packages have not been built for newer Ubuntu versions.</p>
+
+<h3 id="installing-prerequisites">Installing prerequisites</h3>
+
+<p>First, install Clang 7, libclang 7 and LLVM 7, including all development headers. We'll use packages provided by llvm.org because <a href="https://github.com/iovisor/bpftrace/issues/76">the ones in Ubuntu have an issue</a>.</p>
+
+<div class="highlight"><pre class="highlight shell"><code>wget <span class="nt">-O</span> - https://apt.llvm.org/llvm-snapshot.gpg.key | <span class="nb">sudo </span>apt-key add -
+<span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> | sudo tee -a /etc/apt/sources.list
+deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main
+deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main
+</span><span class="no">EOF
+</span><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>clang-7 libclang-7-dev llvm-7 llvm-7-dev
+</code></pre></div>
+<p>Next, install these:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>apt <span class="nb">install </span>bison cmake flex g++ git libelf-dev zlib1g-dev libfl-dev
+</code></pre></div>
+<p>Finally, install libbpfcc-dev from upstream packages instead of from the Ubuntu repository. The one in Ubuntu is <a href="https://github.com/iovisor/bpftrace/pull/335">missing a header</a>. This issue has not been fixed even in Ubuntu 18.10.</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>apt-key adv <span class="nt">--keyserver</span> keyserver.ubuntu.com <span class="nt">--recv-keys</span> 4052245BD4284CDD
+<span class="nb">echo</span> <span class="s2">"deb https://repo.iovisor.org/apt/</span><span class="si">$(</span>lsb_release <span class="nt">-cs</span><span class="si">)</span><span class="s2"> </span><span class="si">$(</span>lsb_release <span class="nt">-cs</span><span class="si">)</span><span class="s2"> main"</span> | <span class="nb">sudo tee</span> /etc/apt/sources.list.d/iovisor.list
+<span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>bcc-tools libbcc-examples linux-headers-<span class="si">$(</span><span class="nb">uname</span> <span class="nt">-r</span><span class="si">)</span>
+</code></pre></div>
+<h3 id="main-bpftrace-installation">Main bpftrace installation</h3>
+
+<p>Time to install bpftrace itself from source! Let's git clone it, compile it, and install it to /usr/local:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>git clone https://github.com/iovisor/bpftrace
+<span class="nb">cd </span>bpftrace
+<span class="nb">mkdir </span>build <span class="o">&amp;&amp;</span> <span class="nb">cd </span>build
+cmake <span class="nt">-DCMAKE_BUILD_TYPE</span><span class="o">=</span>DEBUG ..
+make <span class="nt">-j4</span>
+<span class="nb">sudo </span>make <span class="nb">install</span>
+</code></pre></div>
+<p>And you're done! The bpftrace binary will be in installed in /usr/local/bin/bpftrace. You can change the install location using an argument to cmake, where the default is <code>-DCMAKE_INSTALL_PREFIX=/usr/local</code>.</p>
+
+<h2 id="one-liner-examples">One-liner examples</h2>
+
+<p>Let's try running a few bpftrace one-liner programs to get a feel of what you can do. These are from <a href="https://github.com/iovisor/bpftrace/blob/master/docs/tutorial_one_liners.md">Brendan Gregg's One-Liners Tutorial</a>, which has more details on each.</p>
+
+<div class="highlight"><pre class="highlight shell"><code> <span class="c"># 1. Listing probes</span>
+bpftrace <span class="nt">-l</span> <span class="s1">'tracepoint:syscalls:sys_enter_*'</span>
+
+ <span class="c"># 2. Hello world</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'BEGIN { printf("hello world\n"); }'</span>
+
+ <span class="c"># 3. File opens</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:syscalls:sys_enter_open { printf("%s %s\n", comm, str(args-&gt;filename)); }'</span>
+
+ <span class="c"># 4. Syscall counts by process</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:raw_syscalls:sys_enter { @[comm] = count(); }'</span>
+
+ <span class="c"># 5. Distribution of read() bytes</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:syscalls:sys_exit_read /pid == 18644/ { @bytes = hist(args-&gt;retval); }'</span>
+
+ <span class="c"># 6. Kernel dynamic tracing of read() bytes</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'kretprobe:vfs_read { @bytes = lhist(retval, 0, 2000, 200); }'</span>
+
+ <span class="c"># 7. Timing read()s</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'kprobe:vfs_read { @start[tid] = nsecs; }
+    kretprobe:vfs_read /@start[tid]/ { @ns[comm] = hist(nsecs - @start[tid]); delete(@start[tid]); }'</span>
+
+ <span class="c"># 8. Count process-level events</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:sched:sched* { @[name] = count(); } interval:s:5 { exit(); }'</span>
+
+ <span class="c"># 9. Profile on-CPU kernel stacks</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'profile:hz:99 { @[stack] = count(); }'</span>
+
+ <span class="c"># 10. Scheduler tracing</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:sched:sched_switch { @[stack] = count(); }'</span>
+
+ <span class="c"># 11. Block I/O tracing</span>
+bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:block:block_rq_complete { @ = hist(args-&gt;nr_sector * 512); }'</span>
+</code></pre></div>
+<p>See Brendan Gregg's website to learn <a href="http://www.brendangregg.com/ebpf.html#bpftraceoneliners">what output the above commands can generate</a>.</p>
+
+<h2 id="script-syntax--io-timing-example">Script syntax &amp; I/O timing example</h2>
+
+<p>The string passed to '-e' is the bpftrace script's contents. The syntax is roughly a collection of:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>&lt;event source&gt; /&lt;optional filter&gt;/ { &lt;program body&gt; }
+</code></pre></div>
+<p>Let's deconstruct example #7, the one about timing filesystem I/O read operations:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>kprobe:vfs_read { @start[tid] = nsecs; }
+&lt;- 1 -&gt;&lt;-- 2 -&gt; &lt;---------- 3 ---------&gt;
+</code></pre></div>
+<ol>
+  <li>Trace an event from the <code>kprobe</code> mechanism, i.e. we're tracing the beginning of a kernel function.</li>
+  <li>The kernel function to trace is <code>vfs_read</code>, which is a function called when the kernel performs a read operation on a filesystem (VFS stands for "Virtual FileSystem", the filesystem abstraction framework in the kernel).</li>
+  <li>When <code>vfs_read</code> begins (i.e. before the function has done any work), the bpftrace program runs. It stores the current timestamp (in nanoseconds) into a global associative array variable named <code>@start</code>. The key used is <code>tid</code>, which refers to the current thread's ID.</li>
+</ol>
+
+<div class="highlight"><pre class="highlight plaintext"><code>kretprobe:vfs_read /@start[tid]/ { @ns[comm] = hist(nsecs - @start[tid]); delete(@start[tid]); }
+&lt;-- 1 --&gt; &lt;-- 2 -&gt; &lt;---- 3 ----&gt; &lt;----------------------------- 4 -----------------------------&gt;
+</code></pre></div>
+<ol>
+  <li>Trace an event from the <code>kretprobe</code> mechanism, which is like <code>kprobe</code> except it fires when the kernel function <em>returns</em>.</li>
+  <li>The kernel function to trace is <code>vfs_read</code>.</li>
+  <li>This is an optional filter. This checks whether the start time was previously recorded. Without this filter, this program may be run <em>during</em> a read and only catch the end, resulting in a time calculation of <code>nsecs - 0</code>, instead of <code>nsecs - start</code>.</li>
+  <li>
+    <p>The program body.</p>
+
+    <ul>
+      <li><code>nsecs - @start[tid]</code> calculates how much time was spent since the beginning of the <code>vfs_read</code> function.</li>
+      <li><code>@ns[comm] = hist(...)</code> adds the given data to a power-of-two histogram, which is stored in <code>@ns</code>. The key <code>comm</code> refers to the current app's command name. So we'll have a histogram on a per-command basis.</li>
+      <li><code>delete(...)</code> removes the start time from the associative array because we no longer need it.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>This is the final output. Note that all histograms are automatically printed. There is no need for an explicit 'print histogram' command. <code>@ns</code> is not a special variable so it is not the cause of the histogram being printed.</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>@ns[snmp-pass]:
+[0, 1]                 0 |                                                    |
+[2, 4)                 0 |                                                    |
+[4, 8)                 0 |                                                    |
+[8, 16)                0 |                                                    |
+[16, 32)               0 |                                                    |
+[32, 64)               0 |                                                    |
+[64, 128)              0 |                                                    |
+[128, 256)             0 |                                                    |
+[256, 512)            27 |@@@@@@@@@                                           |
+[512, 1k)            125 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@       |
+[1k, 2k)              22 |@@@@@@@                                             |
+[2k, 4k)               1 |                                                    |
+[4k, 8k)              10 |@@@                                                 |
+[8k, 16k)              1 |                                                    |
+[16k, 32k)             3 |@                                                   |
+[32k, 64k)           144 |@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@|
+[64k, 128k)            7 |@@                                                  |
+[128k, 256k)          28 |@@@@@@@@@@                                          |
+[256k, 512k)           2 |                                                    |
+[512k, 1M)             3 |@                                                   |
+[1M, 2M)               1 |                                                    |
+</code></pre></div>
+<h2 id="usdt-probe-example">USDT probe example</h2>
+
+<p>Let's take this sample C code and store it in <code>tracetest.c</code>:</p>
+
+<div class="highlight"><pre class="highlight cpp"><code> <span class="cp">#include</span> <span class="cpf">&lt;sys/sdt.h&gt;</span><span class="cp">
+</span> <span class="cp">#include</span> <span class="cpf">&lt;sys/time.h&gt;</span><span class="cp">
+</span> <span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp">
+</span> <span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span>
+<span class="k">static</span> <span class="kt">long</span>
+<span class="nf">myclock</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="nc">timeval</span> <span class="n">tv</span><span class="p">;</span>
+    <span class="n">gettimeofday</span><span class="p">(</span><span class="o">&amp;</span><span class="n">tv</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+    <span class="n">DTRACE_PROBE1</span><span class="p">(</span><span class="n">tracetest</span><span class="p">,</span> <span class="n">testprobe</span><span class="p">,</span> <span class="n">tv</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">tv</span><span class="p">.</span><span class="n">tv_sec</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span>
+<span class="n">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">while</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">myclock</span><span class="p">();</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This program loops infinitely, calling <code>myclock()</code> once a second. <code>myclock()</code> queries the current time and returns the number of seconds since epoch.</p>
+
+<p>The <code>DTRACE_PROBE1</code> call here defines a static USDT tracing point.</p>
+
+<ul>
+  <li>The <code>DTRACE_PROBE1</code> macro comes from <code>sys/sdt.h</code>. The official USDT macro that does the same thing is called <code>STAP_PROBE1</code> (<code>STAP</code> is for SystemTap, which is the first Linux mechanism that supported USDT). But since USDT is source-compatible with DTrace userland probes, <code>DTRACE_PROBE1</code> is simply an alias for <code>STAP_PROBE1</code>.</li>
+  <li>The 1st parameter is the <strong>provider name</strong>. I believe this is a leftover thing from DTrace, because bpftrace doesn't seem to do anything useful with it. However there is a <strong>caveat</strong> (which I <a href="https://github.com/iovisor/bpftrace/issues/328#issuecomment-459013046">discovered while debugging issue 328</a>): the provider name <em>must</em> be equal to the app binary's name, otherwise bpftrace cannot find this tracepoint.</li>
+  <li>The 2nd parameter is the tracepoint's own name.</li>
+  <li>Any additional parameters are developer-supplied context. The <code>1</code> in <code>DTRACE_PROBE1</code> means that we want to pass 1 additional parameter.</li>
+</ul>
+
+<p>Let's ensure sys/sdt.h is available, and compile the program:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>apt <span class="nb">install </span>systemtap-sdt-dev
+gcc tracetest.c <span class="nt">-o</span> tracetest <span class="nt">-Wall</span> <span class="nt">-g</span>
+</code></pre></div>
+<p>We instruct bpftrace to print the PID and "time is [number]" whenever <code>testprobe</code> is reached:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>bpftrace <span class="nt">-e</span> <span class="s1">'usdt:/full-path-to/tracetest:testprobe { printf("%d: time is %d\n", pid, arg0); }'</span>
+</code></pre></div>
+<p>Bpftrace keeps running until we press Ctrl-C. So open a new terminal and run <code>tracetest</code> in there:</p>
+
+<div class="highlight"><pre class="highlight shell"><code> <span class="c"># In a new terminal</span>
+./tracetest
+</code></pre></div>
+<p>Go back to the first terminal with bpftrace, and you should see something like:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>Attaching 1 probe...
+30909: time is 1549023215
+30909: time is 1549023216
+30909: time is 1549023217
+...
+^C
+</code></pre></div>
+<h2 id="glibc-ptmalloc-memory-arena-allocation-example">Glibc ptmalloc memory arena allocation example</h2>
+
+<p>I use bpftrace to research why Ruby uses so much memory. As part of my research, I need to understand how the glibc memory allocator uses <a href="https://sploitfun.wordpress.com/2015/02/10/understanding-glibc-malloc/">memory arenas</a>.</p>
+
+<p>In order to optimize multicore performance, the glibc memory allocator allocates multiple "arenas" from the OS. When the app asks the memory allocator to allocate memory, then the memory allocator picks an arena which is not in use, and marks a piece of that arena as "in use". By having threads use different arenas, lock contention is reduced, resulting in better multithreaded performance.</p>
+
+<p>But this approach can also result in a lot of waste, and it <em>appears</em> that this waste is what causes Ruby's memory usage to be so high. In order to better understand the nature of this waste, I asked myself: what does "picking an arena which is not in use" mean? It could mean one of:</p>
+
+<ol>
+  <li>On every <code>malloc()</code> call, the allocator iterates through all arenas, and picks one which is currently not locked. Only if everything is locked, will the allocator attempt to create a new arena.</li>
+  <li>On the first <code>malloc()</code> call of a specific thread (or when a thread starts), the allocator will pick a not-currently-locked arena. If everything is locked, the allocator attempts to create a new arena.</li>
+  <li>On the first <code>malloc()</code> call of a specific thread (or when a thread starts), the allocator attempts to create a new arena regardless of whether there is already an unlocked one. Only if the arena cannot be created (e.g. because the limit is reached) will it reuse an existing one.</li>
+  <li>There are probably more possibilities I haven't thought of.</li>
+</ol>
+
+<p>The literature isn't really clear which one of these possibilities it is. I dived into the glibc source code, which suggested that the behavior is 3. But I wanted to experimentally verify whether I interpreted the source code right, without having to insert debugging statements into glibc.</p>
+
+<p>This is the glibc memory allocator function that creates a new arena. It is only called after passing the limit checks.</p>
+
+<div class="highlight"><pre class="highlight cpp"><code><span class="k">static</span> <span class="n">mstate</span>
+<span class="nf">_int_new_arena</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">size</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">mstate</span> <span class="n">arena</span><span class="p">;</span>
+
+    <span class="n">size</span> <span class="o">=</span> <span class="n">calculate_how_much_memory_to_ask_from_os</span><span class="p">(</span><span class="n">size</span><span class="p">);</span>
+    <span class="n">arena</span> <span class="o">=</span> <span class="n">do_some_stuff_to_allocate_memory_from_os</span><span class="p">();</span>
+
+    <span class="n">LIBC_PROBE</span><span class="p">(</span><span class="n">memory_arena_new</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">arena</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+
+    <span class="n">do_more_stuff</span><span class="p">();</span>
+    <span class="k">return</span> <span class="n">arena</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Can we use <code>uprobes</code> to trace the <code>_int_new_arena</code> function? Unfortunately no. For whatever reason, this symbol is not accessible in Ubuntu 18.04's glibc. Not even after installing the debugging symbols.</p>
+
+<p>Luckily there is a USDT probe in that function. <code>LIBC_PROBE</code> is a macro that's an alias for <code>STAP_PROBE</code>.</p>
+
+<ul>
+  <li>The provider name is <code>libc</code>.</li>
+  <li>The probe name is <code>memory_arena_new</code>.</li>
+  <li>The 2 means that there are 2 additional developer-provided arguments.</li>
+  <li><code>arena</code> is the address of the arena that was allocated from the OS, and <code>size</code> is how big the arena is.</li>
+</ul>
+
+<p>Before we can use this probe, we need to <a href="https://github.com/iovisor/bpftrace/issues/328#issuecomment-459013046">work around issue 328</a>. We need to symlink glibc to a path whose basename is exactly <code>libc</code>, because bpftrace expects the library name (which would otherwise be <code>libc-2.27.so</code>) to be equal to the provider name (<code>libc</code>).</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">ln</span> <span class="nt">-s</span> /lib/x86_64-linux-gnu/libc-2.27.so /tmp/libc
+</code></pre></div>
+<p>Now we instruct bpftrace to attach to the USDT probe <code>memory_arena_new</code>, and whose provider name is <code>libc</code>:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>bpftrace <span class="nt">-e</span> <span class="s1">'usdt:/tmp/libc:memory_arena_new { printf("PID %d: created new arena at %p, size %d\n", pid, arg0, arg1); }'</span>
+</code></pre></div>
+<p>In another terminal, we run Ruby, telling it to create 3 threads that do nothing, then exit after 1 second. Due to Ruby's global interpreter lock, <code>malloc()</code> should not be called concurrently by different threads.</p>
+
+<div class="highlight"><pre class="highlight shell"><code>ruby <span class="nt">-e</span> <span class="s1">'3.times { Thread.new { } }; sleep 1'</span>
+</code></pre></div>
+<p>Going back to the bpftrace terminal, we see:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>Attaching 1 probe...
+PID 431: created new arena at 0x7f40e8000020, size 576
+PID 431: created new arena at 0x7f40e0000020, size 576
+PID 431: created new arena at 0x7f40e4000020, size 576
+</code></pre></div>
+<p>So this answers our question! Every time a new Ruby thread is created, glibc allocates a new arena regardless of contention.</p>
+
+<h2 id="what-trace-points-are-available-what-should-i-trace">What trace points are available? What should I trace?</h2>
+
+<p>You can list all the hardware, timer, kprobe and kernel static tracepoints by running:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>bpftrace <span class="nt">-l</span>
+</code></pre></div>
+<p>You can list all the uprobe tracepoints (function symbols) of an app or library by running:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>nm /path-to-binary
+</code></pre></div>
+<p>You can list all the USDT tracepoints of an app or library by running:</p>
+
+<div class="highlight"><pre class="highlight shell"><code>/usr/share/bcc/tools/tplist <span class="nt">-l</span> /path-to/binary
+</code></pre></div>
+<p>As for which tracepoints you should use: that requires some knowledge about the source code of the thing you want to trace. I recommend you to study the source code.</p>
+
+<h3 id="tip-kernel-tracepoint-structure-format">Tip: kernel tracepoint structure format</h3>
+
+<p>Here's a handy tip when tracing kernel tracepoints. You can inspect what argument fields are available by reading a file in /sys/kernel/debug/tracing/events!</p>
+
+<p>For example, suppose that you want to trace <code>madvise(..., MADV_DONTNEED)</code> calls:</p>
+
+<ol>
+  <li><code>sudo bpftrace -l | grep madvise</code> tells us that we can use the <code>tracepoint:syscalls:sys_enter_madvise</code>.</li>
+  <li>
+    <p><code>sudo cat /sys/kernel/debug/tracing/events/syscalls/sys_enter_madvise/format</code> gives us this:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>name: sys_enter_madvise
+ID: 569
+format:
+    field:unsigned short common_type;   offset:0;   size:2; signed:0;
+    field:unsigned char common_flags;   offset:2;   size:1; signed:0;
+    field:unsigned char common_preempt_count;   offset:3;   size:1; signed:0;
+    field:int common_pid;   offset:4;   size:4; signed:1;
+
+    field:int __syscall_nr; offset:8;   size:4; signed:1;
+    field:unsigned long start;  offset:16;  size:8; signed:0;
+    field:size_t len_in;    offset:24;  size:8; signed:0;
+    field:int behavior; offset:32;  size:8; signed:0;
+
+print fmt: "start: 0x%08lx, len_in: 0x%08lx, behavior: 0x%08lx", ((unsigned long)(REC-&gt;start)), ((unsigned long)(REC-&gt;len_in)), ((unsigned long)(REC-&gt;behavior))
+</code></pre></div>
+    <p>Madvise's signature according to the manual page is <code>(void *addr, size_t length, int advice)</code>. The last three fields in this struct correspond to those parameters!</p>
+  </li>
+  <li>
+    <p>What's MADV_DONTNEED's value? <code>grep MADV_DONTNEED /usr/include</code> tells us that it's 4:</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>/usr/include/x86_64-linux-gnu/bits/mman-linux.h:80:# define MADV_DONTNEED     4 /* Don't need these pages.  */
+</code></pre></div>  </li>
+</ol>
+
+<p>So, our bpftrace command becomes:</p>
+
+<div class="highlight"><pre class="highlight shell"><code><span class="nb">sudo </span>bpftrace <span class="nt">-e</span> <span class="s1">'tracepoint:syscalls:sys_enter_madvise /args-&gt;behavior == 4/ { printf("madvise DONTNEED called\n"); }'</span>
+</code></pre></div>
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Bpftrace is wonderful! Bpftrace is the future!</p>
+
+<p>If you want to learn more about it, then I recommend that you read its <a href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md">reference guide</a>, as well as <a href="http://www.brendangregg.com/blog/2019-01-01/learn-ebpf-tracing.html">Brendan Gregg's 2019 introductory blog post</a>.</p>
+
+<p>Happy debugging.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html&amp;t=Full-system%20dynamic%20tracing%20on%20Linux%20using%20eBPF%20and%20bpftrace"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2019-01-31-full-system-dynamic-tracing-on-linux-using-ebpf-and-bpftrace.html&amp;text=Full-system%20dynamic%20tracing%20on%20Linux%20using%20eBPF%20and%20bpftrace%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>

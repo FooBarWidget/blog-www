@@ -1,0 +1,789 @@
+
+
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv='X-UA-Compatible' content='IE=edge;chrome=1'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#f98521">
+
+    <title>A robust distributed locking algorithm based on Google Cloud Storage &ndash; Joyful Bikeshedding</title>
+    <link rel="alternate" type="application/atom+xml" title="Atom Feed" href="/feed.xml" />
+    <link href="/stylesheets/site-7224e35b.css" rel="stylesheet" />
+
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.css">
+
+    <noscript>
+        <link href="https://fonts.googleapis.com/css?family=Roboto:400,700,400italic|Roboto+Mono:400|PT+Sans:400,700|PT+Serif:400" rel="stylesheet">
+    </noscript>
+    <link rel="preconnect" href="http://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link rel="preconnect" href="https://ajax.googleapis.com" crossorigin>
+    <link rel="shortcut icon" href="/images/favicon-1b152eac.png" type="image/png" />
+
+        <meta name="description" content="Coordinate concurrent workloads with distributed locks! But how to build one that&#x27;s cheap, robust and maintenance-free? A proposed algorithm.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:title" content="A robust distributed locking algorithm based on Google Cloud Storage">
+    <meta property="og:site_name" content="Joyful Bikeshedding">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://www.joyfulbikeshedding.com/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html">
+    <meta property="og:description" content="Coordinate concurrent workloads with distributed locks! But how to build one that&#x27;s cheap, robust and maintenance-free? A proposed algorithm.">
+        <meta property="og:image" content="https://www.joyfulbikeshedding.com/images/2021/distributed-lock-arch.jpg">
+
+    
+</head>
+<body>
+
+    <header class="site-navbar site-navbar-small">
+    <div class="nav-hero-container" role="banner">
+        <a href="/" aria-hidden="true" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title"><a href="/" class="title-link">Joyful <br>Bikeshedding</a></div>
+            <div class="subtitle"><a href="/" class="title-link">CTO's take on coding<br>&amp; company building</a></div>
+        </div>
+    </div>
+
+    <nav class="nav-list-container">
+        <ul class="nav-list">
+            <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+        </ul>
+    </nav>
+</header>
+
+    <header class="site-navbar site-navbar-large" style="display: none">
+    <div class="nav-hero-container">
+        <a href="/" role="banner" class="logo-link"><img src="/images/avatar-b64f1ad5.png" srcset="/images/avatar-b64f1ad5.png 1x, /images/avatar@2x-693176a2.png 2x" class="logo" alt="Hongli Lai" /></a>
+
+        <div class="nav-text-container">
+            <div class="title" role="banner"><a href="/" class="title-link">Joyful Bikeshedding</a></div>
+            <div class="subtitle" role="banner"><a href="/" class="title-link">CTO's take on coding &amp; company building</a></div>
+            <nav class="nav-list-container">
+                <ul class="nav-list">
+                    <li class="nav-item">
+    <a class="nav-link" href="/">Blog</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/blog/tags/featured.html">Featured Posts</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/work_and_open_source.html">My Work</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/about.html">About</a>
+</li>
+<li class="nav-item nav-item-with-image">
+    <a href="/feed.xml" class="nav-link" title="RSS"><img src="/images/rss-8aadb988.svg" height="14" alt="RSS" /></a>
+</li>
+<!--
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://github.com/FooBarWidget" target="_blank"><img src="/images/github-button.svg" width="30" height="30" alt="Github" title="Github" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://twitter.com/honglilai" target="_blank"><img src="/images/twitter-button.svg" width="30" height="30" alt="Twitter" title="Twitter" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://www.linkedin.com/in/honglilai" target="_blank"><img src="/images/linkedin-button.svg" width="30" height="30" alt="LinkedIn" title="LinkedIn" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image">
+    <a class="site-nav-link" href="https://keybase.io/foobarwidget" target="_blank"><img src="/images/keybase-button.svg" width="30" height="30" alt="Keybase" title="Keybase" /></a>
+</li>
+<li class="site-nav-item site-nav-item-with-image site-nav-item-with-image-squared">
+    <a class="site-nav-link" href="mailto:hongli@hongli.nl"><img src="/images/email-button.svg" width="30" height="30" alt="Email" title="Email" /></a>
+</li>
+-->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+
+        <main class="main-container main-container-with-single-post">
+        <article class="post">
+            <header class="post-header">
+                <h1 itemprop="name headline" class="title"><a href="/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html">A robust distributed locking algorithm based on Google Cloud Storage</a></h1>
+
+                <div class="meta-container">
+                    <div class="author-avatar">
+                        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="50" height="50" class="author-profile-image" alt="Hongli Lai" /></a>
+                    </div>
+                    <div class="meta-main-area">
+                        <div class="author-display-name">
+                            <a href="/about.html" class="author-display-name-link">By Hongli Lai</a>
+                            <a href="https://twitter.com/honglilai" class="author-display-name-follow-button outline-button orange small">Follow on Twitter</a>
+                        </div>
+                        <ul class="meta-list">
+                            <li class="meta-item">
+                                <time datetime="2021-05-19" itemprop="datePublished">May 19, 2021</time>
+                            </li>
+                            <li class="meta-item">
+                                <a href="/blog/tags/development.html">Development</a>, <a href="/blog/tags/google-cloud.html">Google cloud</a>, <a href="/blog/tags/distributed-systems.html">Distributed systems</a>, <a href="/blog/tags/distributed-locking.html">Distributed locking</a>, <a href="/blog/tags/featured.html">Featured posts</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                    <a href="/blog/2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html" aria-hidden="true" class="post-banner">
+      <picture>
+        <source srcset="&#x2F;images&#x2F;2021&#x2F;distributed-locks-5f8223e9.jpg" type="image&#x2F;jpeg">
+        <img
+          src="&#x2F;images&#x2F;2021&#x2F;distributed-locks-5f8223e9.jpg"
+          style=""
+          title=""
+          class="bg">
+      </picture>
+    </a>
+            </header>
+
+            <div class="post-content">
+                <aside class="social-media-aside" aria-hidden="true">
+                    <ul class="social-media-area">
+                        <li class="social-button social-button-likebtn">
+                            <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html&amp;t=A%20robust%20distributed%20locking%20algorithm%20based%20on%20Google%20Cloud%20Storage"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                                <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html&amp;text=A%20robust%20distributed%20locking%20algorithm%20based%20on%20Google%20Cloud%20Storage%20%28via%20%40honglilai%29"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                                <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                            </a>
+                        </li>
+                        <li class="social-button">
+                            <a
+                            href="mailto:hongli@hongli.nl"
+                            class="social-button-link"
+                            target="_blank">
+                                <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                                <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                            </a>
+                        </li>
+                    </ul>
+                </aside>
+
+                <p>Many workloads nowadays involve many systems that operate concurrently. This ranges from microservice fleets to workflow orchestration to CI/CD pipelines. Sometimes it's important to coordinate these systems so that concurrent operations don't step on each other. One way to do that is by using <em>distributed locks</em> that work across multiple systems.</p>
+
+<p>Distributed locks used to require complex algorithms or complex-to-operate infrastructure, making them expensive both in terms of costs as well as in upkeep. With the emergence of fully managed and serverless cloud systems, this reality has changed.</p>
+
+<p>In this post I'll look into a distributed locking algorithm based on Google Cloud. I'll discuss several existing implementations and suggest algorithmic improvements in terms of performance and robustness.</p>
+
+<p><strong></strong></p>
+
+<p><strong>Update</strong>: there is now a <a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby">Ruby implementation</a> of this algorithm!</p>
+
+<h2 id="use-cases-for-distributed-locks">Use cases for distributed locks</h2>
+
+<p>Distributed locks are useful in any situation in which multiple systems may operate on the same state concurrently. Concurrent modifications may corrupt the state, so one needs a mechanism to ensure that only one system can modify the state at the same time.</p>
+
+<p>A good example is Terraform. When you store the Terraform state in the cloud, and you run multiple Terraform instances concurrently, then Terraform guarantees that only one Terraform instance can modify the infrastructure concurrently. This is done through a distributed lock. In contrast to a regular (local system) lock, a distributed lock works across multiple systems. So even if you run two Terraform instances on two different machines, then Terraform still protects you from concurrent modifications.</p>
+
+<p>More generally, distributed locks are useful for <strong>ad-hoc system/cloud automation scripts and CI/CD pipelines</strong>. Sometimes you want your script or pipeline to perform non-trivial modifications that take many steps. It can easily happen that multiple instances of the script or pipeline are run. When that happens, you don't want those multiple instances to perform the modification at the same time, because that can corrupt things. You can use a distributed lock to make concurrent runs safe.</p>
+
+<p>Here's a concrete example involving a CI/CD pipeline. <a href="https://fullstaqruby.org">Fullstaq Ruby</a> had an APT and YUM repository hosted on <a href="https://bintray.com/">Bintray</a>. A few months ago, Bintray announced that they will shutdown in the near future, so <a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition/blob/main/dev-handbook/apt-yum-repo.md">we had to migrate to a different solution</a>. We chose to self-host our APT and YUM repository on a cloud object store.</p>
+
+<figure>
+  <img src="/images/2021/distributed-lock-arch-9433f803.svg" alt="" />
+  <figcaption>The Fullstaq Ruby package publishing pipeline uses a distributed lock to guarantee concurrency-safety. Learn more: <a href="https://github.com/fullstaq-labs/fullstaq-ruby-server-edition/blob/main/dev-handbook/apt-yum-repo.md">Fullstaq Ruby's APT and YUM repository setup</a></figcaption>
+</figure>
+
+<p>APT and YUM repositories consist of a bunch of .deb and .rpm packages, plus a bunch of metadata. Package updates are published through Fullstaq Ruby's CI/CD system. This CI/CD system directly modifies multiple files on the cloud object store. We want this publication process to be <strong>concurrency-safe</strong> because if we commit too quickly then multiple CD/CD runs may occur at the same time. The easiest way to achieve this is by using a distributed lock, so that only one CI/CD pipeline may operate on the cloud object bucket concurrently.</p>
+
+<h2 id="why-building-on-google-cloud-storage">Why building on Google Cloud Storage?</h2>
+
+<p>Distributed locks used to be hard to implement. In the past they required complicated <a href="https://en.wikipedia.org/wiki/Consensus_(computer_science)">consensus protocols</a> such as <a href="https://en.wikipedia.org/wiki/Paxos_(computer_science)">Paxos</a> or <a href="https://en.wikipedia.org/wiki/Raft_(algorithm)">Raft</a>, as well as the hassle of hosting yet another service. See <a href="https://en.wikipedia.org/wiki/Distributed_lock_manager">Distributed lock manager</a>.</p>
+
+<p>In a more recent past, people started implementing distributed locks on top of other distributed systems, such as transactional databases and Redis. This significantly reduced the complexity of algorithms. But operational complexity was still significant. A big issue is that these systems aren't "serverless": operating and maintaining a database instance or a Redis instance is not cheap. It's not cheap in terms of effort. It's also not cheap in terms of costs: you pay for a database/Redis instance based on its uptime, not based on how many operations you perform.</p>
+
+<p>Luckily, there are many cloud systems nowadays which not only provide the building blocks necessary to build a distributed lock, but are also fully managed and serverless. Google Cloud Storage is a great system to build a distributed lock on. It's cheap, it's popular, it's highly available and it's maintenance-free. You only pay for the amount of operations you perform on it.</p>
+
+<h2 id="basic-challenges-of-distributed-locking">Basic challenges of distributed locking</h2>
+
+<p>One of the problems that distributed locking algorithms need to solve, is the fact that participants in the algorithm need to <strong>communicate</strong> with each other. Distributed systems may run in different networks that aren't directly connected.</p>
+
+<p>Another problem is that of <strong>concurrency control</strong>. This is made difficult by communication lag. If two participants request ownership of a lock simultaneously, then we want both of them to agree on a single outcome even though it takes time for each participant to hear the other.</p>
+
+<p>Finally, there is the problem of <strong>state consistency</strong>. When you write to a storage system, then next time you read from that system you want to read what you just wrote. This is called <em>strong consistency</em>. Some storage systems are <em>eventually consistent</em>, which means that it takes a while before you read what you just wrote. Storage systems that are eventually consistent are not suitable for implementing distributed locks.</p>
+
+<p>This is why we leverage Google Cloud Storage as both a communication channel, and as a "referee". Everyone can connect to Cloud Storage, and access control is simple and well-understood. Cloud Storage <a href="https://cloud.google.com/storage/docs/consistency">is also a strongly consistent system</a> and has <a href="https://cloud.google.com/storage/docs/generations-preconditions">concurrency control features</a>. This latter allows Cloud Storage to make a single, final decision in case two participants want to take ownership of the lock simultaneously.</p>
+
+<h2 id="building-blocks-generation-numbers-and-atomic-operations">Building blocks: generation numbers and atomic operations</h2>
+
+<p>Every Cloud Storage object has two separate <a href="https://cloud.google.com/storage/docs/generations-preconditions#_Generations">generation numbers</a>.</p>
+
+<ul>
+  <li>The normal generation number changes every time the object's data is modified.</li>
+  <li>The metageneration number changes every time the object's metadata is modified.</li>
+</ul>
+
+<p>When you perform a modification operation, you can use the <a href="https://cloud.google.com/storage/docs/xml-api/reference-headers#xgoogifgenerationmatch">x-goog-if-generation-match</a>/<a href="https://cloud.google.com/storage/docs/xml-api/reference-headers#xgoogifmetagenerationmatch">x-goog-if-metageneration-match</a> headers in the Cloud Storage API to say: "only perform this operation if the generation/metageneration equals this value". Cloud Storage guarantees that this effect is atomic and free of race conditions. These headers are called <strong>precondition headers</strong>.</p>
+
+<p>The special value 0 for x-goog-if-generation-match means "only perform this operation if the object does not exist".</p>
+
+<p>This feature — the ability to specify preconditions to operations — is key to concurrency control.</p>
+
+<h2 id="existing-implementations">Existing implementations</h2>
+
+<p>Several implementations of a distributed lock based on Google Cloud Storage already exist. A prominent one is <a href="https://github.com/mco-gh/gcslock">gcslock</a> by <a href="https://mco.dev/">Marc Cohen</a>, who works at Google. Gcslock leverages the <a href="https://cloud.google.com/storage/docs/xml-api/reference-headers#xgoogifgenerationmatch">x-goog-if-generation-match</a> header, as described in the previous section. Its algorithm is simple, as we'll discuss in the next section.</p>
+
+<p>Most other implementations, such as <a href="https://github.com/thinkingmachines/gcs-mutex-lock">gcs-mutex-lock</a> and <a href="https://github.com/XaF/gcslock-ruby">gcslock-ruby</a>, use the gcslock algorithm though with minor adaptations.</p>
+
+<p>I've been able to find one implementation that's significantly different and more advanced: HashiCorp Vault's leader election algorithm. Though it's not functionally meant to be used as a lock, technically it boils down to a lock. We'll discuss this algorithm in a later section.</p>
+
+<h2 id="gcslock-a-basic-locking-algorithm">Gcslock: a basic locking algorithm</h2>
+
+<p>The gcslock algorithm is as follows:</p>
+
+<ul>
+  <li>Taking the lock means creating an object with <code>x-goog-if-generation-match: 0</code>.
+    <ul>
+      <li>The content of the object does not matter.</li>
+      <li>If creation is successful, then it means we've taken the lock.</li>
+      <li>If creation fails with a 412 Precondition Failed error, then it means the object already exists. This means the lock was already taken. We retry later. The retry sleep time increases exponentially every time taking the lock fails.</li>
+    </ul>
+  </li>
+  <li>Releasing the lock means deleting the object.</li>
+</ul>
+
+<p>This algorithm is very simple. It is also relatively high-latency because Cloud Storage's response time is measured in tens to hundreds of milliseconds, and because it utilizes retries with exponential backoff. Relative high latency may or may not be a problem depending on your use case. It's probably fine for most batch operations, but it's probably unacceptable for applications that require pseudo-realtime responsiveness.</p>
+
+<p>There are bigger issues though:</p>
+
+<ul>
+  <li>
+    <p><strong>Prone to crashes</strong>. If a process crashes while having taken the lock, then the lock becomes stuck forever until an administrator manually deletes the lock.</p>
+  </li>
+  <li>
+    <p><strong>Hard to find out who the owner is</strong>. There is no administration about who owns the mutex. The only way to find out who owns the lock is by querying the processes.</p>
+  </li>
+  <li>
+    <p><strong>Unbounded backoff</strong>. The exponential backoff has no upper limit. If the lock is taken for a long time (e.g. because a process crashed during a lock) then the exponential backoff will grow unbounded. This means that an administrator may need to restart all sorts of processes, after having deleted a stale lock.</p>
+
+    <p><a href="https://github.com/thinkingmachines/gcs-mutex-lock">gcs-mutex-lock</a> and <a href="https://github.com/XaF/gcslock-ruby">gcslock-ruby</a> address this by setting an upper bound to the exponential backoff.</p>
+  </li>
+  <li>
+    <p><strong>Retry contention</strong>. If multiple processes start taking the lock at the same time, then they all back off at the same rate. This means that they end up retrying at the same time. This causes spikes in API requests towards Google Cloud Storage. This can cause network contention issues.</p>
+
+    <p><a href="https://github.com/thinkingmachines/gcs-mutex-lock">gcs-mutex-lock</a> addresses this by allowing adding jitter to the backoff time.</p>
+  </li>
+  <li>
+    <p><strong>Unintended releases</strong>. A lock release request may be delayed by the network. Imagine the following scenario:</p>
+
+    <ol>
+      <li>An administrator thinks the lock is stale, and deletes it.</li>
+      <li>Another process takes the lock.</li>
+      <li>The original lock release request now arrives, inadvertently releasing the lock.</li>
+    </ol>
+
+    <p>This sort of network-delay-based problem is even <a href="https://cloud.google.com/storage/docs/generations-preconditions#special-case">documented in the Cloud Storage documentation as a potential risk</a>.</p>
+  </li>
+</ul>
+
+<h2 id="resisting-stuck-locks-via-ttls">Resisting stuck locks via TTLs</h2>
+
+<p>One way to avoid stuck locks left behind by crashing processes, is by considering locks to be <strong>stale</strong> if they are "too old". We can use the timestamps that Cloud Storage manages, which change every time an object is modified.</p>
+
+<p>What should be considered "too old" really depends on the specific operation. So this should be a configurable parameter, which we call the <strong>time-to-live (TTL)</strong>.</p>
+
+<p>What's more, the same TTL value should be agreed upon by all processes. Otherwise we'll risk that a process thinks the lock is stuck even though the owner thinks it isn't. One way to ensure that all processes agree on the same TTL is by configuring them with the same TTL value, but this approach is error-prone. A better way is to store the TTL value into the lock object.</p>
+
+<p>Here's the updated locking algorithm:</p>
+
+<ol>
+  <li>Create the object with <code>x-goog-if-generation-match: 0</code>.
+    <ul>
+      <li>Store the TTL in a metadata header.</li>
+      <li>The content of the object does not matter.</li>
+    </ul>
+  </li>
+  <li>If creation is successful, then it means we've taken the lock.</li>
+  <li>If creation fails with a 412 Precondition Failed error (meaning the object already exists), then:
+    <ol>
+      <li>Fetch from its metadata the update timestamp, generation number and TTL.</li>
+      <li>If the update timestamp is older than the TTL, then delete the object, with <code>x-goog-if-generation-match: [generation]</code>. Specifying this header is important, because if someone else takes the lock concurrently (meaning the lock is no longer stale), then we don't want to delete that.</li>
+      <li>Retry the locking algorithm after an exponential backoff (potentially with an upper limit and jitter).</li>
+    </ol>
+  </li>
+</ol>
+
+<p>What's a good value for the TTL?</p>
+
+<ul>
+  <li>Cloud Storage's latency is relatively high, in the order of tens to hundreds of milliseconds. So the TTL should be at least a few seconds.</li>
+  <li>If you perform Cloud Storage operations via the <code>gsutil</code> CLI, then you should be aware that gsutil takes a few seconds to start. Thus, the TTL should be at least a few ten seconds.</li>
+  <li>A distributed lock like this is best suited for batch workloads. Such workloads typically take seconds to tens or even hundreds of seconds. Your TTL should be a safe multiple of the time your operation is expected to take. We'll discuss this further in the next section, "long-running operations".</li>
+</ul>
+
+<p>As a general rule, I'd say that a safe TTL should be in the order of minutes. It should be at least 1 minute. I think a <strong>good default is 5 minutes</strong>.</p>
+
+<h2 id="long-running-operations">Long-running operations</h2>
+
+<p>If an operation takes longer than the TTL, then another process could take ownership of the lock even though the original owner is still operating. Increasing the TTL addresses this issue somewhat, but this approach has drawbacks:</p>
+
+<ul>
+  <li>If the operation's completion time is unknown, then it's impossible to pick a TTL.</li>
+  <li>A larger TTL means that it takes longer for processes to detect stale locks.</li>
+</ul>
+
+<p>A better approach is to <strong>refresh</strong> the object's update timestamp regularly as long as the operation is still in progress. Keep the TTL relatively short, so that if the process crashes then it won't take too much time for others to detect the lock as stale.</p>
+
+<p>We implement refreshing via a <a href="https://cloud.google.com/storage/docs/json_api/v1/objects/patch">PATCH object API call</a>. The exact data to patch doesn't matter: we only care about the fact that Cloud Storage will change the update timestamp.</p>
+
+<p>We call the time between refreshes the <strong>refresh interval</strong>. A proper value for the refresh interval depends on the TTL. It must be much shorter than the TTL, otherwise refreshing the lock is pointless. Its value should take into consideration that a refresh operation is subject to network delays, or even local CPU scheduling delays.</p>
+
+<p>As a general rule, <strong>I recommend a refresh interval that's at most 1/8th of the TTL</strong>. Given a default TTL of 5 minutes, I recommend a <strong>default refresh interval of ~37 seconds</strong>. This recommendation takes into consideration that refreshes can fail, which we'll discuss in the next section.</p>
+
+<h2 id="refresh-failures">Refresh failures</h2>
+
+<p>Refreshing the lock can fail. There are two failure categories:</p>
+
+<ul>
+  <li>
+    <p><strong>Unexpected state</strong></p>
+
+    <ul>
+      <li>The lock object could have been unexpectedly modified by someone else.</li>
+      <li>The lock object could be unexpectedly deleted.</li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>Network problems</strong></p>
+
+    <ul>
+      <li>If this means that the refresh operation is arbitrarily delayed by the network, then we can end up refreshing a lock that we don't own. While this is unintended, it won't cause any real problems.</li>
+      <li>But if this means that the operation failed to reach Cloud Storage, and such failures persist, then the lock can become stale even though the operation is still in progress.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>How should we respond to refresh failures?</p>
+
+<ul>
+  <li>Upon encountering unexpected state, we should abort the operation immediately.</li>
+  <li>
+    <p>Upon encountering network problems, there's a chance that the failure is just temporary. So we should retry a couple of times. Only if retrying fails too many times consecutively do we abort the operation.</p>
+
+    <p>I think <strong>retrying 2 times</strong> (so 3 tries in total) is reasonable. In order to abort way before the TTL expires, the refresh interval must be shorter than 1/3rd of the TTL.</p>
+  </li>
+</ul>
+
+<p>When we conclude that we should abort the operation, we declare that the lock is in an <em>unhealthy state</em>.</p>
+
+<p>Aborting should happen in a manner that leaves the system in a consistent state. Furthermore, aborting takes time, so it should be initiated way before the TTL expires, and it's also another reason why in the previous section I recommended a refresh interval of 1/8th of the TTL.</p>
+
+<h2 id="dealing-with-inconsistent-operation-states">Dealing with inconsistent operation states</h2>
+
+<p>Aborting the operation could itself fail, for example because of network problems. This may leave the system in an inconsistent state. There are ways to deal with this issue:</p>
+
+<ul>
+  <li>
+    <p>Next time a process takes the lock, detect whether the state is inconsistent, and then deal with it somehow, for example by fixing the inconsistency.</p>
+
+    <p>This means that the operation must be written in such a way that inconcistency <em>can</em> be detected and fixed. Fixing arbitrary inconsistency is quite hard, so you should carefully design the operation's algorithm to limit <em>how</em> inconsistent a state can become.</p>
+
+    <p>This is a difficult topic and is outside the scope of this article. But you could take inspiration from how <a href="https://pages.cs.wisc.edu/~remzi/OSTEP/file-journaling.pdf">journaling filesystems work</a> to recover the filesystem state after a crash.</p>
+  </li>
+  <li>
+    <p>An easier approach that's sometimes viable, is to consider existing state to be immutable. Your operation makes a copy of the existing state, perform operations on the copy, then atomically (or at least nearly so) declare the copy as the new state.</p>
+  </li>
+</ul>
+
+<h2 id="detecting-unexpected-releases-or-ownership-changes">Detecting unexpected releases or ownership changes</h2>
+
+<p>The lock <em>could</em> be released, or its ownership <em>could</em> change, at any time. Either because of a faulty process or because of an unexpected administrator operation. While such things <em>shouldn't</em> happen, it's still a good idea if we are able to handle them somehow.</p>
+
+<p>When these things happen, we also say that the lock is in an <em>unhealthy state</em>.</p>
+
+<p>We make the following changes to the algorithm:</p>
+
+<ul>
+  <li>Right after having taken the lock, take note of its generation number.</li>
+  <li>When refreshing the lock, use the <code>x-goog-if-generation-match: &lt;last known generation number&gt;</code> header.
+    <ul>
+      <li>If it succeeds, take note of the new generation number.</li>
+      <li>If it fails because the object does not exist, then it means the lock was deleted. We abort the operation.</li>
+      <li>If it fails with a 412 Precondition Failed error, then it means the ownership unexpectedly changed. We abort the operation without releasing the lock.</li>
+    </ul>
+  </li>
+  <li>When releasing the lock, use the <code>x-goog-if-generation-match: &lt;last known generation number&gt;</code> header, so that we're sure we're releasing the lock we owned and not one that was taken over by another process. We can ignore any 412 Precondition Failed errors.</li>
+</ul>
+
+<h2 id="studying-hashicorp-vaults-leader-election-algorithm">Studying HashiCorp Vault's leader election algorithm</h2>
+
+<p><a href="https://www.vaultproject.io/">HashiCorp Vault</a> is a secrets management system. Its <a href="https://www.vaultproject.io/docs/concepts/ha">high availability setup</a> involves leader election. This is done by taking ownership of a distributed lock. The instance that succeeds in taking ownership is considered the leader.</p>
+
+<p>The leader election algorithm is implemented in <a href="https://github.com/hashicorp/vault/blob/cba7abc64e4d1cb20129b534e3b1a255fbc18977/physical/gcs/gcs_ha.go">physical/gcs/gcs_ha.go</a> and was originally written by <a href="https://twitter.com/sethvargo">Seth Vargo</a> at Google. This algorithm was also <a href="https://cloud.google.com/blog/topics/developers-practitioners/implementing-leader-election-google-cloud-storage">discussed</a> by <a href="https://twitter.com/ahmetb">Ahmet Alp Balkan</a> at the Google Cloud blog.</p>
+
+<figure>
+  <img src="/images/2021/hashicorp_vault-5d3cb5d7.svg" alt="HashiCorp Vault logo" class="img-xx-smallwidth" />
+  <figcaption><a href="https://www.vaultproject.io/">HashiCorp Vault</a>'s leader election protocol is actually also a distributed lock! We can draw many interesting lessons from it.</figcaption>
+</figure>
+
+<p>Here are the similarities between Vault's algorithm and what we've discussed so far:</p>
+
+<ul>
+  <li>Vault utilizes Cloud Storage's precondition headers to find out whether it was successful in taking a lock.</li>
+  <li>When Vault fails to take a lock, it also retries later until it suceeds.</li>
+  <li>Vault detects stale locks via a TTL.</li>
+  <li>Vault refreshes locks regularly. A Vault instance holds on to the lock as long as its willing to be the leader, so we can consider this to be a gigantic long-running operation, making lock refreshing essential.</li>
+  <li>Vault checks regurlarly whether the lock was unexpectedly released or changed ownership.</li>
+  <li>When Vault releases the lock, it also uses a precondition header to ensure it doesn't delete a lock that someone else took ownership of concurrently.</li>
+</ul>
+
+<p>Notable differences:</p>
+
+<ol>
+  <li>Vault checks whether the lock is stale, <em>before</em> trying to create the lock object. Whereas we check for staleness <em>after</em> trying to do so. Checking for staleness afterwards is a more optimistic approach. If the lock is unlikely to be stale, then checking afterwards is faster.</li>
+  <li>When Vault fails to take the lock, it backs off linearly instead of exponentially.</li>
+  <li>Instead of checking the generation number, and refreshing the lock by updating its data, Vault operates purely on <a href="https://cloud.google.com/storage/docs/metadata">object <em>metadata</em></a> because it's less costly to read frequently. This means the algorithm checks the <em>metageneration</em> number, and refreshes the lock by updating metadata fields.</li>
+  <li>Vault stores its unique instance identity name in the lock. This way administrators can easily find out who owns the lock.</li>
+  <li>Vault's TTL is a runtime configuration parameter. Its value is not stored in the object.</li>
+  <li>
+    <p>If Vault's leader election system crashes non-fatally (e.g. it detected an unhealthy lock, aborted, then tried again later from the same Vault instance), and the lock hasn't been taken over by another Vault instance at the same time, then Vault is able to retake the lock instantly.</p>
+
+    <p>In contrast, our approach so far requires waiting until the lock becomes stale per the TTL.</p>
+  </li>
+</ol>
+
+<p>I think points 3, 4 and 6 are worth learning from.</p>
+
+<h2 id="instant-recovery-from-stale-locks--thread-safety">Instant recovery from stale locks &amp; thread-safety</h2>
+
+<p>HashiCorp Vault's ability to retake the lock instantly after a non-fatal crash is worthy of further discussion. It's a desirable feature, but what are the implications?</p>
+
+<p>Upon closer inspection, we see that this feature works by assigning an <em>identity</em> to the lock object. This identity is a random string that's generated during Vault startup. When Vault attempts to take a lock, it checks whether the object already exists and whether its identity equals the Vault instance's own identity. If so, then Vault concludes that it's safe to retake the lock immediately.</p>
+
+<p><strong>This identity string must be chosen with some care</strong>, because it affects on the level of mutual exclusion. Vault generates a random identity string that's unique on a per-Vault-instance basis. This results in the lock being multi-process safe, but — perhaps counter-intuitively — not thread-safe!</p>
+
+<p>We can make the lock object thread-safe by including the thread ID in the identity as well. The tradeoff is that an abandoned lock can only be quickly recovered by the same thread that abandoned it in the first place. All other threads still have to wait for the TTL timeout.</p>
+
+<p>In the next section we'll put together everything we've discussed and learned so far.</p>
+
+<h2 id="putting-the-final-algorithm-together">Putting the final algorithm together</h2>
+
+<h3 id="taking-the-lock">Taking the lock</h3>
+
+<p>Parameters:</p>
+
+<ul>
+  <li>Object URL</li>
+  <li>TTL</li>
+  <li>An identity that's unique on a per-process basis, and optionally on a per-thread basis as well
+    <ul>
+      <li>Example format: "[process identity]". If thread-safety is desired, append "/[thread identity]".</li>
+      <li>Interpret the concept "thread" liberally. For example, if your language is single-threaded with cooperative multitasking using coroutines/fibers, then use the coroutine/fiber identity.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Steps:</p>
+
+<ol>
+  <li>Create the object at the given URL.
+    <ul>
+      <li>Use the <code>x-goog-if-generation-match: 0</code> header.</li>
+      <li>Set Cache-Control: no-store</li>
+      <li>Set the following metadata values:
+        <ul>
+          <li>Expiration timestamp (based on TTL)</li>
+          <li>Identity</li>
+        </ul>
+      </li>
+      <li>Empty contents.</li>
+    </ul>
+  </li>
+  <li>If creation is successful, then it means we've taken the lock.
+    <ul>
+      <li>Start refreshing the lock in the background.</li>
+    </ul>
+  </li>
+  <li>If creation fails with a 412 Precondition Failed error (meaning the object already exists), then:
+    <ol>
+      <li>Fetch from the object's metadata:
+        <ul>
+          <li>Update timestamp</li>
+          <li>Metageneration number</li>
+          <li>Expiration timestamp</li>
+          <li>Identity</li>
+        </ul>
+      </li>
+      <li>If step 1 fails because the object didn't exist, then restart the algorithm from step 1 immediately.</li>
+      <li>If the identity equals our own, then delete the object, and immediately restart the algorithm from step 1.
+        <ul>
+          <li>When deleting, use the <code>x-goog-if-metageneration-match: [metageneration]</code> header.</li>
+        </ul>
+      </li>
+      <li>If the update timestamp is older than the expiration timestamp then delete the object.
+        <ul>
+          <li>Use the <code>x-goog-if-metageneration-match: [metageneration]</code> header.</li>
+        </ul>
+      </li>
+      <li>Otherwise, restart the algorithm from step 1 after an exponential backoff (potentially with an upper limit and jitter).</li>
+    </ol>
+  </li>
+</ol>
+
+<h3 id="releasing-the-lock">Releasing the lock</h3>
+
+<p>Parameters:</p>
+
+<ul>
+  <li>Object URL</li>
+  <li>Identity</li>
+</ul>
+
+<p>Steps:</p>
+
+<ol>
+  <li>Stop refreshing the lock in the background.</li>
+  <li>Delete the lock object at the given URL.
+    <ul>
+      <li>Use the <code>x-goog-if-metageneration-match: [last known metageneration]</code> header.</li>
+      <li>Ignore the 412 Precondition Failed error, if any.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="refreshing-the-lock">Refreshing the lock</h3>
+
+<p>Parameters:</p>
+
+<ul>
+  <li>Object URL</li>
+  <li>TTL</li>
+  <li>Refresh interval</li>
+  <li>Max number of times the refresh may fail consecutively</li>
+  <li>Identity</li>
+</ul>
+
+<p>Every <code>refresh_interval</code> seconds (until a lock release is requested, or until an unhealthy state is detected):</p>
+
+<ol>
+  <li>Update the object metadata (which also updates the update timestamp).
+    <ul>
+      <li>Use the <code>x-goog-if-metageneration-match: [last known metageneration]</code> header.</li>
+      <li>Update the expiration timestamp metadata value, based on the TTL.</li>
+    </ul>
+  </li>
+  <li>If the operation succeeds, check the response, which contains the latest object metadata.
+    <ol>
+      <li>Take note of the latest metageneration number.</li>
+      <li>If the identity does not equal our own, then declare that the lock is unhealthy.</li>
+    </ol>
+  </li>
+  <li>If the operation fails because the object does not exist or because of a 412 Precondition Failed error, then declare that the lock is unhealthy.</li>
+  <li>If the operation fails for some other reason, then check whether this is the maximum number of times that we may fail consecutively. If so, then declare that the lock is unhealthy.</li>
+</ol>
+
+<h3 id="recommended-default-values">Recommended default values</h3>
+
+<ul>
+  <li>TTL: 5 minutes</li>
+  <li>Refresh interval: 37 seconds</li>
+  <li>Max number of times the refresh may fail consecutively: 3</li>
+</ul>
+
+<h3 id="lock-usage">Lock usage</h3>
+
+<p>Steps:</p>
+
+<ol>
+  <li>Take the lock</li>
+  <li>Try:
+    <ul>
+      <li>If applicable:
+        <ul>
+          <li>Check whether state is consistent, and fix it if it isn't</li>
+          <li>Check whether lock is healthy, abort if not</li>
+        </ul>
+      </li>
+      <li>Perform a part of the operation</li>
+      <li>Check whether lock is healthy, abort if not</li>
+      <li>…etc…</li>
+      <li>If applicable: commit the operation's effects as atomically as possible</li>
+    </ul>
+  </li>
+  <li>Finally:
+    <ul>
+      <li>Release the lock</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Distributed locks are very useful for ad-hoc system/cloud automation scripts and CI/CD pipelines. Or more generally, they're useful in any situation in which multiple systems may operate on the same state concurrently. Concurrent modifications may corrupt the state, so one needs a mechanism to ensure that only one system can modify the state at the same time.</p>
+
+<p>Google Cloud Storage is a good system to build a distributed lock on, as long as you don't care about latency that much. By leveraging Cloud Storage's capabilities, we can build a robust distributed locking algorithm that's not too complex. What's more: it's cheap to operate, cheap to maintain, and can be used from almost anywhere.</p>
+
+<p>The distributed locking algorithm proposed by this article builds upon existing algorithms found in other systems, and makes locking more robust.</p>
+
+<p>Eager to use this algorithm in your next system or pipeline? Check out <a href="https://github.com/FooBarWidget/distributed-lock-google-cloud-storage-ruby">the Ruby implementation</a>. In the near future I also plan on releasing implementations in other languages.</p>
+
+            </div>
+
+            <footer class="post-footer">
+                <div class="message-area">
+                    <h2 class="heading">Please encourage me to write more</h2>
+                    <p>
+                        What are your thoughts about this post? Please like this post or share feedback.
+                    </p>
+                </div>
+                <ul class="social-media-area">
+                    <li class="social-button social-button-likebtn">
+                        <span class="likebtn-wrapper" data-theme="custom" data-icon_l="hrt4" data-vert="true" data-show_like_label="false" data-dislike_enabled="false" data-icon_size="30" data-icon_l_c="#979797" data-icon_l_c_v="#fb3905" data-counter_clickable="true" data-share_enabled="false" data-popup_disabled="true"></span>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html&amp;t=A%20robust%20distributed%20locking%20algorithm%20based%20on%20Google%20Cloud%20Storage"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/ycombinator-64916da4.svg" width="30" height="30" class="social-button-hn inactive" alt="Discuss on Hacker News" title="Discuss on Hacker News" />
+                            <img src="/images/ycombinator-active-01d9a2bd.svg" width="30" height="30" class="social-button-hn active" alt="Discuss on Hacker News" title="Discuss on Hacker News" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.joyfulbikeshedding.com%2Fblog%2F2021-05-19-robust-distributed-locking-algorithm-based-on-google-cloud-storage.html&amp;text=A%20robust%20distributed%20locking%20algorithm%20based%20on%20Google%20Cloud%20Storage%20%28via%20%40honglilai%29"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/twitter-ecf1803d.svg" width="35" height="30" class="social-button-twitter inactive" alt="Share on Twitter" title="Share on Twitter" />
+                            <img src="/images/twitter-active-f21c8c7d.svg" width="35" height="30" class="social-button-twitter active" alt="Share on Twitter" title="Share on Twitter" style="display: none" />
+                        </a>
+                    </li>
+                    <li class="social-button">
+                        <a
+                        href="mailto:hongli@hongli.nl"
+                        class="social-button-link"
+                        target="_blank">
+                            <img src="/images/email-4f70f0ba.svg" width="35" height="26" class="social-button-email inactive" alt="Email me" title="Email me" />
+                            <img src="/images/email-active-d939fcaf.svg" width="35" height="26" class="social-button-email active" alt="Email me" title="Email me" style="display: none" />
+                        </a>
+                    </li>
+                </ul>
+            </footer>
+        </article>
+
+        <aside class="about-me-panel-container">
+            <div class="about-me-panel align-with-post-footer">
+    <div class="message-area">
+        <h2 class="heading">Hi, I'm Hongli Lai</h2>
+        <p>
+            I'm a software developer, consultant, CTO and entrepreneur. I mentor people to help them grow. For 20 years I’ve been building tools that make people happy. I believe that software development and work should be fun.
+        </p>
+        <p><a href="/about.html" class="outline-button orange">About Hongli</a></p>
+    </div>
+    <div class="image-area">
+        <a href="/about.html"><img src="/images/profile-3c15ec0c.jpg" width="128" height="128" class="profile-image" alt="Hongli Lai" /></a>
+    </div>
+</div>
+
+        </aside>
+    </main>
+
+    <script>(function(d,e,s){if(d.getElementById("likebtn_wjs"))return;a=d.createElement(e);m=d.getElementsByTagName(e)[0];a.async=1;a.id="likebtn_wjs";a.src=s;m.parentNode.insertBefore(a, m)})(document,"script","//w.likebtn.com/js/w/widget.js");</script>
+
+
+    <footer class="site-footer">
+        <div class="container">
+            <h2 class="heading">
+                    <span class="preamble">This was another episode of</span>
+                <span class="title">Joyful Bikeshedding</span>
+            </h2>
+            <div class="subscribe-action"><a href="/feed.xml" class="outline-button white prominent">subscribe by RSS</a></div>
+            <div class="social-media-follow-action"><a href="/about.html#contact">or check me out on social media</a></div>
+
+            <div class="legal-boilerplate">
+                <p>Twitter icon made by <a href="https://www.flaticon.com/authors/elegant-themes">Elegant Themes</a>, Github icon made by <a href="https://www.flaticon.com/authors/dave-gandy">Dave Gandy</a>. These are licensed by <a href="http://creativecommons.org/licenses/by/3.0/">CC 3.0 BY</a>.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!--
+      Unfortunately Google Fonts does not allow setting font-display.
+      Force loading of fonts using the 'font swap period' strategy.
+     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script>
+        WebFont.load({ google: { families: [
+            'Roboto:400,700,400italic',
+            'Roboto Mono:400',
+            'PT Sans:400,700',
+            'PT Serif:400'
+        ] } });
+    </script>
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-116211414-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'UA-116211414-1', { anonymize_ip: true });
+        </script>
+
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.0.3/cookieconsent.min.js"></script>
+        <script>
+        window.addEventListener("load", function(){
+        window.cookieconsent.initialise({
+          "palette": {
+            "popup": {
+              "background": "#efefef",
+              "text": "#404040"
+            },
+            "button": {
+              "background": "#F7A51A",
+              "text": "#ffffff"
+            }
+          },
+          "position": "bottom-right",
+          "content": {
+            "message": "This website uses cookies for anonymous visitor analytics."
+          }
+        })});
+        </script>
+</body>
+</html>
